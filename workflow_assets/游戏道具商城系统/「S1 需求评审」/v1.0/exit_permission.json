@@ -1,0 +1,63 @@
+{
+  "version": "v1.0",
+  "date": "2026-06-12",
+  "stage": "S1.5",
+  "upstream": {
+    "s1_verdict": "PASS",
+    "s1_score": 7.425,
+    "req_name": "游戏道具商城系统"
+  },
+  "exit_permission": {
+    "can_proceed_to_s2": true,
+    "quality_level": "MEDIUM",
+    "quality_summary": "P0全部填写，P1/P2全部填写，遗留2项未明确但不影响S2入口，整体质量中等",
+    "items_filled": {
+      "p0": 1,
+      "p1": 3,
+      "p2": 2
+    },
+    "items_total": {
+      "p0": 1,
+      "p1": 3,
+      "p2": 2
+    }
+  },
+  "fallback_rules": [
+    {
+      "trigger": "限时折扣与VIP折扣叠加规则",
+      "rule": "默认取最优价（min(限时折后价, VIP折后价)）；测试时需覆盖：限时折扣生效时叠加VIP折扣的边界场景，验证最终价格取两者最低",
+      "source": "derivation"
+    },
+    {
+      "trigger": "VIP等级时效（是否自动降级）",
+      "rule": "默认配置表定义即为永久有效，不自动降级；测试时需覆盖：配置表等级变更后已购玩家的折扣重新判定场景",
+      "source": "derivation"
+    }
+  ],
+  "s2_guidance": {
+    "priority_epics": ["CONFIG-VIP", "BIZ-PURCHASE"],
+    "risk_points": [
+      "汇率换算精度：角分四舍五入，订单锁定汇率时机",
+      "配置变更生效时机：VIP等级/促销/hot标签变更后实时生效",
+      "折扣叠加边界：限时折扣+VIP折扣的最优价判定逻辑"
+    ],
+    "open_questions": [
+      "限时折扣与VIP折扣叠加规则（L1）",
+      "VIP等级是否自动降级（L2）"
+    ]
+  },
+  "遗留项": [
+    {
+      "id": "L1",
+      "description": "限时折扣与VIP折扣叠加规则未明确：取最优（最低价）/叠加计算/不可叠加",
+      "impact": "F6 促销系统 — 结算逻辑",
+      "resolution": "由策划在配置表中设置优先级字段，S2拆解时为CONFIG-DISCOUNT生成带[fallback]标注的Story"
+    },
+    {
+      "id": "L2",
+      "description": "VIP等级是否按时长自动降级（到期后是否保留资格）",
+      "impact": "F5 VIP体系 — 等级管理",
+      "resolution": "由策划在配置表中设置等级时效字段，S2拆解时为CONFIG-VIP生成带[fallback]标注的Story"
+    }
+  ]
+}

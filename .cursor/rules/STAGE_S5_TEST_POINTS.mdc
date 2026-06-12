@@ -1,0 +1,157 @@
+---
+description: AIDocxWorkFlow Stage 5 — 测试点生成（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S5 — 测试点生成
+
+> **独立阶段**：可以单独调用。上游材料（S2 backlog）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s5-test-points` 或粘贴 S2 backlog
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story |
+
+**材料缺失时**：生成失败报告，停止 S5。
+
+---
+
+## 核心任务
+
+为每个 Story 生成测试点，覆盖 **7 模块系统**。
+
+### 7 模块测试类型
+
+| 模块 | 前缀 | 必须覆盖的测试类型 |
+|------|------|------------------|
+| CONFIG | 配置 | RELOAD_4_MODE、FIELD_LEGALITY、FIELD_INTRA_DEP、FIELD_CROSS_DEP |
+| UI | 界面 | CONTROL_EXISTENCE、LAYOUT、RESOLUTION_COMPAT、INTERACTION |
+| BIZ | 业务 | ACTIVITY_OPEN/CLOSE、PROTOCOL、ENTITY_CACHE、DB_PERSIST |
+| HINT | 提示 | RED_DOT、ITEM_FLOAT、CURRENCY_FLOAT、SYS_MSG |
+| LINK | 关联 | CORRELATION_TEST、REGRESSION_TEST |
+| SPECIAL | 特殊情境 | DUPLICATE_PACKET、HIGH_FREQ_PACKET、WEAK_NETWORK、SWITCH_TO_BACKGROUND |
+| LOG | 日志 | ASSET_CHANGE、PROGRESS_TRIGGER、ANOMALY |
+
+### 每个 Story 必须生成
+
+| 类型 | 数量 | 说明 |
+|------|------|------|
+| POSITIVE（正向） | ≥ 2 | 正常流程测试 |
+| BOUNDARY（边界值） | ≥ 2 | 边界条件测试 |
+| NEGATIVE（负向） | ≥ 1 | 异常输入测试 |
+| EXCEPTION（异常） | ≥ 1 | 系统异常处理测试 |
+
+### ID 格式
+
+`{StoryID}-TP-{3位序号}`，如 `UI-001-001-TP-001`
+
+---
+
+## 输入审查（门禁前置条件）
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| backlog.md 存在 | 必须 | 失败报告 |
+| Story 数量 ≥ 1 | 必须 | 失败报告 |
+| 每个 Story 有 acceptance_criteria | 建议有 | 自动填充默认 AC |
+| 每个 Story 有模块前缀 | 必须 | 纠正分配 |
+
+---
+
+## 输出规范
+
+### 成功产出
+
+`workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json`
+
+```json
+[
+  {
+    "story_id": "UI-001-001",
+    "module_coverage": {
+      "CONFIG": {"covered": false, "points": []},
+      "UI": {"covered": true, "points": []},
+      "BIZ": {"covered": false, "points": []},
+      ...
+    },
+    "scenario_test_points": [
+      {
+        "id": "UI-001-001-TP-001",
+        "module": "UI",
+        "type": "POSITIVE",
+        "title": "商城首页分类导航 — 正向流程",
+        "precondition": "玩家已登录系统，进入商城",
+        "test_input": "...",
+        "expected_result": "...",
+        "priority": "P1",
+        "regression": true
+      }
+    ],
+    "total_points": 6
+  }
+]
+```
+
+### 失败报告（S5 测试点失败）
+
+`workflow_assets/<req_name>/「S5 测试点生成」/<version>/fail_report_S5.md`
+
+```markdown
+# 测试点生成失败报告
+
+**阶段**: S5 测试点生成
+**日期**: YYYY-MM-DD
+
+## 失败原因
+
+（列出具体问题）
+
+## 后续动作
+
+[ ] 补充 backlog 后重新提交 S5
+```
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S2 需求拆解 | S6 测试用例生成 |
+
+S5 产出（test_points.json）作为 S6 的输入。
+
+---
+
+## 代码入口
+
+```python
+# 自动骨架生成（Python）
+from ai_workflow.test_case_formatter import compose_test_points_from_structure, _build_fallback_scenarios
+breakdown = {'epics': [...], '_version': 'v1.0'}
+skeleton = compose_test_points_from_structure(breakdown)
+# skeleton 中每个 Story 有 module + 真实测试点内容
+
+# AI 补充（对话模式）
+# 根据骨架生成 scenario_test_points
+
+# 保存
+from ai_workflow.conversation_skills import save_stage5_output
+save_stage5_output(version, breakdown, flowchart_text, raw_output, parsed, req_name)
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/test_point_gen.md`
+- 骨架引擎：`ai_workflow/test_case_formatter.py` → `compose_test_points_from_structure()`
+- 保存逻辑：`ai_workflow/conversation_skills.py` → `save_stage5_output()`
+- 输出目录：`workflow_assets/<req_name>/「S5 测试点生成」/<version>/`

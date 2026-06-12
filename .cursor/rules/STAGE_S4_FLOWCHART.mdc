@@ -1,0 +1,154 @@
+---
+description: AIDocxWorkFlow Stage 4 — 流程图导出（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S4 — 流程图导出
+
+> **独立阶段**：可以单独调用。上游材料（S2 backlog + S3 prototype）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s4-flowchart` 或粘贴 S2 backlog + S3 prototype
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story |
+| S3 prototype.md（可选） | `workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md` | 存在则作为参考 |
+
+**材料缺失时**：生成失败报告，停止 S4。
+
+---
+
+## 核心任务
+
+为每个 Epic 生成：
+
+1. **Mermaid 业务流程图**（Flowchart）
+2. **Mermaid 时序图**（Sequence Diagram）
+3. **异常/错误决策树**
+4. **风险点清单**
+
+### 流程图类型
+
+```mermaid
+flowchart TD
+    Start["玩家进入商城"] --> Browse["浏览道具"]
+    Browse --> Select["选择道具"]
+    Select --> Check["检查余额"]
+    Check -->|"不足"| Insuf["提示余额不足"]
+    Check -->|"充足"| Pay["选择支付"]
+    Pay --> End["购买成功/道具到账"]
+```
+
+```mermaid
+sequenceDiagram
+    Player->>ShopServer: 发起购买请求
+    ShopServer->>PaymentGateway: 验证支付
+    PaymentGateway-->>ShopServer: 支付成功
+    ShopServer->>Database: 扣除游戏币
+    ShopServer-->>Player: 道具到账
+```
+
+### 风险点
+
+- 竞态条件
+- 时间依赖
+- 状态损坏场景
+- 支付幂等性
+
+---
+
+## 输入审查（门禁前置条件）
+
+| 检查项 | 要求 |
+|--------|------|
+| backlog.md 存在 | 必须 |
+| Epic 数量 ≥ 1 | 必须 |
+| 每个 Epic 至少 1 个 Story | 必须 |
+
+---
+
+## 输出规范
+
+### 成功产出
+
+`workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md`
+
+```markdown
+# {需求名称} — 业务流程图
+
+## 1. 主业务流程
+
+```mermaid
+flowchart TD
+    ...
+```
+
+## 2. 时序图
+
+```mermaid
+sequenceDiagram
+    ...
+```
+
+## 3. 异常/错误决策树
+
+（每个分支点的正常路径 + 异常路径 + 回滚操作）
+
+## 4. 风险点
+
+- 风险1
+- 风险2
+```
+
+### 失败报告（S4 流程图失败）
+
+`workflow_assets/<req_name>/「S4 流程图导出」/<version>/fail_report_S4.md`
+
+```markdown
+# 流程图导出失败报告
+
+**阶段**: S4 流程图导出
+**日期**: YYYY-MM-DD
+
+## 失败原因
+
+...
+
+## 后续动作
+
+[ ] 补充 backlog 后重新提交 S4
+```
+
+---
+
+## 与其他阶段的衔接
+
+**上游**：S2 需求拆解、S3 原型导出（可选）
+
+**下游**：S5 测试点生成（强相关）、S6 测试用例生成（推荐参考）
+
+- **S5**：S4 产出（business_flow.md）作为 S5 的输入之一，特别是异常/错误决策树和风险点清单直接为 EXCEPTION 类型测试点提供输入
+- **S6**：S4 的异常决策树可补充 EXCEPTION 类用例的具体步骤和预期结果，时序图可确保用例步骤顺序与系统调用链路一致
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.conversation_skills import save_stage4_output
+save_stage4_output(version, breakdown, prototype_text, raw_output, req_name)
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/flowchart_export.md`
+- 保存逻辑：`ai_workflow/conversation_skills.py` → `save_stage4_output()`
+- 输出目录：`workflow_assets/<req_name>/「S4 流程图导出」/<version>/`

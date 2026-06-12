@@ -1,0 +1,182 @@
+---
+description: AIDocxWorkFlow Stage 8 — 自迭代（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S8 — 自迭代
+
+> **独立阶段**：可以单独调用。上游材料（S7 review_report + feedback_logs）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s8-self-iteration` 或粘贴 S7 审查报告
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S7 审查报告 | `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/review_report.json` | 存在 |
+| 执行反馈日志（可选） | `workflow_assets/feedback_logs/` | 存在则作为深度分析数据 |
+
+**材料缺失时**：生成失败报告，停止 S8。
+
+---
+
+## 核心任务
+
+分析历史执行数据，产出可执行的改进建议，并归档经验。
+
+### 分析维度
+
+| 维度 | 内容 |
+|------|------|
+| 缺陷模式分析 | 哪些测试用例持续漏检 bug？哪些用例频繁误报？ |
+| Prompt 有效性 | 哪些 prompt 产出高质量？哪些需要细化？ |
+| 覆盖率缺口 | 哪些类型的缺陷反复出现？是否缺少某类测试？ |
+| 改进建议 | 每个发现给出 Problem / Evidence / Fix / Expected Impact |
+
+### 归档机制（Stage 9 归档）
+
+将可复用的经验沉淀到知识库：
+
+| 归档位置 | 内容 |
+|----------|------|
+| `feedback_archive/rules/<Module>/通用补充点.md` | 按模块分类的通用测试点 |
+| `test_point_library/` | 新增测试点类型 |
+| `test_case_library/` | 新增用例模板 |
+
+---
+
+## 输入审查（门禁前置条件）
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| review_report.json 存在 | 必须 | 失败报告 |
+| overall_pass 字段存在 | 必须 | 失败报告 |
+
+---
+
+## 输出规范
+
+### 成功产出
+
+**迭代报告（Markdown）**：`workflow_assets/<req_name>/「S8 自迭代」/<version>/iteration.md`
+
+```markdown
+# 自迭代报告
+
+**版本**: v1.0
+**日期**: YYYY-MM-DD
+**基于**: S7 审查报告 + N 条执行反馈
+
+---
+
+## 1. 缺陷模式分析
+
+| 模式 | 频率 | 受影响模块 | 建议补充用例 |
+|------|------|------------|--------------|
+| 边界值漏检 | 3次 | BIZ | 奖励领取边界测试 |
+
+## 2. Prompt 改进建议
+
+| Prompt | 当前问题 | 建议修改 |
+|--------|----------|----------|
+| test_point_gen.md | 边界值指令模糊 | 明确列出游戏常见边界类型 |
+
+## 3. 覆盖率缺口
+
+- 并发测试用例不足
+- 数值精度测试缺失
+
+## 4. 归档摘要
+
+| 归档类型 | 数量 | 受影响模块 |
+|----------|------|------------|
+| 通用补充点 | 5 | BIZ, SPECIAL |
+| 测试点模板 | 2 | CONFIG, UI |
+| 用例模板 | 3 | LOG, BIZ |
+
+## 5. 下一轮迭代重点
+
+1. 重点改进 test_point_gen.md 的边界值指令
+2. 补充并发测试用例模板
+3. 更新 SPECIAL 模块的异常场景清单
+```
+
+**JSON 报告**：`workflow_assets/<req_name>/「S8 自迭代」/<version>/iteration.json`
+
+```json
+{
+  "iteration_number": 1,
+  "defect_patterns": [...],
+  "prompt_refinements": [...],
+  "new_test_types": ["performance_test", "security_test"],
+  "expected_metrics": {
+    "coverage_improvement": "+5%",
+    "false_negative_reduction": "-10%",
+    "defect_detection_rate": "92%"
+  },
+  "archive_summary": {
+    "triggered": true,
+    "total_archived": 10,
+    "modules_affected": ["BIZ", "SPECIAL", "CONFIG", "UI", "LOG"]
+  }
+}
+```
+
+### 失败报告（S8 自迭代失败）
+
+`workflow_assets/<req_name>/「S8 自迭代」/<version>/fail_report_S8.md`
+
+```markdown
+# 自迭代失败报告
+
+**阶段**: S8 自迭代
+**日期**: YYYY-MM-DD
+
+## 失败原因
+
+（列出具体问题）
+
+## 后续动作
+
+[ ] 补充 S7 审查报告后重新提交 S8
+```
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S7 用例审查 | 新版本流水线（使用归档经验） |
+
+S8 归档的经验自动注入下一版本的 S5/S6 prompt，提升用例质量。
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.self_iteration import analyze_and_iterate
+result = analyze_and_iterate(version, review_report, feedback_logs)
+# result['defect_patterns'] - 缺陷模式列表
+# result['prompt_refinements'] - prompt 改进建议
+# result['archive_summary'] - 归档摘要
+
+# 触发归档
+from ai_workflow.self_iteration import archive_experience
+archive_experience(result, version)
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/self_iteration.md`
+- 迭代引擎：`ai_workflow/self_iteration.py`
+- 反馈日志：`workflow_assets/feedback_logs/`
+- 归档目录：`workflow_assets/feedback_archive/rules/<Module>/`
+- 迭代报告：`workflow_assets/<req_name>/「S8 自迭代」/<version>/`

@@ -1,0 +1,79 @@
+---
+description: CodeGraph 结构缓存同步规范
+alwaysApply: true
+---
+
+# CodeGraph — 代码结构缓存同步规范
+
+## 核心概念
+
+CodeGraph 是 Cursor 内置的代码结构索引工具，提供毫秒级查询（866 个节点，47 个文件）。
+索引目录：`.codegraph/`（机器本地，gitignored）。
+
+## 自动同步
+
+文件变化后约 1 秒自动增量索引，由 Cursor 内置文件监听驱动。
+如需手动同步：
+
+```bash
+cd /Users/gleon/Documents/TestDev/AIDocxWorkFlow
+python3 workflow_assets/codegraph_sync.py --once
+```
+
+## 监听触发自动同步（需安装 watchdog）
+
+```bash
+pip3 install watchdog --break-system-packages
+python3 workflow_assets/codegraph_sync.py
+```
+
+监听目录：`ai_workflow/`、`workflow_assets/`、`requirements/`、`test_cases/`。
+防抖延迟：2 秒（防止频繁触发）。
+
+## 使用规范
+
+### 查询工具
+
+| 工具 | 用途 |
+|------|------|
+| `codegraph_context` | 了解符号上下文（首选） |
+| `codegraph_search` | 按名称查找符号 |
+| `codegraph_node` | 查看单个符号源码 |
+| `codegraph_explore` | 查看多个相关符号源码 |
+| `codegraph_trace` | 追踪数据/调用流（从→到，单次调用返回完整路径） |
+| `codegraph_callers` | 查找调用者 |
+| `codegraph_callees` | 查找被调用者 |
+| `codegraph_impact` | 评估影响范围 |
+
+### 正确的使用方式
+
+**架构/流程问题** → `codegraph_context` + `codegraph_explore`（2-3 次调用即可回答）
+
+**"X 是怎么工作的"** → `codegraph_context`（组合 search + node + callers + callees 一次返回）
+
+**"X 如何到达 Y"** → `codegraph_trace` from→to（一次调用返回完整路径，含动态分发 hops）
+
+**"这个改动会破坏什么"** → `codegraph_impact`
+
+### 错误的反模式
+
+- **不要先 grep 再 read** — codegraph 来自完整 AST 解析，比 grep 更准确更快
+- **不要循环调用 `codegraph_node`** — 用一次 `codegraph_explore` 批量返回
+- **不要用 `codegraph_search` + `codegraph_node` 组合代替 `codegraph_context`** — `codegraph_context` 一次完成
+
+## 索引状态
+
+索引延迟写入约 1 秒。如果响应提到"some files... edited since last index sync"，请直接 Read 该文件获取最新内容。
+
+## 监听触发条件
+
+当以下类型的文件发生变化时，自动触发 `codegraph init -i`：
+
+| 扩展名 | 说明 |
+|--------|------|
+| `.py` | Python 源文件（ai_workflow 所有阶段代码） |
+| `.md` / `.mdc` | 需求文档、提示词、规则文件 |
+| `.json` | 测试用例、配置、触发器数据 |
+| `.xlsx` | Excel 输出文件 |
+
+排除目录：`.git/`、`.cursor/`、`.codegraph/`、`__pycache__/`、`venv/`。

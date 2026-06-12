@@ -1,0 +1,381 @@
+---
+description: AIDocxWorkFlow Stage 2 — 需求拆解（深度拆解：Epic → Story → 需求对象 → 功能点，独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S2 — 需求拆解
+
+> **独立阶段**：可以单独调用。上游材料（S1.5 准出许可）审查合格后开始，失败写失败报告。
+>
+> **本版本核心升级**：拆解深度从「Epic/Story」一层扩展到完整的**需求对象级分解**，为 S3 迭代规划和 S5/S6 测试用例设计提供充足的执行物料。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s2-breakdown` 或粘贴 S1.5 准出许可路径
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| 终版需求.md | `workflow_assets/<req_name>/「S1 需求评审」/<version>/终版需求.md` | 存在且内容完整 |
+| S1.5 准出许可 | `workflow_assets/<req_name>/「S1 需求评审」/<version>/exit_permission.json` | 存在且 `can_proceed_to_s2 == true` |
+| clarification_checklist.md | `workflow_assets/<req_name>/「S1 需求评审」/<version>/clarification_checklist.md` | 状态为「已处理」 |
+
+**材料缺失或 `can_proceed_to_s2 == false` 时**：生成失败报告，停止 S2。
+
+---
+
+## 核心任务
+
+将需求拆解为 **Epic → Story → 需求对象 → 功能点** 四层结构：
+
+```
+Epic
+ └─ Story × N
+     └─ 需求对象 × M
+         ├─ 对象状态拆解（正常态 / 异常态 / 边界态）
+         ├─ 交互形态（界面操作 / API 调用 / 系统事件）
+         ├─ 业务逻辑（正常路径 / 判定分支 / 计算规则）
+         ├─ 异常业务边界（超限 / 空值 / 冲突 / 幂等）
+         ├─ 异常交互（超时 / 重试 / 降级 / 兜底）
+         ├─ 关联模块推理（CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG）
+         ├─ 日志与埋点（操作日志 / 业务事件 / 监控埋点）
+         └─ 关联协议（内部协议 / 外部 API / 数据同步协议）
+         └─ 功能点 × K
+             ├─ 分类维度（功能分类标签）
+             ├─ 分类边界（边界值 / 等价类 / 异常触发条件）
+             └─ 测试类型（正向 / 逆向 / 边界 / 异常）
+```
+
+---
+
+## 四层拆解规范
+
+### 第一层：Epic
+
+- 粒度：1-4 周交付的大特性分组
+- 格式：`{Module}-{Number}`，如 `CONFIG-001`
+- 每个 Epic 必须分配一个模块前缀（见 8 模块系统）
+- Epic 按 `priority_epics`（来自 exit_permission）排序，P0 优先
+
+### 第二层：Story
+
+- 粒度：1-3 人天，遵循 INVEST 原则
+- 格式：`{EpicID}-{StoryNumber}`，如 `CONFIG-001-001`
+- 必填字段：`id`、`title`、`acceptance_criteria`（至少2条）、`precondition`、`input_data`、`expected_output`
+- Story 是「需求对象」的逻辑容器，同一 Story 下的需求对象共享业务上下文
+
+### 第三层：需求对象
+
+- 粒度：每个 Story 拆出 1-5 个需求对象（按业务实体/页面/流程节点划分）
+- 每个需求对象是一个**独立的业务实体或交互单元**
+- 格式：`{StoryID}-OBJ-{N}`，如 `CONFIG-001-001-OBJ-1`
+
+**需求对象字段说明**：
+
+| 字段 | 说明 | 必须 |
+|------|------|------|
+| `对象名称` | 实体名称（如「VIP等级」「订单」「道具」） | ✅ |
+| `对象状态拆解` | 枚举所有可能的状态（含正常态、异常态、边界态），格式：状态名→触发条件→结果 | ✅ |
+| `交互形态` | 描述该对象的交互方式：界面操作（点击/输入/拖拽）/ API 调用 / 定时任务 / 系统事件 | ✅ |
+| `业务逻辑` | 正常业务流程描述：输入→处理规则→输出 | ✅ |
+| `异常业务边界` | 超限值、空值、并发冲突、幂等性等边界条件 | ✅ |
+| `异常交互` | 超时、重试、降级、兜底UI、网络异常等异常交互形态 | ✅ |
+| `关联模块推理` | 该对象涉及哪些模块（CONFIG/UI/BIZ/AUX/LINK/SPECIAL/LOG），标注主模块和辅助模块 | ✅ |
+| `日志与埋点` | 该对象的操作日志字段、业务事件埋点（格式：事件名→触发时机→字段列表） | ✅ |
+| `关联协议` | 涉及的内部接口/外部API/消息协议（协议名→调用方→接收方→关键字段） | ✅ |
+| `分类边界找不到时` | 如对某个分类边界无法确定，标注「【待确认】分类边界：XXX」，并提供候选方案 | 如有疑问则标注 |
+
+### 第四层：功能点
+
+- 功能点是需求对象的**具体可测试行为单元**
+- 每个需求对象拆出 3-8 个功能点
+- 格式：`{需求对象ID}-FP-{N}`，如 `CONFIG-001-001-OBJ-1-FP-1`
+
+**功能点字段说明**：
+
+| 字段 | 说明 | 必须 |
+|------|------|------|
+| `功能名称` | 简短描述该功能点 | ✅ |
+| `分类维度` | 按业务维度打标签（如「配置读取」「折扣计算」「界面展示」「支付」等） | ✅ |
+| `分类边界` | 该功能点的边界值/等价类/异常触发条件 | ✅ |
+| `测试类型` | 正向 / 逆向 / 边界 / 异常 四选一或组合 | ✅ |
+| `前置条件` | 执行该功能点的前置状态 | ✅ |
+| `输入` | 测试输入数据 | ✅ |
+| `预期输出` | 预期结果 | ✅ |
+| `优先级` | P0（核心流程）/ P1（重要分支）/ P2（边缘场景） | ✅ |
+
+**分类边界找不到时**：标注 `[待确认]` 并列出候选边界，写明不确定原因。
+
+---
+
+## S1.5 准出许可的读取与使用
+
+S2 执行前必须读取 `exit_permission.json`，根据其中字段调整拆解策略：
+
+### 1. fallback_rules — 保底规则消费
+
+`fallback_rules` 数组中的每条规则代表输入中存在的信息缺失，由 S2 在拆解时补充：
+
+| 字段 | 含义 |
+|------|------|
+| `trigger` | 触发条件（标识哪个字段/规则存在缺失） |
+| `rule` | S2 应补充的保底规则内容 |
+| `source` | `clarification`（来自人工澄清）/ `derivation`（AI推导）/ `default`（默认值） |
+
+**消费方式**：
+- 拆解时若遇到 `trigger` 所指的缺失字段，按 `rule` 内容补充
+- 保底规则生成的需求对象，需在字段中注明「来源：fallback」
+- 拆解完成后，统计本次应用的 fallback_rules 条数
+
+### 2. quality_level — 拆解深度调整
+
+| quality_level | 拆解策略 |
+|---------------|----------|
+| HIGH | 标准拆解：Epic → Story → 需求对象 → 功能点四层，按 8 模块前缀分配 |
+| MEDIUM | 标准拆解 + 优先处理 `s2_guidance.open_questions` 中的未决项，为其分配对应 Story |
+| LOW | 标准拆解 + 应用所有 `fallback_rules` + 重点标注遗留项，在 backlog 中为每个遗留项生成 `SPECIAL-XXX` Story 承接 |
+
+### 3. s2_guidance — 拆解引导
+
+| 字段 | 用途 |
+|------|------|
+| `priority_epics` | 建议优先拆解的 Epic，排在 backlog 前面 |
+| `risk_points` | 高风险区域，拆解时增加对应 Story 的边界测试覆盖 |
+| `open_questions` | 未决问题，在 backlog 中为每个问题生成 TODO Story 并标注「待确认」 |
+
+---
+
+## 8 模块系统
+
+| 模块 | 前缀 | 描述 |
+|------|------|------|
+| 配置 | CONFIG | 游戏数据配置表重载/字段校验/一致性 |
+| 界面 | UI | UI控件、纯前端交互、布局/兼容性 |
+| 业务 | BIZ | 核心业务逻辑、数据流、协议交互 |
+| 辅助 | AUX | 公共工具、网络层、资源管理 |
+| 关联 | LINK | 外部API、数据同步、多端一致性 |
+| 特殊情境 | SPECIAL | 边界情况、异常处理、反作弊安全 |
+| 日志 | LOG | 行为日志、审计追踪 |
+| 基础 | BASE | 未分类 Epics（尽量避免） |
+
+---
+
+## 输入审查（门禁前置条件）
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| exit_permission.json 存在 | 必须存在 | 生成失败报告 |
+| can_proceed_to_s2 == true | P0 反馈已填写 | 生成失败报告 |
+| 终版需求.md 存在 | 内容完整 | 生成失败报告 |
+| Epic 数量 | ≥ 1 | 生成失败报告 |
+| 每个 Story 有至少 2 条 AC | 必须满足 | 补充提示 |
+| 每个需求对象有完整的 9 个字段 | 对象状态/交互形态/业务逻辑/异常边界/异常交互/关联模块/日志埋点/关联协议/分类边界 | 标注缺失项 |
+| 模块前缀有效 | 来自 8 模块系统 | 纠正分配 |
+| 无循环依赖 | Story 依赖关系无环 | 标记风险 |
+| 功能点数量 | 每个需求对象 ≥ 3 个功能点 | 补充 |
+
+---
+
+## 输出规范
+
+### 成功产出
+
+| 文件 | 路径 |
+|------|------|
+| backlog.md（总览） | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` |
+| backlog.json（结构化数据） | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.json` |
+| **需求对象详细分解** | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/requirement_objects.md` |
+| **需求对象 JSON** | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/requirement_objects.json` |
+
+### backlog.md 结构
+
+```markdown
+# Requirement Backlog
+
+**Version**: v1.0
+**Date**: YYYY-MM-DD
+**Source**: S1.5 exit_permission (quality_level: HIGH | MEDIUM | LOW)
+**Fallback rules applied**: N / total
+
+## Epic & Story Summary
+
+- Epics: N
+- Stories: M
+- 需求对象总数: K
+- 功能点总数: L
+- Fallback Storys: X (marked with [fallback])
+- [待确认] 分类边界: Y (marked with [待确认])
+
+## Epic & Story 一览
+
+| Epic ID | 模块 | 名称 | 需求对象数 | 功能点数 | 估算 |
+|---------|------|------|-----------|---------|------|
+| ... | ... | ... | ... | ... | ... |
+
+## Epics & Stories
+
+### {EpicID}: {Title}
+**Module**: {Module} | **Estimated**: N weeks
+
+#### {StoryID}: {Title}
+**Acceptance Criteria:**
+- AC1: ...
+- AC2: ...
+
+**Precondition:** ...
+**Input:** ...
+**Expected Output:** ...
+
+**需求对象数**: N | **功能点数**: M
+
+（标注来源）
+- 来源：S1.5 fallback | clarification | original
+```
+
+### requirement_objects.md 结构（新增）
+
+```markdown
+# 需求对象详细分解
+
+**关联 Story**: {StoryID}
+**需求对象总数**: N
+**功能点总数**: M
+
+---
+
+## {需求对象ID}: {对象名称}
+
+**所属 Story**: {StoryID}
+**主模块**: {Module}
+**辅助模块**: {Module1}, {Module2}
+
+### 对象状态拆解
+
+| 状态名 | 触发条件 | 结果 |
+|--------|----------|------|
+| 正常态 | ... | ... |
+| 异常态 | ... | ... |
+| 边界态 | ... | ... |
+
+### 交互形态
+{描述交互方式}
+
+### 业务逻辑
+{正常业务流程}
+
+### 异常业务边界
+{边界条件}
+
+### 异常交互
+{异常交互形态}
+
+### 关联模块推理
+- 主模块: {主模块}
+- 辅助模块: {列表}
+
+### 日志与埋点
+
+| 事件名 | 触发时机 | 字段列表 |
+|--------|----------|----------|
+| ... | ... | ... |
+
+### 关联协议
+
+| 协议名 | 调用方 | 接收方 | 关键字段 |
+|--------|--------|--------|----------|
+| ... | ... | ... | ... |
+
+#### 功能点
+
+##### {功能点ID}: {功能名称}
+- **分类维度**: {分类标签}
+- **分类边界**: {边界描述}
+- **测试类型**: {正向/逆向/边界/异常}
+- **前置条件**: {前置条件}
+- **输入**: {输入数据}
+- **预期输出**: {预期结果}
+- **优先级**: P0 | P1 | P2
+
+---
+```
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S1.5 准出许可 | S2.5 迭代规划（使用 backlog.json + requirement_objects.json） |
+| S1.5 准出许可 | S3 原型导出（使用 requirement_objects 中的交互形态） |
+| S1.5 准出许可 | S5 测试点生成（使用功能点 + 分类边界 + 异常场景） |
+
+**S3 迭代规划物料**：
+- `backlog.json` → Epic 工时估算、Story 顺序、依赖关系
+- `requirement_objects.json` → 任务拆分、工时评估输入
+
+**S5/S6 测试用例物料**：
+- `requirement_objects.json` → 需求对象 9 个字段（尤其是异常边界、异常交互、日志埋点）
+- `requirement_objects.json` → 功能点（分类维度、分类边界、测试类型）
+
+---
+
+## 失败报告（S2 拆解失败）
+
+`workflow_assets/<req_name>/「S2 需求拆解」/<version>/fail_report_S2.md`
+
+```markdown
+# 需求拆解失败报告
+
+**阶段**: S2 需求拆解
+**日期**: YYYY-MM-DD
+**上游准出**: can_proceed={true|false}, quality_level={HIGH|MEDIUM|LOW}
+
+---
+
+## 失败原因
+
+（列出无法完成拆解的具体原因）
+
+---
+
+## 无法处理的 Epic / Story / 需求对象
+
+- ...
+
+## 分类边界待确认项
+
+- [ ] ...
+```
+
+---
+
+## 代码入口
+
+```python
+# 读取 S1.5 准出许可
+from ai_workflow.stage_s1_input import read_exit_permission
+
+permission = read_exit_permission(req_name="游戏道具商城系统", version="v1.0")
+# permission['exit_permission']['can_proceed_to_s2'] → bool
+# permission['fallback_rules'] → list
+# permission['quality_level'] → 'HIGH' | 'MEDIUM' | 'LOW'
+
+# 手动触发（对话模式）
+# AI 根据 exit_permission + 终版需求.md 生成 Epic/Story/需求对象/功能点
+
+# 自动保存（四文件）
+from ai_workflow.conversation_skills import save_stage2_output
+save_stage2_output(version, req_text, raw_output, parsed, req_name)
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/requirement_breakdown.md`
+- 保存逻辑：`ai_workflow/conversation_skills.py` → `save_stage2_output()`
+- 准出许可读取：`ai_workflow/stage_s1_input.py` → `read_exit_permission()`
+- 输出目录：`workflow_assets/<req_name>/「S2 需求拆解」/<version>/`

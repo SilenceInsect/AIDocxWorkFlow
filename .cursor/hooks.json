@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "prompt",
+        "prompt": "You are working in the AIDocxWorkFlow project. All workflow commands (wf_review_requirement, wf_break_down_requirement, etc.) are MCP tools available in the 'Available Tools' panel. Click them to invoke, or describe your intent in plain text and the AI will call the appropriate tool. Key tools: wf_full_flow (8-stage full pipeline), wf_simple_flow (4-stage quick pipeline), wf_review_requirement (Stage 1 - always start here)."
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": ".cursor/hooks/docx_hook.py",
+        "type": "command",
+        "timeout": 60
+      }
+    ],
+    "postMCPExecution": [
+      {
+        "command": ".cursor/hooks/billing_hook.py",
+        "type": "command",
+        "timeout": 30
+      }
+    ]
+  }
+}

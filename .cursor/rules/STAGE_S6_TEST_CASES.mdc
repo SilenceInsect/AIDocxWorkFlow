@@ -1,0 +1,166 @@
+---
+description: AIDocxWorkFlow Stage 6 — 测试用例生成（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S6 — 测试用例生成
+
+> **独立阶段**：可以单独调用。上游材料（S5 test_points.json）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s6-test-cases` 或粘贴 S5 test_points.json
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S5 test_points.json | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 存在且含 Story 列表 |
+| S2 backlog（参考） | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在则作为优先级参考 |
+
+**材料缺失时**：生成失败报告，停止 S6。
+
+---
+
+## 核心任务
+
+将 S5 测试点转化为 **详细可执行的测试用例**。
+
+### 用例格式（10 列）
+
+| 字段 | 说明 |
+|------|------|
+| 用例ID | `{Module}-TC-{NNN}`，如 `UI-TC-001` |
+| 模块 | UI / BIZ / CONFIG / LINK / SPECIAL / LOG / AUX |
+| 用例描述 | 测试对象（被测的具体需求条目） |
+| 功能描述 | 该需求对象所具备的功能/行为 |
+| 前置条件 | 系统状态要求（具体账号、等级、VIP 等） |
+| 操作步骤 | 编号步骤，每步精确描述（具体 UI 元素名称 + 具体数值） |
+| 预期结果 | 每步对应的可验证结果 |
+| 优先级 | P0（必须）/ P1（重要）/ P2（可选） |
+| 用例状态 | Draft / Ready / Deprecated |
+| 备注 | 边界条件、测试数据要求 |
+
+### 步骤写作规则
+
+✅ **正确**：`点击【购买】按钮，弹出订单确认对话框`
+❌ **错误**：`点击购买按钮` | `验证页面正常`
+
+- 每步必须包含具体 UI 元素名称或具体数值
+- 每步独立可验证（能判断该步通过/失败）
+- 最大 8 步，超过则拆分
+
+### 优先级判断
+
+| 优先级 | 适用场景 | 步骤详细程度 |
+|--------|----------|--------------|
+| P0 | 支付、购买、VIP折扣、促销、安全、日志 | 全量详细，含边界值 |
+| P1 | 普通业务逻辑、订单、邮件、权限 | 精简用例+核心测试点 |
+| P2 | 界面展示、搜索、分页、加载 | 核心测试点，不需要详细步骤 |
+
+---
+
+## 输入审查（门禁前置条件）
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| test_points.json 存在 | 必须 | 失败报告 |
+| Story 数量 ≥ 1 | 必须 | 失败报告 |
+| 每个 Story 有至少 1 个 scenario_test_point | 必须 | 失败报告 |
+| 模块前缀有效 | 必须 | 自动纠正 |
+
+---
+
+## 输出规范
+
+### 成功产出（3 个文件）
+
+1. **Markdown**：`「S6 测试用例生成」/<version>/test_cases.md`
+2. **JSON**：`「S6 测试用例生成」/<version>/test_cases.json`
+3. **Excel**：`「S6 测试用例生成」/<version>/test_cases.xlsx`（3 个 Sheet）
+
+```json
+[
+  {
+    "用例ID": "UI-TC-001",
+    "模块": "UI",
+    "用例描述": "商城道具分类展示",
+    "功能描述": "玩家进入商城首页，点击分类导航，商城按分类展示对应道具列表",
+    "前置条件": "1. 玩家已登录系统，进入商城",
+    "操作步骤": "1. 进入商城首页\n2. 点击分类导航\n3. 验证道具列表展示",
+    "预期结果": "1. 页面正确加载\n2. 分类切换成功\n3. 道具列表按分类展示",
+    "优先级": "P1",
+    "用例状态": "Draft",
+    "备注": ""
+  }
+]
+```
+
+### Excel Sheet 说明
+
+| Sheet | 内容 |
+|-------|------|
+| Sheet1 | 用例详情（含执行追踪列） |
+| Sheet2 | 执行追踪（按优先级批次组织） |
+| Sheet3 | 分层统计（P0/P1/P2 + 模块分布） |
+
+### 失败报告（S6 测试用例失败）
+
+`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/fail_report_S6.md`
+
+```markdown
+# 测试用例生成失败报告
+
+**阶段**: S6 测试用例生成
+**日期**: YYYY-MM-DD
+
+## 失败原因
+
+（列出具体问题）
+
+## 后续动作
+
+[ ] 补充 test_points.json 后重新提交 S6
+[ ] 直接提供已有测试用例，跳过 S6
+```
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S5 测试点生成 | S7 用例审查 |
+
+S6 产出（test_cases.xlsx/.json/.md）作为 S7 的输入。
+
+---
+
+## 代码入口
+
+```python
+# 自动格式化（Python）
+from ai_workflow.test_case_formatter import format_test_cases, compute_layered_stats
+cases, meta = format_test_cases(tp_list, breakdown, test_points, 'test_cases')
+
+# Excel 生成
+from ai_workflow.excel.test_case_writer import write_test_cases
+write_test_cases(cases, version, filename, metadata=meta)
+
+# 保存所有产出
+from ai_workflow.s6_report import generate_s6_report
+generate_s6_report(cases, version, req_name, filename, duration_s=0.0,
+                    s5_tp_count=total_tp, s5_output_path=tp_path, save=True)
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/test_case_gen.md`
+- 格式化引擎：`ai_workflow/test_case_formatter.py` → `format_test_cases()`
+- Excel 写入：`ai_workflow/excel/test_case_writer.py` → `write_test_cases()`
+- 报告生成：`ai_workflow/s6_report.py` → `generate_s6_report()`
+- 输出目录：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/`

@@ -1,0 +1,463 @@
+{
+  "version": "v1.0",
+  "date": "2026-06-12",
+  "stage": "S2",
+  "req_name": "游戏道具商城系统",
+  "quality_level": "MEDIUM",
+  "summary": {
+    "requirement_object_count": 10,
+    "feature_point_count": 68,
+    "pending_confirmation_count": 5
+  },
+  "requirement_objects": [
+    {
+      "id": "OBJ-001",
+      "name": "购买流程",
+      "story_id": "BIZ-PURCHASE",
+      "primary_module": "BIZ",
+      "secondary_modules": ["UI", "AUX", "LINK"],
+      "object_states": [
+        {"state": "待确认", "trigger": "玩家点击购买", "result": "展示确认弹窗"},
+        {"state": "余额不足", "trigger": "余额 < 所需金额", "result": "购买按钮禁用"},
+        {"state": "数量超限", "trigger": "数量 > 99", "result": "前端拦截"},
+        {"state": "支付中", "trigger": "扣款发起", "result": "显示支付状态"},
+        {"state": "支付成功", "trigger": "扣款完成", "result": "道具到账+邮件"},
+        {"state": "支付失败", "trigger": "扣款失败", "result": "余额回滚"},
+        {"state": "重复提交", "trigger": "支付中再次点击", "result": "前端禁用"}
+      ],
+      "interaction_forms": [
+        "界面操作: 购买按钮 → 确认弹窗 → 数量选择 → 确认支付",
+        "API调用: POST /api/purchase/confirm → POST /api/payment/deduct → POST /api/item/deliver",
+        "系统事件: 支付成功 → 道具到账 → 邮件发送 → 订单创建"
+      ],
+      "business_logic": "玩家ID+道具ID+数量+支付方式 → 校验登录态 → 校验道具可购买 → 校验余额 → 锁定汇率 → 计算价格(含折扣满减) → 扣款 → 道具到账 → 创建订单 → 异步邮件",
+      "exception_boundaries": [
+        {"scenario": "道具已下架", "handling": "拒绝购买"},
+        {"scenario": "余额刚好等于所需", "handling": "允许购买，余额归零"},
+        {"scenario": "并发购买限量道具", "handling": "超卖防护，仅一人成功"},
+        {"scenario": "数量为0或负数", "handling": "前端拦截+后端兜底拒绝"},
+        {"scenario": "到账失败", "handling": "回滚扣款"}
+      ],
+      "exception_interactions": [
+        {"type": "支付超时(>500ms)", "handling": "返回错误，提示重试"},
+        {"type": "网络断开", "handling": "禁用按钮，显示网络异常"},
+        {"type": "回调丢失", "handling": "后端轮询，5分钟无确认则退款"},
+        {"type": "渠道支付失败", "handling": "展示渠道错误信息"}
+      ],
+      "module_inference": {"primary": ["BIZ"], "secondary": ["UI", "AUX", "LINK", "LOG", "SPECIAL"]},
+      "logs_and_tracking": [
+        {"event": "purchase.initiated", "trigger": "点击购买", "fields": ["player_id", "item_id", "quantity", "timestamp"]},
+        {"event": "purchase.price_calculated", "trigger": "价格计算完成", "fields": ["item_id", "original_price", "final_price", "discount_detail"]},
+        {"event": "purchase.payment_started", "trigger": "扣款发起", "fields": ["order_id", "player_id", "amount", "payment_method"]},
+        {"event": "purchase.completed", "trigger": "购买成功", "fields": ["order_id", "player_id", "item_id", "quantity", "final_price"]},
+        {"event": "purchase.failed", "trigger": "购买失败", "fields": ["order_id", "player_id", "failure_reason", "error_code"]},
+        {"event": "item.delivered", "trigger": "道具到账", "fields": ["player_id", "item_id", "quantity", "order_id"]},
+        {"event": "email.notification_sent", "trigger": "邮件发送", "fields": ["order_id", "player_id", "email_status"]}
+      ],
+      "related_protocols": [
+        {"name": "PurchaseService.CreateOrder", "caller": "前端", "receiver": "购买服务", "fields": ["player_id", "item_id", "quantity", "channel"]},
+        {"name": "PaymentService.Deduct", "caller": "购买服务", "receiver": "支付服务", "fields": ["player_id", "amount", "currency", "order_id"]},
+        {"name": "ItemService.Deliver", "caller": "购买服务", "receiver": "道具服务", "fields": ["player_id", "item_id", "quantity"]},
+        {"name": "OrderService.Create", "caller": "购买服务", "receiver": "订单服务", "fields": ["order_id", "all order fields"]},
+        {"name": "EmailService.Send", "caller": "购买服务", "receiver": "邮件服务(异步)", "fields": ["player_id", "subject", "body", "order_id"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-001-FP-1", "name": "购买确认弹窗展示", "category": "购买流程", "boundary": "含折扣/不含折扣/数量=1/数量>1", "test_type": "正向+边界", "priority": "P0"},
+        {"id": "OBJ-001-FP-2", "name": "余额不足拦截", "category": "余额校验", "boundary": "余额=0/<价格/=价格/>价格", "test_type": "边界", "priority": "P0"},
+        {"id": "OBJ-001-FP-3", "name": "数量范围校验(1-99)", "category": "数量校验", "boundary": "=0/=1/=99/=100/=-1", "test_type": "边界+异常", "priority": "P1"},
+        {"id": "OBJ-001-FP-4", "name": "道具到账时效", "category": "到账时效", "boundary": "<1秒/<3秒/>3秒", "test_type": "正向+异常", "priority": "P0"},
+        {"id": "OBJ-001-FP-5", "name": "超时与重试", "category": "异常处理", "boundary": "超时=500ms/重试1-3次/幂等", "test_type": "异常", "priority": "P1"},
+        {"id": "OBJ-001-FP-6", "name": "支付幂等性", "category": "幂等校验", "boundary": "重复支付1次/3次/不同订单同金额", "test_type": "异常", "priority": "P0"},
+        {"id": "OBJ-001-FP-7", "name": "并发超卖防护", "category": "并发控制", "boundary": "顺序购买/并发抢购限量/超卖临界点", "test_type": "异常", "priority": "P1"},
+        {"id": "OBJ-001-FP-8", "name": "邮件通知字段完整性", "category": "邮件通知", "boundary": "字段完整/字段缺失/发送失败", "test_type": "正向+异常", "priority": "P1"}
+      ]
+    },
+    {
+      "id": "OBJ-002",
+      "name": "道具数据",
+      "story_id": "UI-SHOP",
+      "primary_module": "AUX",
+      "secondary_modules": ["UI", "CONFIG"],
+      "object_states": [
+        {"state": "正常展示", "trigger": "已上架未过期", "result": "正常展示"},
+        {"state": "折扣中", "trigger": "限时折扣生效", "result": "折扣标签+划线原价"},
+        {"state": "已下架", "trigger": "管理员下架", "result": "不展示"},
+        {"state": "缓存中", "trigger": "数据来自缓存", "result": "无网络请求"},
+        {"state": "VIP专属", "trigger": "道具标记为VIP专属", "result": "仅VIP可见"}
+      ],
+      "interaction_forms": [
+        "界面操作: 浏览首页 → 点击分类/搜索 → 查看列表 → 点击详情",
+        "API调用: GET /api/items, GET /api/items/{id}",
+        "系统事件: 配置变更 → 缓存失效 → hot标签变更 → 首页刷新"
+      ],
+      "business_logic": "玩家ID+分类ID+页码+关键词 → 检查缓存 → 筛选分类/搜索 → VIP可见性过滤 → 折扣计算 → 分页返回",
+      "exception_boundaries": [
+        {"scenario": "道具数量<20(最后一页)", "handling": "正常返回"},
+        {"scenario": "搜索关键词=1字符", "handling": "前端拦截，至少2字符"},
+        {"scenario": "搜索结果为空", "handling": "空列表+空状态"},
+        {"scenario": "热门道具=0个", "handling": "推荐区隐藏"},
+        {"scenario": "热门道具>10个", "handling": "截取前10"}
+      ],
+      "exception_interactions": [
+        {"type": "缓存失效时大量请求", "handling": "限流/排队加载"},
+        {"type": "配置表读取超时", "handling": "返回缓存旧数据或返回错误"},
+        {"type": "hot标签变更后前端未刷新", "handling": "强制刷新"}
+      ],
+      "module_inference": {"primary": ["UI", "AUX"], "secondary": ["CONFIG"]},
+      "logs_and_tracking": [
+        {"event": "item.viewed", "trigger": "查看详情", "fields": ["player_id", "item_id", "timestamp"]},
+        {"event": "item.search", "trigger": "搜索", "fields": ["player_id", "keyword", "result_count"]},
+        {"event": "cache.hit", "trigger": "缓存命中", "fields": ["item_id", "cache_age_seconds"]},
+        {"event": "cache.miss", "trigger": "缓存未命中", "fields": ["item_id", "reload_reason"]},
+        {"event": "hot_tag.changed", "trigger": "hot标签变更", "fields": ["item_id", "old_tag", "new_tag", "operator"]}
+      ],
+      "related_protocols": [
+        {"name": "ItemService.GetList", "caller": "前端", "receiver": "后端道具服务", "fields": ["category_id", "page", "page_size", "player_id"]},
+        {"name": "ItemService.GetDetail", "caller": "前端", "receiver": "后端道具服务", "fields": ["item_id", "player_id"]},
+        {"name": "ConfigService.GetItemConfig", "caller": "道具服务", "receiver": "配置服务", "fields": ["item_id"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-002-FP-1", "name": "道具列表分页展示", "category": "分页展示", "boundary": "每页20个/最后一页<20/第N页/空分类", "test_type": "正向+边界", "priority": "P0"},
+        {"id": "OBJ-002-FP-2", "name": "热门道具展示(前10)", "category": "热门推荐", "boundary": "=0/1-9/=10/>10个", "test_type": "正向+边界", "priority": "P1"},
+        {"id": "OBJ-002-FP-3", "name": "道具缓存刷新(5分钟)", "category": "缓存机制", "boundary": "<5分钟/=5分钟/>5分钟/配置变更", "test_type": "边界", "priority": "P1"},
+        {"id": "OBJ-002-FP-4", "name": "折扣标签展示", "category": "折扣展示", "boundary": "无折扣/限时/满减/VIP/多重叠加", "test_type": "正向", "priority": "P0"},
+        {"id": "OBJ-002-FP-5", "name": "道具搜索(模糊匹配)", "category": "搜索", "boundary": "1字符/2字符/>2字符/精确/模糊/无结果", "test_type": "正向+边界+异常", "priority": "P1"},
+        {"id": "OBJ-002-FP-6", "name": "VIP专属道具可见性过滤", "category": "权限控制", "boundary": "普通/VIP等级不足/等级足够/非VIP", "test_type": "边界+异常", "priority": "P0"}
+      ]
+    },
+    {
+      "id": "OBJ-003",
+      "name": "VIP配置",
+      "story_id": "CONFIG-VIP",
+      "primary_module": "CONFIG",
+      "secondary_modules": ["BIZ"],
+      "object_states": [
+        {"state": "永久有效", "trigger": "无时效配置", "result": "持续有效"},
+        {"state": "定时考核", "trigger": "当时效配置", "result": "到期判定"},
+        {"state": "变更中", "trigger": "策划修改配置表", "result": "实时生效"},
+        {"state": "等级不足", "trigger": "等级<道具要求", "result": "不可见不可买"}
+      ],
+      "interaction_forms": [
+        "界面操作: 策划登录配置后台 → 编辑VIP规则 → 保存配置",
+        "API调用: GET /api/vip/config, POST /api/vip/config",
+        "系统事件: 配置变更 → 全服生效 → 玩家登录拉取配置"
+      ],
+      "business_logic": "策划编辑VIP规则 → 保存触发全服生效 → 玩家登录拉取配置 → 购买时计算折扣",
+      "exception_boundaries": [
+        {"scenario": "配置缺失", "handling": "使用默认折扣(不打折)"},
+        {"scenario": "折扣比例>100%", "handling": "前端拦截+后端拒绝"},
+        {"scenario": "解锁条件为空", "handling": "该等级不可解锁"},
+        {"scenario": "满足多个条件", "handling": "第一个匹配条件为准"}
+      ],
+      "exception_interactions": [
+        {"type": "配置保存失败", "handling": "提示失败，配置不更新"},
+        {"type": "大量玩家同时在线", "handling": "异步下发"},
+        {"type": "购买中途VIP升级", "handling": "本次以购买时等级为准"}
+      ],
+      "module_inference": {"primary": ["CONFIG", "BIZ"], "secondary": ["UI"]},
+      "logs_and_tracking": [
+        {"event": "vip.config.updated", "trigger": "策划更新配置", "fields": ["operator", "vip_level", "old_config", "new_config"]},
+        {"event": "vip.player.upgraded", "trigger": "升级", "fields": ["player_id", "old_level", "new_level"]},
+        {"event": "vip.player.downgraded", "trigger": "降级", "fields": ["player_id", "old_level", "new_level"]},
+        {"event": "vip.discount.applied", "trigger": "折扣应用", "fields": ["player_id", "vip_level", "original_price", "discounted_price"]}
+      ],
+      "related_protocols": [
+        {"name": "VipService.GetConfig", "caller": "客户端", "receiver": "配置服务", "fields": []},
+        {"name": "VipService.UpdateConfig", "caller": "配置后台", "receiver": "配置服务", "fields": ["vip_levels", "discounts", "conditions"]},
+        {"name": "VipService.GetPlayerLevel", "caller": "购买服务", "receiver": "VIP服务", "fields": ["player_id"]},
+        {"name": "VipService.CalculateDiscount", "caller": "购买服务", "receiver": "VIP服务", "fields": ["vip_level", "original_price"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-003-FP-1", "name": "VIP折扣计算(VIP1/2/3)", "category": "折扣计算", "boundary": "VIP1=95折/VIP2=9折/VIP3=85折/非VIP", "test_type": "正向+边界", "priority": "P0"},
+        {"id": "OBJ-003-FP-2", "name": "VIP解锁条件判定", "category": "权限判定", "boundary": "满足消费/在线时长/持有道具/不满足", "test_type": "正向+逆向", "priority": "P1"},
+        {"id": "OBJ-003-FP-3", "name": "VIP配置实时生效", "category": "配置变更", "boundary": "折扣变更/条件变更/新增等级/删除等级", "test_type": "正向", "priority": "P1"},
+        {"id": "OBJ-003-FP-4", "name": "VIP折扣实时应用", "category": "折扣应用", "boundary": "购买中途升级/配置变更时已有VIP", "test_type": "异常", "priority": "P1"},
+        {"id": "OBJ-003-FP-5", "name": "折扣比例配置校验", "category": "配置校验", "boundary": "=0%/=50%/=100%/-10%/=150%", "test_type": "边界+异常", "priority": "P2"},
+        {"id": "OBJ-003-FP-6", "name": "VIP等级时效处理", "category": "时效管理", "boundary": "[待确认]永久/30天/90天/到期当天/到期次日", "test_type": "边界", "priority": "P1"},
+        {"id": "OBJ-003-FP-7", "name": "VIP专属道具可见性", "category": "权限过滤", "boundary": "[待确认]按最低等级/精确等级/等级范围", "test_type": "正向+逆向", "priority": "P0"},
+        {"id": "OBJ-003-FP-8", "name": "配置表读取一致性", "category": "数据一致性", "boundary": "单服/多服/热更新中/回滚", "test_type": "异常", "priority": "P2"}
+      ]
+    },
+    {
+      "id": "OBJ-004",
+      "name": "促销配置",
+      "story_id": "CONFIG-DISCOUNT",
+      "primary_module": "CONFIG",
+      "secondary_modules": ["BIZ", "UI"],
+      "object_states": [
+        {"state": "未开始", "trigger": "时间<开始时间", "result": "不展示折扣"},
+        {"state": "生效中", "trigger": "开始<=时间<=结束", "result": "折扣标签+折后价"},
+        {"state": "已结束", "trigger": "时间>结束时间", "result": "恢复原价"},
+        {"state": "配置变更", "trigger": "策划修改配置", "result": "实时生效"}
+      ],
+      "interaction_forms": [
+        "界面操作: 策划配置后台 → 新建/编辑促销 → 设置时间折扣",
+        "API调用: GET /api/promotion/active, POST /api/promotion",
+        "系统事件: 促销开始/结束事件, 配置变更事件"
+      ],
+      "business_logic": "策划配置促销 → 保存 → 定时检查状态 → 生效促销展示折扣 → 购买时计算折扣 → 满减最后执行",
+      "exception_boundaries": [
+        {"scenario": "促销时间重叠", "handling": "按优先级或叠加"},
+        {"scenario": "促销道具已下架", "handling": "促销配置仍有效但不可购买"},
+        {"scenario": "结束时间<开始时间", "handling": "后端校验拒绝保存"},
+        {"scenario": "满减金额>订单原价", "handling": "减免不超过原价"}
+      ],
+      "exception_interactions": [
+        {"type": "促销切换瞬间购买", "handling": "以购买发起时促销状态为准"},
+        {"type": "定时检查失效", "handling": "事件触发兜底"}
+      ],
+      "module_inference": {"primary": ["CONFIG", "BIZ", "UI"], "secondary": ["AUX"]},
+      "logs_and_tracking": [
+        {"event": "promotion.created", "trigger": "创建促销", "fields": ["promotion_id", "name", "start_time", "end_time"]},
+        {"event": "promotion.started", "trigger": "促销开始", "fields": ["promotion_id", "affected_items"]},
+        {"event": "promotion.ended", "trigger": "促销结束", "fields": ["promotion_id", "total_orders", "total_discount"]},
+        {"event": "promotion.discount.applied", "trigger": "折扣应用", "fields": ["order_id", "promotion_id", "discount_amount"]}
+      ],
+      "related_protocols": [
+        {"name": "PromotionService.Create", "caller": "配置后台", "receiver": "促销服务", "fields": ["promotion_config"]},
+        {"name": "PromotionService.GetActive", "caller": "前端/购买服务", "receiver": "促销服务", "fields": ["item_id", "current_time"]},
+        {"name": "PromotionService.Calculate", "caller": "购买服务", "receiver": "促销服务", "fields": ["item_id", "original_price", "vip_level"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-004-FP-1", "name": "促销配置创建与保存", "category": "配置管理", "boundary": "完整配置/缺结束时间/结束<开始/折扣超限", "test_type": "正向+异常", "priority": "P1"},
+        {"id": "OBJ-004-FP-2", "name": "限时折扣标签展示", "category": "UI展示", "boundary": "折扣中/未开始/已结束/多促销叠加", "test_type": "正向+边界", "priority": "P0"},
+        {"id": "OBJ-004-FP-3", "name": "促销时间状态切换", "category": "状态管理", "boundary": "未开始→生效中→已结束 临界点", "test_type": "边界", "priority": "P1"},
+        {"id": "OBJ-004-FP-4", "name": "满减活动计算", "category": "满减计算", "boundary": "=99元/=100元/=200元/>200元/多重叠加", "test_type": "正向+边界", "priority": "P1"},
+        {"id": "OBJ-004-FP-5", "name": "新手礼包资格判定", "category": "资格判定", "boundary": "第1天/第7天/第8天/已购买/未购买", "test_type": "正向+边界+异常", "priority": "P1"},
+        {"id": "OBJ-004-FP-6", "name": "新手礼包购买限制", "category": "购买限制", "boundary": "首次购买成功/重复购买第2次", "test_type": "正向+异常", "priority": "P1"},
+        {"id": "OBJ-004-FP-7", "name": "折扣叠加规则计算", "category": "折扣计算", "boundary": "[待确认]min最优/叠加/不可叠加", "test_type": "正向+异常", "priority": "P0"},
+        {"id": "OBJ-004-FP-8", "name": "多促销时间重叠处理", "category": "促销冲突", "boundary": "无重叠/时间重叠/优先级不同", "test_type": "异常", "priority": "P2"},
+        {"id": "OBJ-004-FP-9", "name": "促销配置热更新", "category": "配置更新", "boundary": "生效中修改/结束前修改/批量修改", "test_type": "边界", "priority": "P2"}
+      ]
+    },
+    {
+      "id": "OBJ-005",
+      "name": "订单数据",
+      "story_id": "BIZ-ORDER",
+      "primary_module": "BIZ",
+      "secondary_modules": ["UI"],
+      "object_states": [
+        {"state": "已完成", "trigger": "支付成功到账", "result": "计入购买记录"},
+        {"state": "进行中", "trigger": "支付发起未完成", "result": "显示进行中"},
+        {"state": "已取消", "trigger": "支付超时/失败", "result": "显示已取消"},
+        {"state": "已退款", "trigger": "退款通过", "result": "金额退还"}
+      ],
+      "interaction_forms": [
+        "界面操作: 订单管理页面 → 查看列表 → 点击详情",
+        "API调用: GET /api/orders, GET /api/orders/{id}"
+      ],
+      "business_logic": "玩家ID+时间范围+关键词 → 查询30天内订单 → 时间筛选 → 道具名搜索 → 分页返回",
+      "exception_boundaries": [
+        {"scenario": "订单数量=0", "handling": "返回空列表"},
+        {"scenario": "查询超出30天", "handling": "前端限制+后端兜底校验"},
+        {"scenario": "数据损坏", "handling": "部分返回+损坏标记"}
+      ],
+      "module_inference": {"primary": ["BIZ", "UI"], "secondary": []},
+      "logs_and_tracking": [
+        {"event": "order.created", "trigger": "订单创建", "fields": ["order_id", "player_id", "item_id", "quantity", "amount"]},
+        {"event": "order.completed", "trigger": "订单完成", "fields": ["order_id", "payment_time"]},
+        {"event": "order.refunded", "trigger": "订单退款", "fields": ["order_id", "refund_amount", "refund_time"]}
+      ],
+      "related_protocols": [
+        {"name": "OrderService.GetList", "caller": "前端", "receiver": "订单服务", "fields": ["player_id", "start_date", "end_date", "keyword", "page"]},
+        {"name": "OrderService.GetDetail", "caller": "前端", "receiver": "订单服务", "fields": ["order_id"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-005-FP-1", "name": "订单列表查询(30天)", "category": "数据查询", "boundary": "第29/30/31天边界", "test_type": "正向+边界", "priority": "P0"},
+        {"id": "OBJ-005-FP-2", "name": "订单时间范围筛选", "category": "筛选", "boundary": "<30天/=30天/>30天/开始>结束", "test_type": "正向+边界+异常", "priority": "P1"},
+        {"id": "OBJ-005-FP-3", "name": "订单道具名称搜索", "category": "搜索", "boundary": "精确匹配/模糊/特殊字符/无结果", "test_type": "正向+异常", "priority": "P1"},
+        {"id": "OBJ-005-FP-4", "name": "订单分页展示", "category": "分页", "boundary": "第1页/中间页/最后一页/无订单", "test_type": "正向+边界", "priority": "P1"},
+        {"id": "OBJ-005-FP-5", "name": "订单详情展示", "category": "详情展示", "boundary": "已完成/进行中/已取消/已退款", "test_type": "正向", "priority": "P0"},
+        {"id": "OBJ-005-FP-6", "name": "订单字段完整性", "category": "数据完整性", "boundary": "字段完整/缺失/重复/币种缺失", "test_type": "边界", "priority": "P1"},
+        {"id": "OBJ-005-FP-7", "name": "订单空列表展示", "category": "空状态", "boundary": "从未购买/筛选无结果/>30天", "test_type": "正向", "priority": "P2"}
+      ]
+    },
+    {
+      "id": "OBJ-006",
+      "name": "折扣计算",
+      "story_id": "CONFIG-DISCOUNT/BIZ-PURCHASE",
+      "primary_module": "BIZ",
+      "secondary_modules": ["CONFIG"],
+      "object_states": [
+        {"state": "原价", "trigger": "无折扣", "result": "显示原价"},
+        {"state": "限时折扣中", "trigger": "促销生效", "result": "折后价格"},
+        {"state": "VIP折扣中", "trigger": "VIP用户", "result": "VIP折后价"},
+        {"state": "多重折扣", "trigger": "限时+VIP同时", "result": "取最优价"}
+      ],
+      "interaction_forms": ["API调用: 购买服务调用折扣计算服务", "系统事件: 折扣计算完成后返回确认弹窗和结算"],
+      "business_logic": "原价+道具ID+玩家ID+时间 → 查询限时折扣 → 查询VIP折扣 → 限时折扣后价格 → VIP折扣后价格 → 取最优 → 满减 → 最终价格",
+      "exception_boundaries": [
+        {"scenario": "折扣=0(免费)", "handling": "允许，结果为0"},
+        {"scenario": "折扣后价格<0", "handling": "最低为0"},
+        {"scenario": "角分四舍五入不一致", "handling": "以分为最小单位"}
+      ],
+      "module_inference": {"primary": ["BIZ", "CONFIG"], "secondary": []},
+      "logs_and_tracking": [
+        {"event": "discount.calculated", "trigger": "折扣计算完成", "fields": ["item_id", "player_id", "original_price", "final_price", "discount_types"]}
+      ],
+      "related_protocols": [
+        {"name": "DiscountService.Calculate", "caller": "购买服务", "receiver": "折扣服务", "fields": ["item_id", "player_id", "original_price", "channel"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-006-FP-1", "name": "折扣计算正确性(基础)", "category": "计算正确性", "boundary": "无折扣/限时/满减/VIP/组合", "test_type": "正向", "priority": "P0"},
+        {"id": "OBJ-006-FP-2", "name": "汇率换算精度(角分四舍五入)", "category": "精度计算", "boundary": "=1.234元/=1.235元四舍五入/汇率=0", "test_type": "边界", "priority": "P0"},
+        {"id": "OBJ-006-FP-3", "name": "汇率锁定时机", "category": "汇率管理", "boundary": "下单时锁定/变更在支付前/变更在支付后", "test_type": "边界", "priority": "P0"},
+        {"id": "OBJ-006-FP-4", "name": "满减后折扣再应用", "category": "计算顺序", "boundary": "先折扣后满减/先满减后折扣/无折扣", "test_type": "正向", "priority": "P1"},
+        {"id": "OBJ-006-FP-5", "name": "折扣后价格为零", "category": "边界计算", "boundary": "折扣=100%", "test_type": "边界", "priority": "P2"},
+        {"id": "OBJ-006-FP-6", "name": "多重折扣最优价判定", "category": "最优价", "boundary": "[待确认]限时<VIP/限时>VIP/限时=VIP", "test_type": "正向+边界", "priority": "P0"},
+        {"id": "OBJ-006-FP-7", "name": "折扣比例计算精度", "category": "计算精度", "boundary": "VIP1=0.95/VIP2=0.9/VIP3=0.85/浮点误差", "test_type": "边界", "priority": "P1"}
+      ]
+    },
+    {
+      "id": "OBJ-007",
+      "name": "汇率配置",
+      "story_id": "AUX-EXRATE",
+      "primary_module": "AUX",
+      "secondary_modules": ["BIZ"],
+      "object_states": [
+        {"state": "正常", "trigger": "汇率配置存在有效", "result": "正确换算"},
+        {"state": "缺失", "trigger": "渠道汇率不存在", "result": "默认汇率或拒绝"},
+        {"state": "热更新中", "trigger": "汇率正在热更新", "result": "读新配置旧订单不变"}
+      ],
+      "interaction_forms": ["系统事件: 程序启动加载汇率 → 配置变更触发热更新", "内部调用: 购买服务 → 汇率服务"],
+      "business_logic": "程序启动 → 加载汇率表 → 支持热更新 → 下单时锁定汇率 → 不受后续变更影响",
+      "exception_boundaries": [
+        {"scenario": "汇率=0", "handling": "拒绝交易"},
+        {"scenario": "汇率<0", "handling": "拒绝"},
+        {"scenario": "极端汇率值", "handling": "日志告警"}
+      ],
+      "module_inference": {"primary": ["AUX", "BIZ"], "secondary": []},
+      "logs_and_tracking": [
+        {"event": "exrate.loaded", "trigger": "汇率加载", "fields": ["channel_id", "rate"]},
+        {"event": "exrate.updated", "trigger": "热更新", "fields": ["channel_id", "old_rate", "new_rate"]},
+        {"event": "exrate.locked", "trigger": "汇率锁定", "fields": ["order_id", "channel_id", "rate"]}
+      ],
+      "related_protocols": [
+        {"name": "ExchangeRateService.GetRate", "caller": "购买服务", "receiver": "汇率服务", "fields": ["channel_id"]},
+        {"name": "ExchangeRateService.Convert", "caller": "购买服务", "receiver": "汇率服务", "fields": ["channel_id", "rmb_amount"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-007-FP-1", "name": "各渠道汇率换算", "category": "渠道换算", "boundary": "Android/iOS/Web/汇率=0/<0/极端大", "test_type": "正向+边界", "priority": "P0"},
+        {"id": "OBJ-007-FP-2", "name": "汇率下单时锁定", "category": "汇率锁定", "boundary": "变更在支付前/支付中/支付后", "test_type": "边界", "priority": "P0"},
+        {"id": "OBJ-007-FP-3", "name": "汇率表热更新", "category": "热更新", "boundary": "无进行中订单/有进行中订单/表为空", "test_type": "异常", "priority": "P1"},
+        {"id": "OBJ-007-FP-4", "name": "渠道汇率缺失处理", "category": "异常处理", "boundary": "未配置/null/负数", "test_type": "异常", "priority": "P1"},
+        {"id": "OBJ-007-FP-5", "name": "汇率换算精度验证", "category": "精度", "boundary": "=1.2345/=0.0001/=10000", "test_type": "边界", "priority": "P2"}
+      ]
+    },
+    {
+      "id": "OBJ-008",
+      "name": "支付接口",
+      "story_id": "LINK-PAYMENT",
+      "primary_module": "LINK",
+      "secondary_modules": ["BIZ"],
+      "object_states": [
+        {"state": "待支付", "trigger": "订单创建", "result": "展示支付方式"},
+        {"state": "支付中", "trigger": "发起支付", "result": "等待状态"},
+        {"state": "支付成功", "trigger": "渠道回调确认", "result": "更新订单到账"},
+        {"state": "支付失败", "trigger": "渠道返回失败", "result": "展示失败原因"}
+      ],
+      "interaction_forms": ["API调用: POST /api/payment/initiate, POST /api/payment/callback", "系统事件: 回调触发订单状态更新"],
+      "business_logic": "选择支付方式 → 发起支付 → 渠道处理 → 回调确认 → 更新订单状态 → 道具到账",
+      "exception_boundaries": [
+        {"scenario": "余额不足(游戏币)", "handling": "拒绝扣款"},
+        {"scenario": "渠道支付失败", "handling": "展示错误信息"},
+        {"scenario": "重复回调", "handling": "幂等处理"}
+      ],
+      "module_inference": {"primary": ["LINK", "BIZ"], "secondary": []},
+      "logs_and_tracking": [
+        {"event": "payment.initiated", "trigger": "支付发起", "fields": ["order_id", "channel", "amount", "timestamp"]},
+        {"event": "payment.callback.received", "trigger": "收到回调", "fields": ["order_id", "channel", "status", "signature"]},
+        {"event": "payment.completed", "trigger": "支付完成", "fields": ["order_id", "actual_amount", "completion_time"]},
+        {"event": "payment.failed", "trigger": "支付失败", "fields": ["order_id", "failure_code", "failure_message"]}
+      ],
+      "related_protocols": [
+        {"name": "PaymentService.Deduct", "caller": "购买服务", "receiver": "支付服务", "fields": ["player_id", "amount", "currency"]},
+        {"name": "PaymentService.Callback", "caller": "渠道", "receiver": "后端", "fields": ["order_id", "status", "signature"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-008-FP-1", "name": "游戏币支付扣款", "category": "游戏币支付", "boundary": "[待确认]余额=所需/>所需/<所需", "test_type": "正向+边界", "priority": "P0"},
+        {"id": "OBJ-008-FP-2", "name": "人民币支付渠道回调", "category": "渠道回调", "boundary": "正常回调/重复/伪造/超时无回调", "test_type": "正向+异常", "priority": "P0"},
+        {"id": "OBJ-008-FP-3", "name": "支付签名校验", "category": "安全校验", "boundary": "正确/错误/缺失/超时", "test_type": "异常", "priority": "P0"},
+        {"id": "OBJ-008-FP-4", "name": "支付并发幂等", "category": "幂等性", "boundary": "[待确认]并发回调同一订单/顺序/乱序", "test_type": "异常", "priority": "P1"},
+        {"id": "OBJ-008-FP-5", "name": "支付错误码映射", "category": "错误处理", "boundary": "余额不足/超时/渠道维护/未知", "test_type": "异常", "priority": "P1"}
+      ]
+    },
+    {
+      "id": "OBJ-009",
+      "name": "支付日志",
+      "story_id": "LOG-PAYMENT",
+      "primary_module": "LOG",
+      "secondary_modules": ["BIZ"],
+      "object_states": [],
+      "interaction_forms": ["系统事件: 支付操作触发日志写入"],
+      "business_logic": "支付操作 → 构造日志数据 → 持久化存储 → 支持审计查询",
+      "exception_boundaries": [
+        {"scenario": "日志写入失败", "handling": "告警+重试"},
+        {"scenario": "日志数据损坏", "handling": "校验+修复"}
+      ],
+      "module_inference": {"primary": ["LOG"], "secondary": ["BIZ"]},
+      "logs_and_tracking": [
+        {"event": "payment.op_initiated", "trigger": "支付操作发起", "fields": ["operator", "order_id", "amount", "currency", "payment_method", "timestamp"]},
+        {"event": "payment.op_completed", "trigger": "支付操作完成", "fields": ["order_id", "actual_paid", "change_given"]},
+        {"event": "payment.op_failed", "trigger": "支付操作失败", "fields": ["order_id", "failure_reason", "error_code", "operator"]},
+        {"event": "payment.refund_initiated", "trigger": "退款发起", "fields": ["order_id", "refund_amount"]},
+        {"event": "payment.refund_completed", "trigger": "退款完成", "fields": ["order_id", "actual_refunded"]},
+        {"event": "audit.query", "trigger": "审计查询", "fields": ["auditor", "query_params", "result_count"]}
+      ],
+      "related_protocols": [
+        {"name": "LogService.Write", "caller": "各服务", "receiver": "日志服务", "fields": ["log_type", "data", "timestamp"]},
+        {"name": "LogService.Query", "caller": "审计人员", "receiver": "日志服务", "fields": ["query_params"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-009-FP-1", "name": "支付日志完整性", "category": "日志完整性", "boundary": "正常支付/失败/退款日志", "test_type": "正向", "priority": "P0"},
+        {"id": "OBJ-009-FP-2", "name": "支付日志持久化", "category": "持久化", "boundary": "写入成功/磁盘满/数据库失败", "test_type": "异常", "priority": "P1"},
+        {"id": "OBJ-009-FP-3", "name": "异常日志记录", "category": "异常记录", "boundary": "支付异常/到账异常/邮件异常", "test_type": "异常", "priority": "P1"},
+        {"id": "OBJ-009-FP-4", "name": "日志查询审计", "category": "审计查询", "boundary": "按玩家ID/时间/道具ID/无权限", "test_type": "正向+异常", "priority": "P2"},
+        {"id": "OBJ-009-FP-5", "name": "日志数据脱敏", "category": "数据安全", "boundary": "含敏感信息/权限控制", "test_type": "异常", "priority": "P2"},
+        {"id": "OBJ-009-FP-6", "name": "日志与订单一致性", "category": "数据一致性", "boundary": "日志存在/不存在", "test_type": "边界", "priority": "P2"}
+      ]
+    },
+    {
+      "id": "OBJ-010",
+      "name": "VIP等级变更",
+      "story_id": "SPECIAL-VIP-CHANGE",
+      "primary_module": "SPECIAL",
+      "secondary_modules": ["CONFIG", "BIZ"],
+      "object_states": [
+        {"state": "升级", "trigger": "满足更高等级条件", "result": "立即享受新折扣"},
+        {"state": "降级", "trigger": "到期且配置为降级", "result": "权益变更"},
+        {"state": "保留", "trigger": "到期且配置为保留", "result": "保持权益"},
+        {"state": "配置变更", "trigger": "策划修改等级规则", "result": "全服生效"}
+      ],
+      "interaction_forms": ["系统事件: 条件满足触发升级/降级 → 配置变更触发全服刷新"],
+      "business_logic": "玩家满足条件 → 等级变更 → 下次购买实时生效",
+      "exception_boundaries": [
+        {"scenario": "配置变更时大量玩家在线", "handling": "异步下发"},
+        {"scenario": "快速升降级", "handling": "最终状态确定"}
+      ],
+      "module_inference": {"primary": ["SPECIAL", "CONFIG", "BIZ"], "secondary": []},
+      "logs_and_tracking": [
+        {"event": "vip.changed", "trigger": "等级变更", "fields": ["player_id", "old_level", "new_level", "change_reason"]},
+        {"event": "vip.downgrade.forced", "trigger": "强制降级", "fields": ["player_id", "old_level", "new_level", "expiry_date"]},
+        {"event": "vip.expiry.checked", "trigger": "到期检查", "fields": ["player_id", "level", "expiry_status"]}
+      ],
+      "related_protocols": [
+        {"name": "VipService.ChangeLevel", "caller": "系统", "receiver": "VIP服务", "fields": ["player_id", "new_level", "reason"]}
+      ],
+      "feature_points": [
+        {"id": "OBJ-010-FP-1", "name": "VIP升级实时生效", "category": "等级变更", "boundary": "[待确认]立即生效/下次购买生效/配置刷新", "test_type": "正向+边界", "priority": "P1"},
+        {"id": "OBJ-010-FP-2", "name": "VIP等级变更后折扣重算", "category": "折扣重算", "boundary": "[待确认]升级/降级/不变/已购订单", "test_type": "边界+异常", "priority": "P1"},
+        {"id": "OBJ-010-FP-3", "name": "VIP等级时效判定", "category": "时效管理", "boundary": "永久/30天/90天/到期当天/次日", "test_type": "边界", "priority": "P1"},
+        {"id": "OBJ-010-FP-4", "name": "配置变更对已购玩家影响", "category": "配置变更", "boundary": "折扣变更/条件变更/等级删除", "test_type": "边界", "priority": "P2"},
+        {"id": "OBJ-010-FP-5", "name": "并发等级变更冲突", "category": "并发处理", "boundary": "[待确认]同时升降级/快速升降", "test_type": "异常", "priority": "P2"}
+      ]
+    }
+  ],
+  "pending_confirmations": [
+    {"id": "L1", "description": "限时折扣与VIP折扣叠加规则", "impact_object": ["OBJ-004", "OBJ-006"], "candidate": ["min取最优", "叠加计算", "不可叠加"], "status": "pending_planning_confirmation"},
+    {"id": "L2", "description": "VIP等级是否按时长自动降级", "impact_object": ["OBJ-003", "OBJ-010"], "candidate": ["永久有效", "定时考核自动降级", "定时考核保留资格"], "status": "pending_planning_confirmation"},
+    {"id": "OBJ-003-FP-7", "description": "VIP专属道具可见性边界", "impact_object": "OBJ-003", "candidate": ["按最低VIP等级", "按精确等级", "按等级范围"], "status": "pending_requirement"},
+    {"id": "OBJ-008-FP-4", "description": "支付并发幂等边界", "impact_object": "OBJ-008", "candidate": ["并发回调同一订单", "顺序回调", "回调乱序处理"], "status": "pending_requirement"},
+    {"id": "OBJ-010-FP-1/2/5", "description": "VIP变更生效时机与并发边界", "impact_object": "OBJ-010", "candidate": ["立即生效", "下次购买生效", "配置统一刷新"], "status": "pending_requirement"}
+  ]
+}

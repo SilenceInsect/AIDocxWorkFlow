@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "aidocx-workflow": {
+      "command": "python3",
+      "args": ["${workspaceFolder}/ai_workflow/mcp_server.py"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}
