@@ -23,6 +23,19 @@ noted in the *Unreleased* section as they accumulate.
 - `ai_workflow/upgrade_skills.py` — converts legacy `SKILL.md` frontmatter to the agentskills.io 1.0 format.
 - `workflow_assets/validation_reports/skills_validation_v{1,2,3}.json` — three historical validation runs.
 - `SETUP_SUPERPOWERS_HERMES.md` — manual install guide for Superpowers + Hermes skills.
+- `.cursor/hooks/aidocx_feedback_logger_hook.py` — auto-collector wired into
+  Cursor's `beforeSubmitPrompt` and `sessionEnd` events. Scans
+  `workflow_assets/` for freshly-modified stage artifacts (e.g. a new
+  `test_cases.json` under `「S6 测试用例生成」/v1.0/`) and appends
+  `stage_finished` / `stage_started` / `session_summary` events to
+  `workflow_assets/feedback_logs/session_<id>.jsonl`. Removes the need to
+  invoke the `aidocx-feedback-logger` skill manually for routine stage
+  completions — the skill is now purely for explicit user complaints.
+- `install.sh` — one-shot onboarding script: Python ≥ 3.10 check → optional
+  `pip install -r requirements.txt` → `hermes skills install
+  workflow_assets/hermes_skills/aidocx-batch-runner` (skipped if `hermes`
+  is not on PATH) → `python3 ai_workflow/validate_skills.py .cursor/skills`
+  → summary with next-steps. Idempotent. `--no-deps` flag for offline use.
 
 ### Changed
 - `AIDocxWorkFlow.mdc` and the 7 `STAGE_*.mdc` rules: rewritten prompts to align
@@ -31,7 +44,13 @@ noted in the *Unreleased* section as they accumulate.
   `name` + `description` frontmatter format. Verified by
   `python3 ai_workflow/validate_skills.py .cursor/skills` (13/13 PASS).
 - `README.md`: rewritten for public-facing team use; no longer assumes the reader
-  has internal context.
+  has internal context. Now points users at `./install.sh` as the onboarding
+  entry point and documents the auto-feedback-collection hook.
+- `.cursor/hooks.json`: registered `aidocx_feedback_logger_hook.py` on
+  `beforeSubmitPrompt` (10s timeout) and `sessionEnd` (10s timeout). The
+  `sessionStart` prompt now tells the Agent the feedback logger is wired in
+  and to invoke the `aidocx-feedback-logger` skill when the user expresses
+  dissatisfaction.
 
 ### Notes
 - The `cursor/integrate-superpowers-and-hermes-with-skill-standardization`

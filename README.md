@@ -57,7 +57,20 @@ git clone https://github.com/SilenceInsect/AIDocxWorkFlow.git
 cd AIDocxWorkFlow
 ```
 
-### 2. 安装依赖
+### 2. 运行 install.sh（推荐 · 一键接入）
+
+```bash
+./install.sh            # 标准安装
+./install.sh --no-deps  # 离线机器（跳过 pip）
+```
+
+install.sh 会自动：
+- 校验 Python ≥ 3.10
+- 装 `aidocx-batch-runner` 到 Hermes（如已安装）
+- 跑 `validate_skills.py` 确认 13/13 SKILL 合规
+- 打印下一步清单（含 Superpowers 插件安装提示）
+
+### 2b. 手动安装依赖（如果跳过 install.sh）
 
 ```bash
 python3 -m venv .venv
@@ -155,6 +168,7 @@ AIDocxWorkFlow/
 ├── quickstart.sh                    # 一键环境引导
 ├── convert_md_to_docx.py            # Markdown ↔ .docx 转换
 ├── AIDocxWorkFlow.code-workspace    # Cursor 工作区配置
+├── install.sh                       # 一键接入（Python 校验 + Hermes install + SKILL 验证）
 │
 ├── .cursor/                         # Cursor 规则、skills、hooks
 │   ├── rules/                       # 阶段规则文件 (STAGE_S*.mdc)
@@ -162,6 +176,13 @@ AIDocxWorkFlow/
 │   │   ├── aidocx-s1-review/...   # 12 个阶段 / 编排 / 对话 skill
 │   │   └── aidocx-feedback-logger/  # 阶段反馈收集（人工触发的 skill）
 │   └── hooks/                       # 钩子（SKILL 验证、计费等）
+│       ├── docx_hook.py                    # beforeSubmitPrompt：自动收 docx
+│       ├── billing_hook.py                 # postMCPExecution：MCP 计费
+│       ├── session_billing.py              # afterAgentResponse/sessionEnd：会话计费
+│       ├── tool_billing.py                 # postToolUse：工具计费
+│       ├── mcp_billing.py                  # MCP 集成计费
+│       ├── token_engine.py                 # 计费 token 估算共用模块
+│       └── aidocx_feedback_logger_hook.py  # beforeSubmitPrompt+sessionEnd：自动 stage_started/finished 事件
 │
 ├── ai_workflow/                     # Python 自动化模块（离线可跑）
 │   ├── requirement_reviewer_auto.py # S1 自动评分
@@ -209,6 +230,16 @@ AIDocxWorkFlow/
 ---
 
 ## AI 经验沉淀（自迭代）
+
+`aidocx-feedback-logger` 由 Cursor 钩子 `.cursor/hooks/aidocx_feedback_logger_hook.py` **自动驱动**——无需手动调用：
+
+| 钩子事件 | 写入事件 | 触发条件 |
+|---|---|---|
+| `beforeSubmitPrompt` | `stage_finished` | 检测到上一轮产生了 S 阶段产物（`review_report.md` / `test_cases.json` / `fail_report_S*.md` 等）|
+| `beforeSubmitPrompt` | `stage_started` | 用户输入包含阶段关键词（如 `S7`、`/aidocx-s6-test-cases`、`再跑一次 S6`）|
+| `sessionEnd` | `session_summary` | 会话结束，汇总本次 started/finished/failed 计数 |
+
+事件落到 `workflow_assets/feedback_logs/session_<id>.jsonl`，S8 自迭代可直接消费。手动调用 skill 仍可——用户对 AI 表达不满时（例如"这版 S6 漏了边界"），Agent 会主动追加一条结构化反馈。
 
 S8 不是"产出物阶段"，而是**学习阶段**：
 
