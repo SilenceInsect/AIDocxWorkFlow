@@ -1,7 +1,17 @@
 ---
 name: aidocx-workflow
-description: AI Test Case Generation Pipeline. Use when generating test cases from requirements, breaking down requirements, creating prototypes/flowcharts, or any test case generation task.
+description: >
+  AI Test Case Generation Pipeline. Use when generating test cases from requirements, breaking down requirements, creating prototypes/flowcharts, or any test case generation task.
+  Use when generating test cases from requirements, breaking down requirements, creating prototypes/flowcharts, or any test case generation task.
+  使用当从需求生成测试用例、拆解需求、创建原型/流程图、或任何测试用例生成任务时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: workflow
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow - AI Test Case Generation Pipeline

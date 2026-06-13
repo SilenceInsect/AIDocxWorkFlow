@@ -1,7 +1,17 @@
 ---
 name: aidocx-s3-prototype
-description: AIDocxWorkFlow Stage 3 — 原型导出。根据 S2 Epic/Story 列表生成页面原型（文本描述 + Mermaid 页面流图）。使用当用户执行 /aidocx-s3-prototype、粘贴 S2 backlog、或进行 S3 原型导出任务。
+description: >
+  AIDocxWorkFlow Stage 3 — 原型导出。根据 S2 Epic/Story 列表生成页面原型（文本描述 + Mermaid 页面流图）。使用当用户执行 /aidocx-s3-prototype、粘贴 S2 backlog、或进行 S3 原型导出任务。
+  Use when the user runs /aidocx-s3-prototype, pastes S2 backlog, or starts prototype export.
+  使用当用户执行 /aidocx-s3-prototype、粘贴 S2 backlog、或进行 S3 原型导出任务时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: s3-prototype
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow S3 — 原型导出

@@ -5,7 +5,7 @@ alwaysApply: false
 
 # AIDocxWorkFlow S7 — 用例审查
 
-**独立阶段**：可单独调用。上游材料（S6 test_cases.json）审查合格后开始，失败写失败报告。
+> **独立阶段**：可以单独调用。上游材料（S6 test_cases.json）审查合格后开始，失败写失败报告。
 
 ---
 
@@ -13,13 +13,12 @@ alwaysApply: false
 
 **触发方式**：`/aidocx-s7-review` 或粘贴 S6 test_cases.json
 
-**前置材料**：
+**前置材料（必须全部满足）**：
 
 | 材料 | 来源 | 审查要求 |
 |------|------|----------|
 | S6 test_cases.json | `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.json` | 存在且用例数量 > 0 |
-| S5 test_points.json | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 存在时用于 S4 覆盖率计算 |
-| S4 business_flow.md | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | 存在时用于 S4 风险点提取 |
+| S5 test_points.json（参考） | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 存在则用于覆盖率计算 |
 
 **材料缺失时**：生成失败报告，停止 S7。
 
@@ -31,64 +30,39 @@ alwaysApply: false
 
 ### 审查员 A：结构完整性
 
-| 检查项 | 说明 |
-|--------|------|
-| ID 规范化 | 格式 `{Module}-TC-{NNN}`，如 `界面-TC-001` |
-| 字段完整性 | precondition、steps、expected_result 全有值 |
-| 步骤质量 | 原子性、无歧义、有具体数值；**禁止通用模板** |
-| 预期结果可验证性 | 每步有明确 pass/fail 条件 |
-| 无冗余 | 无重复覆盖同一场景的用例 |
+| 检查项 | 权重 | 说明 |
+|--------|------|------|
+| ID 规范化 | 固定 | 格式 `{Module}-TC-{NNN}` |
+| 字段完整性 | 固定 | precondition、steps、expected_result 全有值 |
+| 步骤质量 | 固定 | 原子性、无歧义、有具体数值 |
+| 预期结果可验证性 | 固定 | 每步有明确 pass/fail 条件 |
+| 无冗余 | 固定 | 无重复覆盖同一场景的用例 |
 
 ### 审查员 B：覆盖率
 
-> **核心原则：覆盖率 = 风险被覆盖的程度，而非比例。**
+| 指标 | 阈值 | 说明 |
+|------|------|------|
+| 需求覆盖率 | ≥ 85% | 每个 Story/AC 至少 1 个正向用例 |
+| 边界覆盖率 | ≥ 85% | 所有边界值测试点被覆盖 |
+| 异常覆盖率 | ≥ 85% | 关键异常场景（超时、断网、崩溃）被覆盖 |
+| 负向覆盖率 | ≥ 30% | 无效输入、权限违规场景被覆盖 |
 
-S7 的覆盖率以 **S4 风险点覆盖** 为核心指标，不再使用与风险无关的比例指标。
+### 质量门禁
 
-#### 覆盖率指标（按优先级）
-
-| 优先级 | 指标 | 阈值 | 说明 |
-|--------|------|------|------|
-| **P0** | **S4 风险点覆盖率** | **100%** | S4 识别的每个风险点（R-XX）必须有对应测试点 |
-| **P0** | **S4 异常树覆盖率** | **100%** | S4 异常决策树的每个叶子节点必须有对应测试点 |
-| P1 | 等价类覆盖率 | ≥ 80% | 每个等价类至少 1 个测试点 |
-| P1 | 边界值覆盖率 | ≥ 80% | 每个边界值至少 1 个测试点 |
-| P2 | 状态转换覆盖率 | ≥ 80% | 多状态 Story 的每个状态至少 1 个测试点 |
-
-#### 覆盖率计算
-
-**S4 风险点覆盖率**：
-```
-S4风险点覆盖率 = (测试点中引用了 S4-RXX 的数量) / (S4 风险点总数)
-```
-> 从 test_points.json 的 `s4_reference` 字段提取，格式为 `R-01`、`S4-1.3异常树` 等。
-
-**S4 异常树覆盖率**：
-```
-S4异常树覆盖率 = (测试点中引用了 S4 异常树叶子节点的数量) / (S4 异常树叶子节点总数)
-```
-
-#### 旧指标废弃说明
-
-| 废弃指标 | 废弃原因 |
-|----------|---------|
-| `负向覆盖率 ≥ 30%` | 与风险无关，是拍脑袋的比例指标 |
-| `边界覆盖率 ≥ 85%` | 应基于实际边界值数量，而非 Story 数 |
-| `异常覆盖率 ≥ 85%` | 应基于 S4 异常树叶子节点，而非测试点数量比 |
+| 条件 | 判决 |
+|------|------|
+| 覆盖率 ≥ 85% **且** 结构完整性 ≥ 90% | **PASS** |
+| 否则 | **FAIL**（需修改后重审）|
 
 ---
 
-## 质量门禁（三种判决）
+## 输入审查（门禁前置条件）
 
-| 条件 | 判决 | 说明 |
-|------|------|------|
-| S4风险点覆盖率 = 100% **且** S4异常树覆盖率 = 100% **且** 结构完整性 ≥ 90% | **PASS** | 所有风险已被覆盖 |
-| S4风险点覆盖率 = 100% **且** S4异常树覆盖率 = 100% **但** 结构完整性 < 90% | **FAIL**（结构问题） | S6 步骤质量未达标 |
-| S4风险点覆盖率 < 100% **或** S4异常树覆盖率 < 100% | **FAIL**（风险缺口） | 有风险未被覆盖 |
-
-> **PASS 条件解读**：只要 S4 的每个风险点和异常树节点都被覆盖，就达到了覆盖率要求。测试点数量多少不重要，重要的是风险是否被覆盖。
->
-> **注意**：若不存在 S4 产物（未执行 S4），则退回等价类+边界值覆盖率（各 ≥ 80%）作为替代指标。
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| test_cases.json 存在 | 必须 | 失败报告 |
+| 用例数量 ≥ 1 | 必须 | 失败报告 |
+| 用例有 ID 字段 | 必须 | 失败报告 |
 
 ---
 
@@ -97,6 +71,51 @@ S4异常树覆盖率 = (测试点中引用了 S4 异常树叶子节点的数量)
 ### 成功产出
 
 **审查报告（Markdown）**：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/review_report.md`
+
+```markdown
+# 测试用例审查报告
+
+**阶段**: S7 用例审查
+**日期**: YYYY-MM-DD
+**版本**: v1.0
+
+---
+
+## 审查员A — 结构完整性
+
+| 指标 | 结果 |
+|------|------|
+| 总用例数 | 138 |
+| 通过数 | 138 |
+| 通过率 | 100% |
+
+### 问题列表
+
+| 用例ID | 字段 | 严重度 | 问题 | 建议 |
+|--------|------|--------|------|------|
+| UI-TC-005 | 操作步骤 | MINOR | 步骤描述可能不够精确 | ... |
+
+---
+
+## 审查员B — 覆盖率
+
+| 指标 | 值 | 阈值 | 状态 |
+|------|------|------|------|
+| 需求覆盖率 | 100% | 85% | PASS |
+| 边界覆盖率 | 33% | 85% | FAIL |
+| 异常覆盖率 | 39% | 85% | FAIL |
+| 负向覆盖率 | 9% | 30% | FAIL |
+
+---
+
+## 整体判决
+
+**[OK] PASS** | **[FAIL] FAIL**
+
+- 覆盖率: X%
+- 结构完整性: X%
+- 建议: ...
+```
 
 **审查报告（JSON）**：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/review_report.json`
 
@@ -109,28 +128,61 @@ S4异常树覆盖率 = (测试点中引用了 S4 异常树叶子节点的数量)
     "issues": []
   },
   "reviewer_b": {
-    "s4_risk_coverage": 1.0,
-    "s4_risk_total": 18,
-    "s4_risk_covered": 18,
-    "s4_exception_coverage": 1.0,
-    "s4_exception_total": 24,
-    "s4_exception_covered": 24,
-    "equivalence_coverage": 0.85,
-    "boundary_coverage": 0.90,
-    "state_coverage": 0.80,
-    "uncovered_risks": [],
-    "uncovered_exceptions": []
+    "requirement_coverage": 1.0,
+    "boundary_coverage": 0.33,
+    "exception_coverage": 0.39,
+    "negative_coverage": 0.09,
+    "gaps": ["边界测试用例不足", "负向测试用例不足"],
+    "recommended_additions": []
   },
   "overall_pass": true,
-  "structure_completeness": 1.0,
-  "verdict": "PASS",
-  "summary": "所有 S4 风险点和异常树节点已全覆盖。"
+  "summary": "测试用例结构完整，覆盖率达标。"
 }
 ```
 
-### 失败报告
+### 失败报告（S7 审查失败）
 
 `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/fail_report_S7.md`
+
+```markdown
+# 用例审查失败报告
+
+**阶段**: S7 用例审查
+**日期**: YYYY-MM-DD
+
+---
+
+## 审查结果
+
+### 审查员A — 结构完整性
+- 通过率: X%
+- 阻断性问题: N
+
+### 审查员B — 覆盖率
+- 需求覆盖率: X% (阈值: 85%)
+- 边界覆盖率: X% (阈值: 85%)
+
+---
+
+## 失败原因
+
+（列出阻断性问题和覆盖率缺口）
+
+## 建议修复
+
+### 高优先级
+- ...
+
+### 中优先级
+- ...
+
+---
+
+## 后续动作
+
+[ ] 根据审查报告修改 S6 用例
+[ ] 重新提交 S7 审查
+```
 
 ---
 
@@ -140,8 +192,8 @@ S4异常树覆盖率 = (测试点中引用了 S4 异常树叶子节点的数量)
 |------|------|
 | S6 测试用例生成 | S8 自迭代（PASS 时） |
 
-S7 PASS 时，审查报告作为 S8 输入。
-S7 FAIL 时，失败报告指出具体缺口（哪个风险点未覆盖），回溯 S5 补充对应测试点，重新执行 S6 → S7。
+S7 PASS 时，审查报告 + 建议的补充用例作为 S8 输入。
+S7 FAIL 时，返回 S6 修改建议，重新生成用例后重审。
 
 ---
 
@@ -151,12 +203,12 @@ S7 FAIL 时，失败报告指出具体缺口（哪个风险点未覆盖），回
 from ai_workflow.auto_reviewer import auto_review
 review_result = auto_review(
     test_cases,        # test_cases.json 内容
-    test_points,      # test_points.json 内容（含 s4_reference 字段）
-    s4_risks         # S4 business_flow.md 中提取的风险点列表
+    test_points,       # test_points.json 内容（可选）
+    config             # 阈值配置
 )
 # review_result['overall_pass'] ∈ {True, False}
-# review_result['reviewer_b']['s4_risk_coverage'] ∈ [0.0, 1.0]
-# review_result['reviewer_b']['uncovered_risks']  # 未覆盖的风险点列表
+# review_result['reviewer_a']['pass_rate'] ∈ [0.0, 1.0]
+# review_result['reviewer_b']['requirement_coverage'] ∈ [0.0, 1.0]
 ```
 
 ---
@@ -165,4 +217,5 @@ review_result = auto_review(
 
 - Prompt 模板：`ai_workflow/prompts/test_case_review.md`
 - 自动审查引擎：`ai_workflow/auto_reviewer.py`
+- 阈值配置：`ai_workflow/config.py` → `COVERAGE_THRESHOLD`、`STRUCTURE_COMPLETENESS_THRESHOLD`
 - 输出目录：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/`

@@ -56,17 +56,10 @@ sequenceDiagram
 
 ### 风险点
 
-每个 Epic 需识别并列举：
-- 竞态条件（Race Condition）
-- 时间依赖（Time Dependency）
-- 状态损坏场景（State Corruption）
-- 支付幂等性（Idempotency）
-- 库存/库存超卖（Over-Selling）
-- 缓存穿透/击穿（Cache Penetration/Breakdown）
-- 并发操作冲突（Concurrent Modification）
-- 配置变更时业务中断（Config Change Mid-Flow）
-
-> **⚠ S5/S6 衔接**：风险点清单是 S5 生成测试点的核心输入。每个风险点应可对应至少 1 个测试点（S4 本身不设覆盖率阈值，S5 基于 S4 产出生成测试点，S7 审查测试点是否覆盖了 S4 识别的风险）。
+- 竞态条件
+- 时间依赖
+- 状态损坏场景
+- 支付幂等性
 
 ---
 
@@ -140,11 +133,8 @@ sequenceDiagram
 
 **下游**：S5 测试点生成（强相关）、S6 测试用例生成（推荐参考）
 
-- **S5**：S4 产出（business_flow.md）作为 S5 的输入之一：
-  - **异常/错误决策树** → 直接映射为 EXCEPTION 类型测试点
-  - **风险点清单** → 直接映射为测试点（S7 审查覆盖率）
-  - **时序图** → 补充 BIZ 模块的正向/边界测试点
-- **S6**：S4 的异常决策树可补充 EXCEPTION 类用例的具体步骤和预期结果，时序图可确保用例步骤顺序与系统调用链路一致，风险点清单补充测试点（S7 覆盖率关键来源）
+- **S5**：S4 产出（business_flow.md）作为 S5 的输入之一，特别是异常/错误决策树和风险点清单直接为 EXCEPTION 类型测试点提供输入
+- **S6**：S4 的异常决策树可补充 EXCEPTION 类用例的具体步骤和预期结果，时序图可确保用例步骤顺序与系统调用链路一致
 
 ---
 

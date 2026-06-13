@@ -1,7 +1,17 @@
 ---
 name: aidocx-s2-5-iteration
-description: AIDocxWorkFlow Stage 2.5 — 迭代规划。7步迭代规划（负载平衡/任务确认/启动会/任务录入/资源锁定/并行工作/执行跟进），产出迭代计划报告。使用当用户执行 /aidocx-s2-5-iteration、粘贴 S2 backlog、或进行 S2.5 迭代规划任务。
+description: >
+  AIDocxWorkFlow Stage 2.5 — 迭代规划。7步迭代规划（负载平衡/任务确认/启动会/任务录入/资源锁定/并行工作/执行跟进），产出迭代计划报告。使用当用户执行 /aidocx-s2-5-iteration、粘贴 S2 backlog、或进行 S2.5 迭代规划任务。
+  Use when the user runs /aidocx-s2-5-iteration, pastes S2 backlog, or starts iteration planning.
+  使用当用户执行 /aidocx-s2-5-iteration、粘贴 S2 backlog、或进行 S2.5 迭代规划任务时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: s2-5-iteration
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow S2.5 — 迭代规划
@@ -10,11 +20,50 @@ disable-model-invocation: true
 
 ---
 
+## Step 0 — 项目配置收集（执行前必须完成）
+
+> **强制前置**：S2.5 在正式开始迭代规划前，必须先收集并确认项目配置参数。配置不全不得进入 7 步规划。
+
+### 必须收集的配置参数
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| 项目名（req_name） | 需求名称 | 游戏道具商城系统 |
+| 版本名（version） | 版本标识 | v1.0 |
+| 排期开始日期 | 迭代第一天 | 2025-07-01 |
+| 排期截止日期 | 迭代最后一天 | 2025-07-12 |
+| 策划预估工时（h） | 产品策划阶段估算工时 | 40h |
+| 前端预估工时（h） | 前端开发估算工时 | 80h |
+| 后端预估工时（h） | 后端开发估算工时 | 120h |
+| 测试预估工时（h） | 测试估算工时 | 60h |
+| 团队规模 | 各角色人数 | 前端2人·后端3人·测试2人 |
+| 迭代总工时（周） | 任务管线估算总时长 | 1.5周 |
+
+### 快速迭代参考基准（1.5 周全流程）
+
+```
+迭代周期 1.5 周 ≈ 7.5 工作日 ≈ 60h/人
+- 前端 2 人：共 120h
+- 后端 3 人：共 180h
+- 测试 2 人：共 120h
+- 合计：420h
+```
+
+### 收集方式
+
+执行 S2.5 时，若检测到项目配置不完整，**必须主动询问用户**，不得自行假设默认值后跳过。逐项列出待填写字段，逐项确认。
+
+### 配置保存
+
+收集完成后，将配置保存为 `project_config.json` 并写入输出目录。
+
+---
+
 ## 阶段入口
 
 **触发**：`/aidocx-s2-5-iteration` 或粘贴 S2 backlog
 
-**前置材料**：S2 backlog.md：`workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md`
+**前置材料**：S2 backlog.md + project_config.json（配置不全不得执行）
 
 **材料缺失时**：生成失败报告，停止 S2.5。
 
@@ -40,11 +89,13 @@ disable-model-invocation: true
 
 ## 成功产出
 
-路径：`workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/iteration_plan.md`
+| 文件 | 路径 |
+|------|------|
+| 项目配置 | `workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/project_config.json` |
+| 迭代规划报告 | `workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/iteration_plan.md` |
+| 迭代规划数据 | `workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/iteration_plan.json` |
 
-同时生成 JSON：`workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/iteration_plan.json`
-
-报告内容：迭代目标 → 负载平衡表 → 里程碑 → 资源锁定 → 风险点 → 任务分配
+报告内容：项目配置 → 迭代目标 → 负载平衡表 → 里程碑 → 资源锁定 → 风险点 → 任务分配
 
 ---
 
@@ -57,8 +108,15 @@ disable-model-invocation: true
 ## 自动化支持
 
 ```python
-from ai_workflow.conversation_skills import save_iteration_plan
-save_iteration_plan(version, backlog, raw_output, parsed, req_name)
+from ai_workflow.conversation_skills import save_iteration_plan, make_stage2_5_skill
+
+# 生成协作技能（可传入 project_config）
+skill = make_stage2_5_skill(req_name="游戏道具商城系统", version="v1.0",
+                           project_config={"req_name": "...", "schedule": {...}, ...})
+
+# 保存结果
+save_iteration_plan(req_name, plan_md, plan_json, version,
+                    project_config={"req_name": "...", ...})
 ```
 
 ---
@@ -66,4 +124,4 @@ save_iteration_plan(version, backlog, raw_output, parsed, req_name)
 ## 参考文档
 
 - 完整阶段规范：`.cursor/rules/STAGE_S2_5_ITERATION.mdc`
-- Prompt 模板：`ai_workflow/prompts/iteration_planning.md`
+- 保存逻辑：`ai_workflow/conversation_skills.py`

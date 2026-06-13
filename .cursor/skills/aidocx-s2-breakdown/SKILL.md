@@ -1,7 +1,17 @@
 ---
 name: aidocx-s2-breakdown
-description: AIDocxWorkFlow Stage 2 — 需求拆解。将需求拆解为 Epic → Story → 需求对象 → 功能点四层，包含对象状态、交互形态、业务逻辑、异常边界、异常交互、关联模块、日志埋点、关联协议。使用当用户执行 /aidocx-s2-breakdown、粘贴 S1.5 准出许可路径、或进行 S2 需求拆解任务。
+description: >
+  AIDocxWorkFlow Stage 2 — 需求拆解。将需求拆解为 Epic → Story → 需求对象 → 功能点四层，包含对象状态、交互形态、业务逻辑、异常边界、异常交互、关联模块、日志埋点、关联协议。使用当用户执行 /aidocx-s2-breakdown、粘贴 S1.5 准出许可路径、或进行 S2 需求拆解任务。
+  Use when the user runs /aidocx-s2-breakdown, provides S1.5 exit_permission path, or starts requirement breakdown.
+  使用当用户执行 /aidocx-s2-breakdown、提供 S1.5 准出许可路径、或进行 S2 需求拆解任务时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: s2-breakdown
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow S2 — 需求拆解

@@ -5,7 +5,7 @@ alwaysApply: false
 
 # AIDocxWorkFlow S5 — 测试点生成
 
-**独立阶段**：可单独调用。上游材料（S2 backlog）审查合格后开始，失败写失败报告。
+> **独立阶段**：可以单独调用。上游材料（S2 backlog）审查合格后开始，失败写失败报告。
 
 ---
 
@@ -13,129 +13,21 @@ alwaysApply: false
 
 **触发方式**：`/aidocx-s5-test-points` 或粘贴 S2 backlog
 
-**前置材料**：
+**前置材料（必须全部满足）**：
 
 | 材料 | 来源 | 审查要求 |
 |------|------|----------|
 | S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story |
-| S4 business_flow.md（参考） | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | 存在时为必须参考 |
 
 **材料缺失时**：生成失败报告，停止 S5。
 
 ---
 
-## 核心原则
+## 核心任务
 
-> **覆盖率不是数量游戏，而是风险覆盖。**
+为每个 Story 生成测试点，覆盖 **7 模块系统**。
 
-测试点设计应基于**风险分析**，而非「每个 Story 固定 N 个测试点」或「NEGATIVE 占比 ≥ 30%」。
-
-覆盖率 = `S4 识别的风险点/异常点中被测试点覆盖的数量 / S4 识别的风险点/异常点总数`
-
----
-
-## 18 种测试设计方法
-
-所有测试点必须至少采用以下一种方法生成。禁止凭空捏造测试点。
-
-### 方法分类
-
-#### A. 数据类方法（输入域）
-
-| 方法 | 说明 | 适用场景 |
-|------|------|---------|
-| **等价类划分 (EP)** | 将输入域划分为有效等价类和无效等价类，每类取 1 个代表值 | 数量输入、币种选择、分类筛选 |
-| **边界值分析 (BVA)** | 选取边界值（刚好等于、刚好小于、刚好大于） | 数量范围(1-99)、折扣比例(0-100%)、时间窗口 |
-| **判定表法** | 列出所有条件组合和对应动作 | 折扣叠加规则、VIP+促销取最优价 |
-| **因果图法** | 从因果关系导出测试用例 | 汇率+VIP+促销+满减多因素叠加 |
-
-#### B. 结构类方法（状态/流程）
-
-| 方法 | 说明 | 适用场景 |
-|------|------|---------|
-| **状态迁移法** | 覆盖状态机的每个状态和转换 | 道具生命周期(在售→下架→删除)、VIP等级变更、促销状态 |
-| **流程/场景法** | 用业务流程串联多个功能点 | 购买完整流程、支付回调流程 |
-| **时序图法** | 基于 S4 时序图覆盖每对系统交互 | 购买时序（玩家→前端→后端→账户→道具→DB→邮件） |
-
-#### C. 组合类方法
-
-| 方法 | 说明 | 适用场景 |
-|------|------|---------|
-| **正交试验法 (Pairwise)** | 任意 2 个因子取值组合至少出现 1 次 | 平台(Android/iOS/Web) × 支付方式(游戏币/RMB) × VIP等级 |
-| **全对偶测试** | 所有因子两两组合全覆盖（Pairwise 的严格版） | 多配置项联动（折扣+满减+VIP+渠道） |
-
-#### D. 风险类方法
-
-| 方法 | 说明 | 适用场景 |
-|------|------|---------|
-| **风险分析法** | S4 识别的每个风险点必须有对应测试点 | R01-R18 全部风险点覆盖 |
-| **异常决策树法** | S4 异常决策树的每个叶子节点必须有测试点 | 余额不足/超时/掉单/幂等等场景 |
-| **失效模式与影响分析 (FMEA)** | 分析每个潜在失效模式及其影响 | 缓存失效→数据不一致、回调丢失→道具未到账 |
-
-#### E. 探索类方法
-
-| 方法 | 说明 | 适用场景 |
-|------|------|---------|
-| **错误猜测法** | 基于历史缺陷模式推测可能的新缺陷 | 特殊字符注入、超长输入、并发竞态 |
-| **语法测试** | 基于输入语法规范构造有效/无效测试用例 | 订单号格式、道具ID格式、搜索关键词 |
-| **随机测试** | 在有效输入域内随机采样补充 | 配置值随机组合测试 |
-
-### 方法选择规范
-
-| Story 类型 | 必须使用方法 | 推荐补充方法 |
-|-----------|------------|-------------|
-| 配置类（CONFIG） | BVA + EP + 判定表 + 因果图 | Pairwise（多配置联动） |
-| 业务流程类（BIZ） | 状态迁移 + 场景法 + 风险分析 | 时序图 + FMEA |
-| 界面展示类（UI） | EP + BVA + 状态迁移 | Pairwise（分辨率/平台组合） |
-| 外部依赖类（LINK） | 风险分析 + FMEA + 时序图 | 错误猜测（回调异常） |
-| 性能/缓存类（AUX） | 风险分析 + 状态迁移 | 并发/随机测试 |
-| 特殊情境类（SPECIAL） | 状态迁移 + 风险分析 + FMEA | 错误猜测 |
-
----
-
-## S4 风险点全量映射（必须执行）
-
-### 步骤 1：提取 S4 风险点清单
-
-从 `business_flow.md` 的「风险点汇总」表提取所有风险点：
-
-```
-R-01: 余额冻结前并发请求导致重复扣款
-R-02: 渠道回调重复推送
-R-03: 汇率支付中变更
-R-04: 扣款成功但到账失败
-R-05: 邮件异步发送失败
-...（以实际 S4 产物为准）
-```
-
-### 步骤 2：提取 S4 异常决策树
-
-从各 Epic 章节的异常/错误决策树提取每个叶子节点。
-
-### 步骤 3：为每个风险点/异常节点分配测试点
-
-| S4 产出 | 必须映射的测试点类型 |
-|----------|-------------------|
-| 风险点（R-XX） | EXCEPTION 或 NEGATIVE |
-| 异常决策树叶子 | EXCEPTION |
-| 边界条件 | BOUNDARY |
-| 正常路径 | POSITIVE |
-
-**映射要求**：
-- 每个 S4 风险点必须有 **≥ 1 个**对应的测试点
-- 每个异常决策树叶子节点必须有 **≥ 1 个**对应的测试点
-- 测试点 `title` 必须是纯自然语言（描述"验证什么"），**禁止任何分隔符**（`—`）和**禁止引用标记**（`[引用S4-xxx]`）
-- S4 引用来源统一记录在 `s4_reference` 字段（见下方新增字段定义），禁止写在 `title` 或 `备注` 中
-
-### 步骤 4：计算覆盖率
-
-```
-S4覆盖率 = (已映射的风险点+异常点数量) / S4风险点+异常点总数
-```
-
----
-
-## 7 模块系统
+### 7 模块测试类型
 
 | 模块 | 前缀 | 必须覆盖的测试类型 |
 |------|------|------------------|
@@ -144,58 +36,32 @@ S4覆盖率 = (已映射的风险点+异常点数量) / S4风险点+异常点总
 | BIZ | 业务 | ACTIVITY_OPEN/CLOSE、PROTOCOL、ENTITY_CACHE、DB_PERSIST |
 | HINT | 提示 | RED_DOT、ITEM_FLOAT、CURRENCY_FLOAT、SYS_MSG |
 | LINK | 关联 | CORRELATION_TEST、REGRESSION_TEST |
-| SPECIAL | 特殊情境 | DUPLICATE_PACKET、HIGH_FREQ_PACKET、WITCH_TO_BACKGROUND |
+| SPECIAL | 特殊情境 | DUPLICATE_PACKET、HIGH_FREQ_PACKET、WEAK_NETWORK、SWITCH_TO_BACKGROUND |
 | LOG | 日志 | ASSET_CHANGE、PROGRESS_TRIGGER、ANOMALY |
 
----
+### 每个 Story 必须生成
 
-## 测试点生成流程
+| 类型 | 数量 | 说明 |
+|------|------|------|
+| POSITIVE（正向） | ≥ 2 | 正常流程测试 |
+| BOUNDARY（边界值） | ≥ 2 | 边界条件测试 |
+| NEGATIVE（负向） | ≥ 1 | 异常输入测试 |
+| EXCEPTION（异常） | ≥ 1 | 系统异常处理测试 |
 
-```
-S2 Backlog（Epic/Story）
-    ↓
-步骤1：识别 Story 类型 → 确定必须使用的测试设计方法
-    ↓
-步骤2：执行等价类划分（EP） → 确定有效/无效等价类
-    ↓
-步骤3：执行边界值分析（BVA） → 确定边界测试点
-    ↓
-步骤4：参考 S4 风险点 → 确定 EXCEPTION/NEGATIVE 测试点
-    ↓
-步骤5：参考 S4 异常决策树 → 确定 EXCEPTION 测试点
-    ↓
-步骤6：对复杂场景应用正交/因果/判定表 → 确定组合测试点
-    ↓
-步骤7：状态迁移分析（多状态 Story） → 确定状态转换测试点
-    ↓
-步骤8：错误猜测补充 → 补充历史缺陷模式相关测试点
-    ↓
-输出：test_points.json（每个测试点标注使用的设计方法）
-```
+### ID 格式
+
+`{StoryID}-TP-{3位序号}`，如 `UI-001-001-TP-001`
 
 ---
 
-## 测试点字段规范
+## 输入审查（门禁前置条件）
 
-```json
-{
-  "id": "UI-001-001-TP-001",
-  "module": "UI",
-  "type": "POSITIVE",
-  "title": "购买确认弹窗正常展示道具信息",
-  "design_methods": ["EP", "BVA"],
-  "s4_reference": "R-01",
-  "precondition": "玩家已登录，余额充足，道具可购买",
-  "test_input": "道具ID=test_item_001，购买数量=5",
-  "expected_result": "弹窗展示道具名称「屠龙刀」、数量5、总价=单价×5、余额充足提示",
-  "priority": "P1",
-  "regression": true
-}
-```
-
-**新增字段**：
-- `design_methods`：数组，标注使用了哪些设计方法（可选多个，如 `["BVA", "EP"]`）
-- `s4_reference`：引用来源，如 `R-01`、`S4-1.3异常树`，无引用则填 `null`
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| backlog.md 存在 | 必须 | 失败报告 |
+| Story 数量 ≥ 1 | 必须 | 失败报告 |
+| 每个 Story 有 acceptance_criteria | 建议有 | 自动填充默认 AC |
+| 每个 Story 有模块前缀 | 必须 | 纠正分配 |
 
 ---
 
@@ -205,25 +71,52 @@ S2 Backlog（Epic/Story）
 
 `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json`
 
-JSON Schema 新增字段：
-- `design_methods`：测试设计方法数组
-- `s4_reference`：S4 引用来源
-- `s4_coverage`：覆盖率（由 Python 引擎计算）
-
 ```json
-{
-  "s4_coverage": {
-    "total_risks": 18,
-    "covered_risks": 18,
-    "coverage": 1.0,
-    "uncovered_risks": []
+[
+  {
+    "story_id": "UI-001-001",
+    "module_coverage": {
+      "CONFIG": {"covered": false, "points": []},
+      "UI": {"covered": true, "points": []},
+      "BIZ": {"covered": false, "points": []},
+      ...
+    },
+    "scenario_test_points": [
+      {
+        "id": "UI-001-001-TP-001",
+        "module": "UI",
+        "type": "POSITIVE",
+        "title": "商城首页分类导航 — 正向流程",
+        "precondition": "玩家已登录系统，进入商城",
+        "test_input": "...",
+        "expected_result": "...",
+        "priority": "P1",
+        "regression": true
+      }
+    ],
+    "total_points": 6
   }
-}
+]
 ```
 
-### 失败报告
+### 失败报告（S5 测试点失败）
 
 `workflow_assets/<req_name>/「S5 测试点生成」/<version>/fail_report_S5.md`
+
+```markdown
+# 测试点生成失败报告
+
+**阶段**: S5 测试点生成
+**日期**: YYYY-MM-DD
+
+## 失败原因
+
+（列出具体问题）
+
+## 后续动作
+
+[ ] 补充 backlog 后重新提交 S5
+```
 
 ---
 
@@ -232,23 +125,24 @@ JSON Schema 新增字段：
 | 上游 | 下游 |
 |------|------|
 | S2 需求拆解 | S6 测试用例生成 |
-| S4 流程图（必须参考） | S6 测试用例生成 |
 
-**S4 衔接（必须）**：
-- S4 风险点清单 → EXCEPTION/NEGATIVE 测试点（一对一映射）
-- S4 异常决策树 → EXCEPTION 测试点（每个叶子节点）
-- S4 时序图 → 流程/场景测试点
-- S4 覆盖率 = `已覆盖风险点 / S4总风险点`
+S5 产出（test_points.json）作为 S6 的输入。
 
 ---
 
 ## 代码入口
 
 ```python
+# 自动骨架生成（Python）
 from ai_workflow.test_case_formatter import compose_test_points_from_structure, _build_fallback_scenarios
 breakdown = {'epics': [...], '_version': 'v1.0'}
 skeleton = compose_test_points_from_structure(breakdown)
+# skeleton 中每个 Story 有 module + 真实测试点内容
 
+# AI 补充（对话模式）
+# 根据骨架生成 scenario_test_points
+
+# 保存
 from ai_workflow.conversation_skills import save_stage5_output
 save_stage5_output(version, breakdown, flowchart_text, raw_output, parsed, req_name)
 ```
@@ -258,6 +152,6 @@ save_stage5_output(version, breakdown, flowchart_text, raw_output, parsed, req_n
 ## 关联文件
 
 - Prompt 模板：`ai_workflow/prompts/test_point_gen.md`
-- 骨架引擎：`ai_workflow/test_case_formatter.py`
-- 保存逻辑：`ai_workflow/conversation_skills.py`
+- 骨架引擎：`ai_workflow/test_case_formatter.py` → `compose_test_points_from_structure()`
+- 保存逻辑：`ai_workflow/conversation_skills.py` → `save_stage5_output()`
 - 输出目录：`workflow_assets/<req_name>/「S5 测试点生成」/<version>/`

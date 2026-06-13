@@ -1,7 +1,17 @@
 ---
 name: aidocx-s1-5-clarification
-description: AIDocxWorkFlow Stage 1.5 — 业务澄清与准出许可。在 S1 评审通过后，人工填写 clarification_checklist.md 处理方案后执行。基于人工反馈完善终版需求.md，输出 exit_permission（准出许可），为 S2 提供质量评价和可选的保底规则建议。使用当用户完成 clarification_checklist.md 填写后说「已填写」「好了」或类似表达。
+description: >
+  AIDocxWorkFlow Stage 1.5 — 业务澄清与准出许可。在 S1 评审通过后，人工填写 clarification_checklist.md 处理方案后执行。基于人工反馈完善终版需求.md，输出 exit_permission（准出许可），为 S2 提供质量评价和可选的保底规则建议。使用当用户完成 clarification_checklist.md 填写后说「已填写」「好了」或类似表达。
+  Use when the user has finished filling clarification_checklist.md and says '已完成'/'已填写'/'好了'.
+  使用当 S1 评审通过后，用户已人工填写 clarification_checklist.md 并准备完善终版需求.md 时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: s1-5-clarification
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow S1.5 — 业务澄清与准出许可

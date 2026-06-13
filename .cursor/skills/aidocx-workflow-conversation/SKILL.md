@@ -1,7 +1,17 @@
 ---
 name: aidocx-workflow-conversation
-description: 在纯对话模式下执行 AI 测试用例生成流水线（S1-S7），通过 Python 自动化引擎 + AI 协作节省 token
+description: >
+  在纯对话模式下执行 AI 测试用例生成流水线（S1-S7），通过 Python 自动化引擎 + AI 协作节省 token
+  Use when the user wants to run the full S1-S7 pipeline in conversation mode, save tokens via Python automation engine + AI collaboration.
+  使用当用户希望在纯对话模式下执行 AI 测试用例生成流水线（S1-S7）、通过 Python 自动化引擎 + AI 协作节省 token 时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: workflow-conversation
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow — 对话模式使用指南
@@ -202,6 +212,8 @@ result = execute_wf_simple_flow(req_text, version='v1.0', filename='test_cases')
 | `test_case_formatter` | `format_test_cases()` | S6 格式化：自动ID分配、字段规范化、去重 |
 | `auto_reviewer` | `auto_review()` | S7 审查：结构验证+覆盖率计算+通过判定 |
 | `iteration_aggregator` | `aggregate_iteration_data()` | S8 聚合：反馈日志+审核报告统计 |
+| `feedback_logger` | `import_feedback()` | 反馈收集：从 Excel/CSV/JSON 导入执行反馈 |
+| `feedback_logger` | `import_from_test_cases_xlsx()` | 反馈收集：从 test_cases.xlsx 导入执行追踪数据 |
 
 ---
 
@@ -248,31 +260,55 @@ workflow_assets/
 
 ## 流程结束后：产出报告 & 反馈收集
 
-流程结束后，Python 自动化引擎会自动打印 Markdown 格式的**流程执行报告**，并保存到 `test_cases/<version>/pipeline_report.md`。
+### 反馈收集（feedback_logger）
 
-### 提交人工评审反馈
+```
+python
+from ai_workflow.feedback_logger import import_feedback, import_from_test_cases_xlsx
 
-| 步骤 | 操作 |
-|------|------|
-| 1 | 执行完 `test_cases.xlsx` 中的用例，记录 PASS / FAIL 结果 |
-| 2 | 将评审结果整理为 Excel 或 Word（必须包含 `case_id` 列） |
-| 3 | 将反馈文件保存到 `workflow_assets/feedback_logs/` 目录 |
-| 4 | 运行 `python -m ai_workflow.feedback_logger --file /path/to/反馈.xlsx --version v1.0` 导入反馈 |
+# 方式 1：从 Excel/CSV 导入（自动识别「反馈结果」/「执行追踪」sheet）
+result = import_feedback(
+    feedback_file="/path/to/feedback.xlsx",
+    review_file="/path/to/review.xlsx",   # 可选
+    version="v1.0",
+    req_name="游戏道具商城系统",
+)
 
-### Excel 列参考（支持中文列名，自动识别）
+# 方式 2：从 test_cases.xlsx 的执行追踪 sheet 直接导入
+result = import_from_test_cases_xlsx(
+    xlsx_path="/path/to/test_cases.xlsx",
+    version="v1.0",
+)
 
-| 列名 | 说明 | 示例 |
-|------|------|------|
-| case_id / 用例ID | 用例编号 | UI-TC-001 |
-| result / 执行结果 | PASS / FAIL / BLOCKED | FAIL |
-| actual_result / 实际结果 | 实际观测到的行为 | 按钮无响应 |
-| defect_desc / 缺陷描述 | 缺陷描述 | 按钮事件未注册 |
-| severity / 严重程度 | CRITICAL / MAJOR / MINOR / LOW | MAJOR |
+# 方式 3：CLI
+python3 -m ai_workflow.feedback_logger --file feedback.xlsx --version v1.0
+```
+
+支持的文件/sheet：
+- Excel: 自动探测 `反馈结果` > `执行追踪` > `执行记录` sheet
+- CSV / JSON
+- test_cases.xlsx 的 `执行追踪` sheet（含执行结果列）
 
 ### 反馈文件存放目录
 
 ```
-workflow_assets/feedback_logs/   ← 自动存放所有提交的反馈
+workflow_assets/feedback_logs/
+  feedback_<req_name>_<version>_<timestamp>.json  ← 本次导入
+  feedback_<req_name>_<version>_<timestamp>.json  ← 历史导入
 ```
+
+### 反馈数据自动标准化
+
+| Excel/CSV 列名 | → 标准字段 | 示例 |
+|---|---|---|
+| 用例ID / case_id | case_id | `界面-TC-001` |
+| 执行结果 / result | result | `PASS` / `FAIL` |
+| 实际结果 / actual_result | actual_result | `按钮无响应` |
+| 缺陷描述 / defect_desc | defect_desc | `按钮事件未注册` |
+| 严重程度 / severity | severity | `CRITICAL` / `MAJOR` / `MINOR` / `LOW` |
+| 审核人 / reviewer | reviewer | `张三` |
+| 审核结果 / review_result | review_result | `PASS` / `FAIL` |
+
+值映射示例：`通过`/`✅`/`PASS` → `PASS`；`失败`/`❌`/`FAIL` → `FAIL`；`P0`/`阻断级` → `CRITICAL`
 
 提交反馈后，系统将自动统计缺陷模式，下次生成用例时优先复用知识库中已有的测试点。

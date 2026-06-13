@@ -1,7 +1,17 @@
 ---
 name: aidocx-s4-flowchart
-description: AIDocxWorkFlow Stage 4 — 流程图导出。为每个 Epic 生成业务流程图（Flowchart）、时序图（Sequence）、异常/错误决策树、风险点清单。使用当用户执行 /aidocx-s4-flowchart、粘贴 S2 backlog + S3 prototype、或进行 S4 流程图导出任务。
+description: >
+  AIDocxWorkFlow Stage 4 — 流程图导出。为每个 Epic 生成业务流程图（Flowchart）、时序图（Sequence）、异常/错误决策树、风险点清单。使用当用户执行 /aidocx-s4-flowchart、粘贴 S2 backlog + S3 prototype、或进行 S4 流程图导出任务。
+  Use when the user runs /aidocx-s4-flowchart, pastes S2 backlog + S3 prototype, or starts flowchart export.
+  使用当用户执行 /aidocx-s4-flowchart、粘贴 S2 backlog + S3 prototype、或进行 S4 流程图导出任务时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: s4-flowchart
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow S4 — 流程图导出

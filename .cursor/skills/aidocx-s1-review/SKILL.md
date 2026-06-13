@@ -1,7 +1,17 @@
 ---
 name: aidocx-s1-review
-description: AIDocxWorkFlow Stage 1 — 需求评审。执行需求文档的5维度评审（完整性/清晰度/一致性/可测试性/可行性），输出评分与判决（PASS/NEEDS_REVISION/REJECT）。使用当用户执行 /aidocx-s1-review、粘贴原始需求、或进行 S1 需求评审任务。
+description: >
+  AIDocxWorkFlow Stage 1 — 需求评审。执行需求文档的5维度评审（完整性/清晰度/一致性/可测试性/可行性），输出评分与判决（PASS/NEEDS_REVISION/REJECT）。使用当用户执行 /aidocx-s1-review、粘贴原始需求、或进行 S1 需求评审任务。
+  Use when the user runs /aidocx-s1-review, pastes raw requirements, or starts a Stage 1 review task.
+  使用当用户执行 /aidocx-s1-review、粘贴原始需求文档、或进行 S1 需求评审任务时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: s1-review
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow S1 — 需求评审

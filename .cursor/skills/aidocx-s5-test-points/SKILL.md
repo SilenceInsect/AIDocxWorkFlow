@@ -1,7 +1,17 @@
 ---
 name: aidocx-s5-test-points
-description: AIDocxWorkFlow Stage 5 — 测试点生成。为每个 Story 生成测试点，覆盖7模块系统（CONFIG/UI/BIZ/HINT/LINK/SPECIAL/LOG），每个 Story ≥ 6 个测试点（2正向+2边界+1负向+1异常）。使用当用户执行 /aidocx-s5-test-points、粘贴 S2 backlog、或进行 S5 测试点生成任务。
+description: >
+  AIDocxWorkFlow Stage 5 — 测试点生成。为每个 Story 生成测试点，覆盖7模块系统（CONFIG/UI/BIZ/HINT/LINK/SPECIAL/LOG），每个 Story ≥ 6 个测试点（2正向+2边界+1负向+1异常）。使用当用户执行 /aidocx-s5-test-points、粘贴 S2 backlog、或进行 S5 测试点生成任务。
+  Use when the user runs /aidocx-s5-test-points, pastes S2 backlog, or starts test point generation.
+  使用当用户执行 /aidocx-s5-test-points、粘贴 S2 backlog、或进行 S5 测试点生成任务时。
 disable-model-invocation: true
+license: MIT
+compatibility: Cursor Agent (>=1.0), Claude Code, Codex CLI, Hermes Agent (>=2026.6), any agentskills.io compliant agent
+metadata:
+  framework: AIDocxWorkFlow
+  pipeline_stage: s5-test-points
+  spec_version: agentskills.io/1.0
+  cursor_compat: true
 ---
 
 # AIDocxWorkFlow S5 — 测试点生成
@@ -17,7 +27,7 @@ disable-model-invocation: true
 **前置材料**：
 - S2 backlog.md：`workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md`
 - S4 business_flow.md（**强烈推荐参考**）：`workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md`
-  - 包含异常/错误决策树和风险点清单，直接为 EXCEPTION 类型测试点提供输入
+  - 包含异常/错误决策树和风险点清单，用于补充 EXCEPTION 类型测试点
   - 若 S4 未执行，EXCEPTION 测试点需自行推导异常路径，可能遗漏风险场景
 
 **材料缺失时**：生成失败报告，停止 S5。
