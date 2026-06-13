@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](#)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%2FWSL-lightgrey?logo=apple&logoColor=white)](#)
 [![Skills Spec](https://img.shields.io/badge/Skills-agentskills.io%201.0-7c3aed)](#)
-[![License](https://img.shields.io/badge/License-Internal--Use-orange)](#)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
 
@@ -71,8 +71,8 @@ pip install -r requirements.txt
 
 | IDE | 说明 |
 |---|---|
-| **Cursor**（推荐） | 直接打开本目录；13 个 SKILL.md 自动加载，钩子自动注册 |
-| **Hermes Agent** | `hermes skills install ./aidocx-s1-review` 等 |
+| **Cursor**（推荐） | 直接打开本目录；13 个 SKILL.md（12 通用 + 1 反馈记录）自动加载，钩子自动注册 |
+| **Hermes Agent** | `hermes skills install ./aidocx-s1-review` 等；批量跑多个需求用 `aidocx-batch-runner`（Hermes 专用）|
 | **Claude Code** | 把 `.cursor/skills/` 软链到 `~/.claude/skills/` |
 | **Codex CLI** | 软链 `.cursor/skills/` 到 `~/.codex/skills/` |
 
@@ -158,7 +158,9 @@ AIDocxWorkFlow/
 │
 ├── .cursor/                         # Cursor 规则、skills、hooks
 │   ├── rules/                       # 阶段规则文件 (STAGE_S*.mdc)
-│   ├── skills/                      # 13 个 AI 技能 (SKILL.md)
+│   ├── skills/                      # 12 个通用 AI 技能 (SKILL.md)
+│   │   ├── aidocx-s1-review/...   # 12 个阶段 / 编排 / 对话 skill
+│   │   └── aidocx-feedback-logger/  # 阶段反馈收集（人工触发的 skill）
 │   └── hooks/                       # 钩子（SKILL 验证、计费等）
 │
 ├── ai_workflow/                     # Python 自动化模块（离线可跑）
@@ -291,6 +293,6 @@ S8 不是"产出物阶段"，而是**学习阶段**：
 | **Owner** | QA 平台组 |
 | **AI 工具链** | Cursor + Claude Opus 4 + Hermes Agent（可选） |
 | **更新机制** | S8 自迭代 + 人工评审 |
-| **License** | 内部使用，暂不开源 |
+| **License** | [MIT](LICENSE) |
 
 > 任何阶段出问题，第一时间看 `fail_report_S*.md`——这是流水线里"自检不出错"的关键设计。
