@@ -1,0 +1,281 @@
+{
+  "version": "v1.0",
+  "date": "2026-06-13",
+  "stage": "S2.5",
+  "req_name": "游戏道具商城系统",
+  "sprints": [
+    {
+      "sprint_id": "S1",
+      "title": "基础设施搭建",
+      "goal": "完成数据模型、缓存机制和汇率配置，建立可测试的基础框架",
+      "epics": [
+        "AUX-CACHE",
+        "AUX-EXRATE"
+      ],
+      "story_ids": [
+        "AUX-CACHE-001",
+        "AUX-EXRATE-001"
+      ],
+      "estimated_weeks": 1,
+      "milestone": null,
+      "risk_level": "low",
+      "risk_items": [
+        "汇率数据来源"
+      ],
+      "deliverables": [
+        "道具缓存模块",
+        "汇率配置表",
+        "渠道价格换算接口"
+      ]
+    },
+    {
+      "sprint_id": "S2",
+      "title": "核心购买流程（Alpha）",
+      "goal": "交付完整购买流程：道具展示→确认→游戏币支付→道具到账",
+      "epics": [
+        "UI-SHOP",
+        "UI-DETAIL",
+        "BIZ-PURCHASE"
+      ],
+      "story_ids": [
+        "UI-SHOP-001",
+        "UI-SHOP-002",
+        "UI-SHOP-003",
+        "UI-DETAIL-001",
+        "UI-DETAIL-002",
+        "BIZ-PURCHASE-001",
+        "BIZ-PURCHASE-002",
+        "BIZ-PURCHASE-003",
+        "BIZ-PURCHASE-004",
+        "BIZ-PURCHASE-005"
+      ],
+      "estimated_weeks": 3,
+      "milestone": "M1",
+      "risk_level": "medium",
+      "risk_items": [
+        "汇率锁定时机争议",
+        "道具到账延迟边界"
+      ],
+      "deliverables": [
+        "商城首页",
+        "道具详情页",
+        "购买确认弹窗",
+        "游戏币支付",
+        "道具即时到账",
+        "购买邮件通知"
+      ]
+    },
+    {
+      "sprint_id": "S3",
+      "title": "促销与会员体系",
+      "goal": "交付 VIP 体系、促销配置、折扣叠加规则",
+      "epics": [
+        "CONFIG-VIP",
+        "CONFIG-DISCOUNT",
+        "SPECIAL-VIP-CHANGE"
+      ],
+      "story_ids": [
+        "CONFIG-VIP-001",
+        "CONFIG-VIP-002",
+        "CONFIG-VIP-003",
+        "CONFIG-DISCOUNT-001",
+        "CONFIG-DISCOUNT-002",
+        "CONFIG-DISCOUNT-003",
+        "CONFIG-DISCOUNT-004",
+        "CONFIG-DISCOUNT-005",
+        "SPECIAL-VIP-CHANGE-001",
+        "SPECIAL-VIP-CHANGE-002"
+      ],
+      "estimated_weeks": 3,
+      "milestone": "M2",
+      "risk_level": "high",
+      "risk_items": [
+        "折扣叠加逻辑（L1）",
+        "VIP时效配置（L2）"
+      ],
+      "deliverables": [
+        "VIP配置后台",
+        "VIP折扣计算",
+        "VIP专属道具",
+        "促销配置后台",
+        "限时折扣",
+        "满减活动",
+        "新手礼包",
+        "折扣叠加"
+      ]
+    },
+    {
+      "sprint_id": "S4",
+      "title": "支付集成与订单",
+      "goal": "对接渠道支付接口，完成订单管理和支付日志",
+      "epics": [
+        "LINK-PAYMENT",
+        "BIZ-ORDER",
+        "LOG-PAYMENT"
+      ],
+      "story_ids": [
+        "LINK-PAYMENT-001",
+        "BIZ-ORDER-001",
+        "BIZ-ORDER-002",
+        "LOG-PAYMENT-001"
+      ],
+      "estimated_weeks": 2,
+      "milestone": "M3",
+      "risk_level": "medium",
+      "risk_items": [
+        "渠道支付回调可靠性",
+        "日志审计合规"
+      ],
+      "deliverables": [
+        "渠道支付接口",
+        "订单列表",
+        "订单详情",
+        "支付操作日志"
+      ]
+    },
+    {
+      "sprint_id": "S5",
+      "title": "系统集成与上线",
+      "goal": "端到端集成测试，修复问题，稳定发布",
+      "epics": [
+        "BIZ-PURCHASE",
+        "CONFIG-VIP",
+        "CONFIG-DISCOUNT"
+      ],
+      "story_ids": [],
+      "estimated_weeks": 2,
+      "milestone": "M4",
+      "risk_level": "medium",
+      "risk_items": [
+        "端到端集成问题",
+        "渠道支付回归"
+      ],
+      "deliverables": [
+        "集成测试报告",
+        "上线清单",
+        "监控埋点",
+        "全回归测试"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Alpha — 核心购买流程可用",
+      "timing": "Sprint 2 末",
+      "deliverables": [
+        "商城首页可浏览",
+        "道具详情页可购买",
+        "游戏币支付成功",
+        "道具到账",
+        "邮件通知"
+      ],
+      "pass_criteria": [
+        "购买全流程端到端可跑通",
+        "道具到账 < 3秒",
+        "余额不足时正确拒绝"
+      ]
+    },
+    {
+      "id": "M2",
+      "title": "Beta — 全功能可用",
+      "timing": "Sprint 3 末",
+      "deliverables": [
+        "VIP体系可用",
+        "促销体系可用",
+        "折扣叠加正确"
+      ],
+      "pass_criteria": [
+        "VIP1/2/3 折扣正确计算",
+        "限时折扣与VIP折扣叠加正确",
+        "满减活动正确",
+        "新手礼包限制生效"
+      ]
+    },
+    {
+      "id": "M3",
+      "title": "RC — 支付就绪",
+      "timing": "Sprint 4 末",
+      "deliverables": [
+        "Android/iOS/Web 三渠道支付",
+        "订单管理",
+        "日志审计"
+      ],
+      "pass_criteria": [
+        "三渠道支付均可成功回调",
+        "订单数据准确",
+        "日志可查询"
+      ]
+    },
+    {
+      "id": "M4",
+      "title": "上线 — 系统稳定",
+      "timing": "Sprint 5 末",
+      "deliverables": [
+        "全回归通过",
+        "监控告警就绪",
+        "灰度发布完成"
+      ],
+      "pass_criteria": [
+        "P0 用例 100% PASS",
+        "支付相关用例 100% PASS",
+        "无阻断级缺陷"
+      ]
+    }
+  ],
+  "resource_plan": {
+    "frontend": 2,
+    "backend": 3,
+    "qa": 2
+  },
+  "total_weeks": 11,
+  "risks": [
+    {
+      "description": "折扣叠加规则（L1）未最终确定，可能影响 CONFIG-DISCOUNT 的测试用例",
+      "severity": "high",
+      "mitigation": "已在 S2 生成 [fallback] Story，按最优价策略处理，S3 开始前由策划最终确认"
+    },
+    {
+      "description": "VIP时效配置（L2）未明确，可能影响 SPECIAL-VIP-CHANGE",
+      "severity": "medium",
+      "mitigation": "已生成 [fallback] Story，默认按永久有效处理"
+    },
+    {
+      "description": "渠道支付接口对接进度依赖第三方",
+      "severity": "medium",
+      "mitigation": "Sprint 4 专门安排缓冲时间，优先对接最稳定渠道"
+    },
+    {
+      "description": "汇率配置热更新需要后端支持，可能影响 Sprint 1 估算",
+      "severity": "low",
+      "mitigation": "AUX-EXRATE 预留 0.5 周缓冲"
+    }
+  ],
+  "dependencies": [
+    {
+      "from": "AUX-EXRATE",
+      "to": "BIZ-PURCHASE",
+      "type": "数据依赖",
+      "description": "汇率配置是价格换算的前置依赖"
+    },
+    {
+      "from": "BIZ-PURCHASE",
+      "to": "BIZ-ORDER",
+      "type": "业务依赖",
+      "description": "订单数据由购买流程产生"
+    },
+    {
+      "from": "CONFIG-VIP",
+      "to": "BIZ-PURCHASE",
+      "type": "业务依赖",
+      "description": "VIP折扣需在购买结算时实时计算"
+    }
+  ],
+  "summary": {
+    "epic_count": 11,
+    "story_count": 26,
+    "total_weeks": 11,
+    "sprint_count": 5,
+    "milestone_count": 4
+  }
+}

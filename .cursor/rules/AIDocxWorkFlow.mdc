@@ -60,16 +60,18 @@ S2 需求拆解
 
 | Stage | Gate | Threshold |
 |-------|------|-----------|
-| S1 | 评审评分（判断是否进入澄清流程） | ≥ 7.0/10.0 |
+| S1 | 评审（判断是否进入澄清流程） | 有足够信息推进（评分仅作参考，P0 问题已澄清即可通过） |
 | S1.5 | P0 项全部填写 | P0 项 100% 填写 |
-| S2 | Epic 拆解精度 | ≥ 90% |
-| S2.5 | 排期与资源规划 | ≥ 80% |
-| S3 | 原型覆盖度 | 100% UI入口 |
-| S4 | 异常路径覆盖率 | > 80% |
-| S5 | 测试点数量 | ≥ 6/story (2+2+1+1) |
-| S6 | 用例格式完整性 | 100% 必填字段 |
-| S7 | 覆盖率 + 结构完整性 | ≥ 85% + ≥ 90% |
-| S8 | 建议可执行性 | ≥ 3 条可执行建议 |
+| S2 | 拆解结构完整性 | 所有 Epic/Story/需求对象/功能点字段齐全，无循环依赖 |
+| S2.5 | 里程碑完整性 | 关键里程碑（开发完成、转测、回归、上线）均有明确日期 |
+| S3 | 原型覆盖完整性 | 每个 UI 类 Story 有对应的页面原型 |
+| S4 | 异常路径完整性 | 所有识别的异常路径均已覆盖（数量由上游 Story 决定） |
+| S5 | 测试点覆盖度 | 基于风险的覆盖率（18种测试设计方法 + S4风险点全量映射），非固定数量 |
+| S6 | 用例格式完整性 | 100% 必填字段（前置条件、操作步骤、预期结果） |
+| S7 | S4 覆盖率 + 结构完整性 | S4 风险点100%全覆盖，且结构完整性达标 |
+| S8 | 改进建议可执行性 | 每个根因有对应可执行建议 |
+
+> **S7 PASS 条件**：S4 风险点覆盖率 = 100% 且 S4 异常树覆盖率 = 100% 且结构完整性达标。覆盖率 = 风险被覆盖的程度，不再使用「NEGATIVE ≥ 30%」等拍脑袋指标。
 
 ---
 
@@ -94,7 +96,7 @@ Each stage has its own dedicated rule file (`.cursor/rules/STAGE_S*.mdc`) and sk
 | `STAGE_S2_5_ITERATION.mdc` | `aidocx-s2-5-iteration/` | S2.5 | 7步迭代规划 → 负载平衡 → 里程碑 |
 | `STAGE_S3_PROTOTYPE.mdc` | `aidocx-s3-prototype/` | S3 | 页面原型 → Mermaid页面流图 |
 | `STAGE_S4_FLOWCHART.mdc` | `aidocx-s4-flowchart/` | S4 | 业务流程图 → 时序图 → 异常决策树 |
-| `STAGE_S5_TEST_POINTS.mdc` | `aidocx-s5-test-points/` | S5 | 7模块测试点 → 6点/story (2+2+1+1) |
+| `STAGE_S5_TEST_POINTS.mdc` | `aidocx-s5-test-points/` | S5 | 7模块测试点 → 18种测试设计方法 + S4风险点全量映射，test_points.json含design_methods和s4_reference |
 | `STAGE_S6_TEST_CASES.mdc` | `aidocx-s6-test-cases/` | S6 | 测试用例 → Markdown+JSON+Excel 3 Sheet |
 | `STAGE_S7_REVIEW.mdc` | `aidocx-s7-review/` | S7 | 双审查员 → 结构完整性+覆盖率 → overall_pass |
 | `STAGE_S8_SELF_ITERATION.mdc` | `aidocx-s8-self-iteration/` | S8 | 缺陷分析 → Prompt改进 → 归档经验 |
@@ -161,6 +163,7 @@ workflow_assets/
         fail_report_S2.md                       ← S2 失败报告
     「S2.5 迭代规划」/
       <version>/
+        project_config.json                     ← S2.5 产出（项目配置，必填）
         iteration_plan.md                         ← S2.5 产出
         iteration_plan.json
         fail_report_S2_5.md                     ← S2.5 失败报告

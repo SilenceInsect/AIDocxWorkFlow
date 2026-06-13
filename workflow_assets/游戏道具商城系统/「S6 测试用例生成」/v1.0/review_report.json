@@ -1,0 +1,21 @@
+{
+  "reviewer_a": {
+    "total_cases": 195,
+    "passed": 195,
+    "pass_rate": 1.0,
+    "issues": []
+  },
+  "reviewer_b": {
+    "s4_risk_coverage": 1.0,
+    "s4_risk_total": 18,
+    "s4_risk_covered": 18,
+    "s4_exception_coverage": 0.1368,
+    "uncovered_risks": [],
+    "uncovered_exceptions": []
+  },
+  "overall_pass": true,
+  "structure_completeness": 1.0,
+  "coverage_avg": 1.0,
+  "verdict": "PASS",
+  "summary": "S4风险点覆盖率18/18=100.0%, 结构完整性100.0%, 判决:PASS"
+}
