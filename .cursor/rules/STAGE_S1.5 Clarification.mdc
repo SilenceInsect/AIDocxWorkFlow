@@ -1,0 +1,235 @@
+# AIDocxWorkFlow Stage 1.5 — 业务澄清与准出（独立子阶段）
+
+> **独立子阶段**：S1 评审通过后、S2 需求拆解前执行。
+> **不可被缺省**——S2 执行前**必须**有 `exit_permission.json` 且 `can_proceed_to_s2 == true`，否则 S2 拒绝执行。
+> 详见 `STAGE_S1_REVIEW.mdc` "S1 阶段不知道要产出 S1.5 准入物料" 反向契约、`STAGE_S2_BREAKDOWN.mdc` 第 23 行"前置材料"门禁。
+
+---
+
+## 阶段定位
+
+```
+S1 需求评审（≥ 7.0 PASS）
+ ↓
+S1 产出 5 份物料（review_report / role_definitions / requirement_objects / 终版需求草稿 / clarification_checklist 含问题需求清单）
+ ↓ S1.5 前置物料（不可跳过）
+S1.5 业务澄清与准出
+ ↓ 人工填写 clarification_checklist.md → 完善终版需求.md → 生成 exit_permission.json
+S2 需求拆解
+ ↓ can_proceed_to_s2 == true 方可执行
+...
+```
+
+**S1.5 的本质**：**策划 / 需求方对 S1 AI 评审结论的复核与定调**——S1 AI 找出的问题（P0/P1/P2），**必须由人类**在 S1.5 给出处理方案，**S1.5 是 AI 提案 → 人类决策的契约落地点**。
+
+---
+
+## S1.5 不可被缺省
+
+| 场景 | 处置 |
+|------|------|
+| 直接从 S1 跳 S2（跳过 S1.5） | ❌ **S2 拒绝执行**——`exit_permission.json` 不存在 → 触发 `fail_report_S2.md` |
+| S1.5 执行但 P0 未填完 | ❌ **S1.5 失败报告**——`fail_report_S1_5.md` + 不生成 `exit_permission.json` |
+| S1.5 执行 + P0 全填 + P1/P2 未填 | ✅ **轻量跑通**——生成 `exit_permission.json`，`can_proceed_to_s2 = true`，`quality_level = LOW` |
+| S1.5 执行 + P0 全填 + P1 全填 | ✅ **标准跑通**——`quality_level = MEDIUM` |
+| S1.5 执行 + P0/P1/P2 全填 | ✅ **高质量跑通**——`quality_level = HIGH` |
+
+---
+
+## 前置物料（S1 产出 = S1.5 输入）
+
+> S1 阶段**必须**产出 5 份物料（schema 见 `STAGE_S1_REVIEW.mdc`），S1.5 收到时**逐项验收**：
+
+| 物料 | 路径 | 验收条件 | 缺失时 |
+|------|------|----------|--------|
+| `review_report.md` | `workflow_assets/<req_name>/「S1 需求评审」/<version>/review_report.md` | 5 维度评分 + 判决（PASS / NEEDS_REVISION） | 退回 S1 |
+| `role_definitions.md` | `.../role_definitions.md` | 角色按"主/次/边界"分类 + 典型场景（无数量下限） | 退回 S1 |
+| `requirement_objects.md` + `.json` | `.../requirement_objects.md` + `.json` | 功能 × 业务故事 1:1 配对（100% 覆盖率）+ 8 模块标签 | 退回 S1 |
+| `终版需求.md`（草稿） | `.../终版需求.md` | S1 AI 整理后的需求文档，S1.5 完善 | 退回 S1 |
+| `clarification_checklist.md` | `.../clarification_checklist.md` | **包含 `## 问题需求（→ S1.5 准入物料）` 节**，P0/P1/P2 分级 + `SPECIAL_FLAG` 列 | 退回 S1 |
+
+**前置物料门禁（缺 1 即退 S1）**：
+- ❌ `clarification_checklist.md` 不含"问题需求"节
+- ❌ `requirement_objects.md` 缺业务故事节
+- ❌ `review_report.md` 缺 5 维度评分表
+- ❌ `终版需求.md` 为空（仅占位文字）
+- ❌ 任何 1 份物料缺失
+
+---
+
+## 输入审查（门禁前置）
+
+S1.5 执行前**逐项验证** S1 物料：
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| P0 项已填写 | P0 100% 填写 | 触发 `fail_report_S1_5.md`（BLOCKED） |
+| 处理方案有效 | 处理方案**不为空 / 不为占位文字** | 提示用户填写具体决策 |
+| 强付费项 P0 | `SPECIAL_FLAG = PURCHASE_STRONG` 的 P0 **必须**全部答完 | 与 P0 缺失同等处理 |
+| `clarification_checklist.md` 状态 | 文件存在且 `## 问题需求` 节非空 | 提示先走 S1 |
+| `终版需求.md` 草稿 | S1 草稿存在（任意长度） | 退回 S1 |
+
+> **轻量跑通底线**：P0 全部填写 + P1/P2 可不填写（详见下一节）。
+
+---
+
+## 轻量跑通 vs 完整跑通
+
+> **轻量跑通** = **非正式验收流程下**，S1.5 仍能产出 `exit_permission.json`、S2 可执行。**简单流程跑通测试专用**。
+
+| 验收深度 | P0 填写 | P1 填写 | P2 填写 | quality_level | can_proceed_to_s2 | S2 行为 |
+|----------|---------|---------|---------|---------------|-------------------|---------|
+| **轻量跑通**（非正式验收） | ✅ 100% | ⚠️ 可不填 | ⚠️ 可不填 | `LOW` | `true` | 标准拆解 + 应用 fallback_rules + 重点标注遗留项 |
+| **标准跑通** | ✅ 100% | ✅ 100% | ⚠️ 可不填 | `MEDIUM` | `true` | 标准拆解 + 关注 s2_guidance open_questions |
+| **完整跑通** | ✅ 100% | ✅ 100% | ✅ 100% | `HIGH` | `true` | 标准拆解即可 |
+| **P0 漏填** | ❌ <100% | — | — | `BLOCKED` | `false` | S1.5 失败报告，**不**生成 exit_permission |
+
+> **轻量跑通的代价**：`quality_level = LOW` → S2 拆解深度**降低**（用 fallback_rules 补）、**遗留项**会进入 backlog。
+> **轻量跑通** ≠ **跳过 S1.5**——**S1.5 不可缺省**这条**独立于验收深度**。
+
+---
+
+## 核心职责
+
+1. **完善终版需求.md**：基于人工填写的处理方案，补充缺失的业务规则、修正歧义、更新待确认项
+2. **生成准出许可（exit_permission.json）**：输出结构化的质量评价和准出判定，供 S2 读取
+3. **给出保底规则建议**：若输入质量存在局限，为 S2 提供可选的保底拆解规则
+
+---
+
+## 产出规范
+
+### 产出1：完善的 `终版需求.md`（更新）
+
+**路径**：`workflow_assets/<req_name>/「S1 需求评审」/<version>/终版需求.md`
+
+在 S1 草稿基础上，基于处理方案进行以下更新：
+- 补充缺失的业务规则（将处理方案转化为标准业务语言）
+- 修正歧义或冲突
+- 更新待确认项状态（已解决 / 遗留）
+- 标注需要 S2 关注的风险点
+
+### 产出2：准出许可 `exit_permission.json`
+
+**路径**：`workflow_assets/<req_name>/「S1 需求评审」/<version>/exit_permission.json`
+
+```json
+{
+  "version": "v1.0",
+  "date": "YYYY-MM-DD",
+  "stage": "S1.5",
+  "upstream": {
+    "s1_verdict": "PASS | NEEDS_REVISION",
+    "s1_score": 7.425,
+    "req_name": "<req_name>"
+  },
+  "exit_permission": {
+    "can_proceed_to_s2": true | false,
+    "quality_level": "HIGH | MEDIUM | LOW | BLOCKED",
+    "quality_summary": "<一句话质量评价>",
+    "items_filled": {
+      "p0": 1,
+      "p1": 3,
+      "p2": 2
+    },
+    "items_total": {
+      "p0": 1,
+      "p1": 3,
+      "p2": 2
+    },
+    "strong_purchase_p0_resolved": true | false
+  },
+  "fallback_rules": [
+    {
+      "trigger": "<触发条件（如：某字段为空）>",
+      "rule": "<保底规则内容>",
+      "source": "clarification | derivation | default"
+    }
+  ],
+  "s2_guidance": {
+    "priority_epics": ["<EpicID>", ...],
+    "risk_points": ["<风险点>", ...],
+    "open_questions": ["<待确认问题>", ...]
+  },
+  "遗留项": [
+    {
+      "id": "L1",
+      "description": "<描述>",
+      "impact": "<影响范围>",
+      "resolution": "<建议处理方式>"
+    }
+  ]
+}
+```
+
+> 新增字段 `strong_purchase_p0_resolved`：`SPECIAL_FLAG = PURCHASE_STRONG` 的 P0 **必须**全部答完才能 `true`，否则 P0 漏填 = `false` = BLOCKED。
+
+### 产出3：更新 `clarification_checklist.md` 状态
+
+将状态字段改为「✅ 已处理（S1.5 准出许可已生成）」。
+
+---
+
+## 与 S2 的衔接
+
+S2 执行前**必须**读取 `exit_permission.json`：
+
+| 状态 | S2 处置 |
+|------|---------|
+| `can_proceed_to_s2 == true` | 正常执行 S2（按 quality_level 决定拆解深度） |
+| `can_proceed_to_s2 == false` | **拒绝执行**，生成 `fail_report_S2.md`，提示用户填写 P0 项 |
+| `exit_permission.json` 文件不存在 | **拒绝执行**，生成 `fail_report_S2.md`，提示"S1.5 未执行" |
+
+S2 根据 `quality_level` 调整拆解深度：
+- `HIGH`：标准拆解即可
+- `MEDIUM`：标准拆解 + 关注 s2_guidance open_questions
+- `LOW`：标准拆解 + 应用所有 fallback_rules + 重点标注遗留项
+
+---
+
+## 失败报告
+
+**路径**：`workflow_assets/<req_name>/「S1 需求评审」/<version>/fail_report_S1_5.md`
+
+**触发条件**：
+- P0 项未填写
+- 强付费项 P0（`SPECIAL_FLAG = PURCHASE_STRONG`）未答完
+- 所有检查项均为无效内容
+- 前置物料（S1 产出 5 份）缺 1 份
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.stage_s1_input import read_clarification_checklist, read_exit_permission
+
+# 读取 S1.5 准入物料
+checklist = read_clarification_checklist(req_name="游戏道具商城系统", version="v1.0")
+# 返回 dict: {"items": [...], "status": "pending"/"filled", "p0_filled": bool, ...}
+
+# 读取 S1.5 产出准出许可
+permission = read_exit_permission(req_name="游戏道具商城系统", version="v1.0")
+# permission['exit_permission']['can_proceed_to_s2'] → bool
+```
+
+---
+
+## 反向契约（S1 必须知道的事）
+
+> S1 评审时**必须**意识到：**S1 产出 = S1.5 输入**，**S1.5 不可被缺省**。
+> S1 阶段**不可**偷工减料（功能故事 1:1 漏配 / 强付费项 3 段不识别 / 问题清单不写入）——这些都会**直接被 S1.5 打回**。
+
+详见：
+- `.cursor/rules/STAGE_S1_REVIEW.mdc`（"审查产物"节 + "强付费项质量闭环"节）
+- `.cursor/skills/aidocx-s1-review/SKILL.md`（业务属性标签 + 强付费项 3 段）
+
+---
+
+## 参考文档
+
+- S1 评审规范：`.cursor/rules/STAGE_S1_REVIEW.mdc`
+- S2 拆解规范：`.cursor/rules/STAGE_S2_BREAKDOWN.mdc`
+- 清单文件：`workflow_assets/<req_name>/「S1 需求评审」/<version>/clarification_checklist.md`
+- 终版需求：`workflow_assets/<req_name>/「S1 需求评审」/<version>/终版需求.md`
+- 准出许可：`workflow_assets/<req_name>/「S1 需求评审」/<version>/exit_permission.json`

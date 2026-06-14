@@ -48,9 +48,14 @@ metadata:
 
 | 检查项 | 要求 | 缺失时 |
 |--------|------|--------|
-| P0 问题已填写 | 至少问题1已填写处理方案 | 提示用户必须填写 P0 项 |
+| **S1 5 份物料齐全** | review_report / role_definitions / requirement_objects / 终版需求 / clarification_checklist **5 份都存在** | 退回 S1 |
+| P0 问题已填写 | P0 100% 填写 | 触发 `fail_report_S1_5.md`（BLOCKED） |
+| 强付费项 P0 | `SPECIAL_FLAG = PURCHASE_STRONG` 的 P0 **必须**全部答完 | 与 P0 缺失同等处理 |
 | 处理方案有效 | 处理方案不为空或无意义占位文字 | 提示用户填写具体决策 |
-| clarification_checklist.md 存在 | 文件存在且状态为"待填写" | 提示用户先走 S1 生成清单 |
+| clarification_checklist.md 存在 | 文件存在且 `## 问题需求（→ S1.5 准入物料）` 节非空 | 提示用户先走 S1 生成清单 |
+
+> **S1.5 不可被缺省**——S2 执行前**必须**有 `exit_permission.json` 且 `can_proceed_to_s2 == true`，否则 S2 拒绝执行。
+> **轻量跑通** = P0 全填 + P1/P2 可不填（quality_level = LOW），S2 仍可执行。
 
 ---
 
@@ -82,7 +87,7 @@ metadata:
   },
   "exit_permission": {
     "can_proceed_to_s2": true | false,
-    "quality_level": "HIGH | MEDIUM | LOW",
+    "quality_level": "HIGH | MEDIUM | LOW | BLOCKED",
     "quality_summary": "<一句话质量评价>",
     "items_filled": {
       "p0": 1,
@@ -93,7 +98,8 @@ metadata:
       "p0": 1,
       "p1": 3,
       "p2": 2
-    }
+    },
+    "strong_purchase_p0_resolved": true | false
   },
   "fallback_rules": [
     {
@@ -126,15 +132,16 @@ metadata:
 
 ## 质量评价标准（exit_permission）
 
-| quality_level | 判定条件 | can_proceed_to_s2 |
-|---------------|----------|-------------------|
-| **HIGH** | P0 全部填写 + P1 全部填写 + 无遗留歧义 | true |
-| **MEDIUM** | P0 全部填写 + P1 部分填写（≥50%） | true |
-| **LOW** | P0 全部填写 + P1 填写 <50% | true（带 fallback_rules） |
-| **BLOCKED** | P0 未填写 | false |
+| quality_level | 判定条件 | can_proceed_to_s2 | S2 拆解深度 |
+|---------------|----------|-------------------|-------------|
+| **HIGH** | P0 全部填写 + P1 全部填写 + P2 全部填写 + 无遗留歧义 | true | 标准拆解 |
+| **MEDIUM** | P0 全部填写 + P1 全部填写 + P2 部分填写 | true | 标准拆解 + 关注 s2_guidance open_questions |
+| **LOW**（**轻量跑通**） | P0 全部填写 + P1/P2 可不填 | true | 标准拆解 + 应用所有 fallback_rules + 重点标注遗留项 |
+| **BLOCKED** | P0 未填写 或 强付费项 P0 未答完 | false | —（S1.5 失败报告） |
 
-> **重要**：`can_proceed_to_s2` 仅在 P0 全部填写时为 true。
-> 无论 quality_level 如何，只要 P0 填写完毕，S2 均可执行（带 fallback_rules 保底）。
+> **轻量跑通** = 非正式验收流程下，S1.5 仍能产出 `exit_permission.json`、S2 可执行——**简单流程跑通测试专用**。
+> **轻量跑通** ≠ **跳过 S1.5**——S1.5 不可被缺省这条**独立于验收深度**。
+> `can_proceed_to_s2 == true` 的**唯一必要条件** = P0 全部填写（含强付费项 P0）。
 
 ---
 
