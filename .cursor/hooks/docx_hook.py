@@ -123,10 +123,10 @@ def build_result_prompt(result: dict, version: str) -> str:
     if mods:
         lines.append(f"**用例分布**: UI={mods.get('UI',0)} 条  |  BIZ={mods.get('BIZ',0)} 条")
 
-    lines += ["", "**产出文件**:", "  - `requirements/<version>/backlog.md` — Epic/Story 分解"]
-    lines += ["  - `requirements/<version>/test_points.json` — 测试点"]
-    lines += ["  - `test_cases/<version>/test_cases.json` — 测试用例 JSON"]
-    lines += ["  - `test_cases/<version>/test_cases.xlsx` — 测试用例 Excel（可直接执行）", ""]
+    lines += ["", "**产出文件**:", "  - `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` — Epic/Story 分解"]
+    lines += ["  - `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` — 测试点"]
+    lines += ["  - `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.json` — 测试用例 JSON"]
+    lines += ["  - `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.xlsx` — 测试用例 Excel（可直接执行）", ""]
     lines.append("---")
     lines.append("请以 Markdown 格式展示以上产出文件列表，并提示用户执行完测试后可提交反馈进行迭代优化。")
     return "\n".join(lines)

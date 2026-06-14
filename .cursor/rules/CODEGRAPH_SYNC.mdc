@@ -27,7 +27,7 @@ pip3 install watchdog --break-system-packages
 python3 workflow_assets/codegraph_sync.py
 ```
 
-监听目录：`ai_workflow/`、`workflow_assets/`、`requirements/`、`test_cases/`。
+监听目录：`ai_workflow/`、`workflow_assets/`。
 防抖延迟：2 秒（防止频繁触发）。
 
 ## 使用规范
