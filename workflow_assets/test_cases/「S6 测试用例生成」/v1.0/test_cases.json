@@ -1,0 +1,3318 @@
+{
+  "version": "v1.0",
+  "stage": "S6",
+  "date": "2026-06-14",
+  "req_name": "test_cases",
+  "summary": {
+    "total_cases": 26,
+    "by_module": {
+      "OTHER": 26
+    },
+    "module_list": [
+      "OTHER"
+    ]
+  },
+  "test_cases": [
+    {
+      "story_id": "BIZ-PURCHASE-001",
+      "epic_id": "BIZ-PURCHASE",
+      "title": "购买确认流程",
+      "module_coverage": {
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "LAYOUT"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "HINT": {
+          "covered": true,
+          "points": [
+            "RED_DOT"
+          ]
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "BIZ-PURCHASE-001-TP-001",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "购买确认弹窗 — 正常展示道具信息",
+          "precondition": "玩家已登录，余额充足，道具可购买",
+          "test_input": "道具ID=test_item_001，购买数量=5",
+          "expected_result": "弹窗展示道具名称「屠龙刀」、数量5、总价=单价×5、余额充足提示",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-001-TP-002",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "购买确认弹窗余额对比 — 余额充足",
+          "precondition": "玩家余额=10000游戏币，道具单价=100",
+          "test_input": "购买数量=50，总价=5000",
+          "expected_result": "弹窗显示当前余额10000、所需5000、余额足够、购买按钮可用",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-001-TP-003",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "数量选择边界值 — 上限99",
+          "precondition": "道具可购买，数量上限99",
+          "test_input": "购买数量=99",
+          "expected_result": "前端允许选择99，购买按钮可用，总价正确计算",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-001-TP-004",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "数量选择边界值 — 下限1",
+          "precondition": "道具可购买",
+          "test_input": "购买数量=1",
+          "expected_result": "前端允许选择1，购买按钮可用，总价=单价",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-001-TP-005",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "数量超限 — 前端拦截100",
+          "precondition": "道具可购买",
+          "test_input": "尝试输入购买数量=100",
+          "expected_result": "前端拦截输入，提示「数量超出范围(1-99)」，不发起购买请求",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-001-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "余额不足时购买按钮禁用（引用S4-R01异常路径）",
+          "precondition": "玩家余额=1000游戏币，道具单价=500",
+          "test_input": "购买数量=3，总价=1500 > 余额1000",
+          "expected_result": "购买确认弹窗显示余额不足，购买按钮禁用，无法提交订单",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-001-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "购买数量为0时前端拦截（引用S4-1.3异常树）",
+          "precondition": "道具可购买，数量选择器默认值为0",
+          "test_input": "尝试提交购买数量=0",
+          "expected_result": "前端拦截输入，提示「数量必须在1-99之间」，不发起购买请求",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-001-TP-008",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "玩家输入非正整数购买数量（引用S4-1.3异常树）",
+          "precondition": "道具可购买",
+          "test_input": "尝试输入购买数量=-1",
+          "expected_result": "前端拦截负数，提示「数量必须在1-99之间」，不发起请求",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 8,
+      "case_id": "BIZ-TC-001"
+    },
+    {
+      "story_id": "BIZ-PURCHASE-002",
+      "epic_id": "BIZ-PURCHASE",
+      "title": "游戏币支付",
+      "module_coverage": {
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL",
+            "DB_PERSIST",
+            "ENTITY_CACHE"
+          ]
+        },
+        "HINT": {
+          "covered": true,
+          "points": [
+            "ITEM_FLOAT",
+            "SYS_MSG"
+          ]
+        },
+        "LOG": {
+          "covered": true,
+          "points": [
+            "ASSET_CHANGE",
+            "ANOMALY"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE"
+          ]
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "BIZ-PURCHASE-002-TP-001",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "游戏币支付成功 — 扣款+道具到账",
+          "precondition": "玩家余额=10000，道具单价=1000，数量=1",
+          "test_input": "玩家发起游戏币支付",
+          "expected_result": "余额扣减1000，道具立即到账（<3秒），背包刷新，订单状态=成功",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-002-TP-002",
+          "module": "HINT",
+          "type": "POSITIVE",
+          "title": "道具到账提示 — 背包红点+飘字",
+          "precondition": "购买成功，道具已到账",
+          "test_input": "收到道具到账事件",
+          "expected_result": "背包图标显示红点提示+道具图标飘入动画+系统消息通知",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-002-TP-003",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "余额刚好等于总价 — 全额扣款",
+          "precondition": "玩家余额=道具总价",
+          "test_input": "余额=1000，总价=1000，购买数量=1",
+          "expected_result": "扣款成功，余额归零，道具到账，订单成功",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-002-TP-004",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "余额仅差1游戏币 — 拒绝交易",
+          "precondition": "玩家余额=道具总价-1",
+          "test_input": "余额=999，总价=1000",
+          "expected_result": "拒绝交易，返回余额不足提示，不扣款，订单失败",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-002-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "游戏币支付失败 — 余额冻结后账户异常（引用S4-R01竞态路径）",
+          "precondition": "余额已冻结，账户系统异常",
+          "test_input": "扣款时账户服务返回ERROR_CODE=503",
+          "expected_result": "冻结余额解冻，订单标记失败，返回错误码，提示玩家重试",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-002-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "扣款成功但道具到账失败（引用S4-R04风险）",
+          "precondition": "游戏币已扣减，道具服务不可用",
+          "test_input": "扣款成功后INV服务返回ERROR_CODE=500",
+          "expected_result": "全额退款游戏币，订单标记失败，道具不到账，发送异常通知邮件",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-002-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "余额刚好等于总价-1游戏币（边界负向：差一点不够）（引用S4-R01）",
+          "precondition": "玩家余额=道具总价-1",
+          "test_input": "余额=999，总价=1000，购买数量=1",
+          "expected_result": "拒绝交易，返回余额不足提示，不扣款，订单失败",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-002-TP-008",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "游戏币扣款金额为负数（数据异常）（引用S4-R01）",
+          "precondition": "系统数据异常",
+          "test_input": "账户服务返回扣款金额=-100",
+          "expected_result": "拒绝扣款，记录数据异常日志，订单标记失败，发送告警",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 8,
+      "case_id": "BIZ-TC-002"
+    },
+    {
+      "story_id": "BIZ-PURCHASE-003",
+      "epic_id": "BIZ-PURCHASE",
+      "title": "人民币支付与汇率换算",
+      "module_coverage": {
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL",
+            "DB_PERSIST"
+          ]
+        },
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_CROSS_DEP"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "LAYOUT"
+          ]
+        },
+        "LOG": {
+          "covered": true,
+          "points": [
+            "ASSET_CHANGE"
+          ]
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "BIZ-PURCHASE-003-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "人民币支付 — 各渠道汇率换算正确",
+          "precondition": "道具原价=100元，各渠道汇率已配置",
+          "test_input": "Android汇率=1.0，iOS汇率=1.2，Web汇率=0.9",
+          "expected_result": "Android=100元，iOS=120元，Web=90元（以分为单位四舍五入）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-003-TP-002",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "汇率锁定订单 — 支付过程中汇率变更不影响",
+          "precondition": "订单创建时汇率=1.0（创建后汇率变为1.5）",
+          "test_input": "原价100元，订单创建后汇率从1.0升至1.5",
+          "expected_result": "订单以100元结算，不受汇率变更影响（引用S4-R03风险点）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-003-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "汇率换算边界 — 角分四舍五入",
+          "precondition": "道具原价=33.333元，汇率=1.5",
+          "test_input": "33.333 × 1.5 = 49.9995元",
+          "expected_result": "换算结果50.00元（角分四舍五入到分）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-003-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "汇率精度边界 — 多币种精确换算",
+          "precondition": "道具原价=0.01元（最小单位）",
+          "test_input": "汇率=1.2345，数量=99",
+          "expected_result": "每道具换算结果以分为最小单位，不出现小数分",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-003-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "汇率获取失败（引用S4-1.3异常树）",
+          "precondition": "汇率服务不可用",
+          "test_input": "GET /exrate 返回ERROR",
+          "expected_result": "禁用人民币支付选项，仅显示「汇率加载中」，玩家只能选游戏币",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-003-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "渠道汇率配置缺失（引用S4-8.3异常树）",
+          "precondition": "Android渠道汇率未配置",
+          "test_input": "玩家在Android端选择人民币支付",
+          "expected_result": "Android渠道人民币支付禁用，提示「该渠道暂不支持」，可切换至其他渠道",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-003-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "玩家尝试绕过支付直接领取道具（引用S4-R04）",
+          "precondition": "玩家绕过前端直接调用后端发货接口",
+          "test_input": "直接调用 POST /item/deliver，不经过支付流程",
+          "expected_result": "后端鉴权拒绝，返回403 Unauthorized，不发货",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-003"
+    },
+    {
+      "story_id": "BIZ-PURCHASE-004",
+      "epic_id": "BIZ-PURCHASE",
+      "title": "道具即时到账",
+      "module_coverage": {
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "ENTITY_CACHE"
+          ]
+        },
+        "HINT": {
+          "covered": true,
+          "points": [
+            "ITEM_FLOAT"
+          ]
+        },
+        "LOG": {
+          "covered": true,
+          "points": [
+            "ASSET_CHANGE"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE"
+          ]
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "BIZ-PURCHASE-004-TP-001",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "道具即时到账 — 时间<3秒",
+          "precondition": "支付成功",
+          "test_input": "支付完成时刻T，道具到账触发",
+          "expected_result": "道具在T+3秒内到达玩家背包/仓库，前端背包数据刷新",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-004-TP-002",
+          "module": "HINT",
+          "type": "POSITIVE",
+          "title": "到账后背包刷新 — 道具可见",
+          "precondition": "道具已到账",
+          "test_input": "道具到账事件推送至前端",
+          "expected_result": "背包界面立即刷新，道具图标出现在对应分类中，数量累加",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-004-TP-003",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "批量购买道具到账 — 数量正确",
+          "precondition": "购买道具A×50",
+          "test_input": "数量=50，道具ID=A",
+          "expected_result": "背包中道具A数量增加50（而非1），到账动画播放50次或合并动画",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-004-TP-004",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "道具到账刚好3秒 — 临界值",
+          "precondition": "道具到账服务处理耗时接近3秒",
+          "test_input": "到账耗时=2999ms",
+          "expected_result": "判定为成功（<3秒），不触发超时告警",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-004-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "道具ID无效（引用S4-1.3异常树）",
+          "precondition": "订单中道具ID在数据库中不存在",
+          "test_input": "支付成功后，道具服务收到itemId=INVALID_ID",
+          "expected_result": "退款游戏币，订单标记失败，发送「道具不存在」通知邮件",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-004-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "背包满时道具到账（引用S4-1.3异常树）",
+          "precondition": "玩家背包格子已满（已达上限）",
+          "test_input": "支付成功，尝试发放道具",
+          "expected_result": "道具发送到仓库（而非背包），订单仍标记成功，发送邮件说明",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-004-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "道具已下架后尝试购买（引用S4-1.3异常树）",
+          "precondition": "道具已被管理员下架",
+          "test_input": "访问已下架道具的购买接口",
+          "expected_result": "返回道具已下架提示，购买按钮不展示，无法下单",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-004"
+    },
+    {
+      "story_id": "BIZ-PURCHASE-005",
+      "epic_id": "BIZ-PURCHASE",
+      "title": "购买邮件通知",
+      "module_coverage": {
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "LOG": {
+          "covered": true,
+          "points": [
+            "ASSET_CHANGE",
+            "ANOMALY"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "BIZ-PURCHASE-005-TP-001",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "购买邮件发送成功 — 字段完整",
+          "precondition": "购买流程完成，道具到账成功",
+          "test_input": "订单号=ORD123，玩家ID=P001，道具=屠龙刀×2，金额=1000游戏币",
+          "expected_result": "邮件包含：玩家名称、道具名称「屠龙刀」、数量2、金额「1000游戏币」、购买时间、订单号ORD123",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-005-TP-002",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "邮件异步发送 — 不阻塞购买流程",
+          "precondition": "购买流程进行中",
+          "test_input": "邮件发送耗时5秒",
+          "expected_result": "购买成功弹窗在<1秒内展示，道具到账弹窗同步显示，邮件在后台异步发送",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-005-TP-003",
+          "module": "LOG",
+          "type": "BOUNDARY",
+          "title": "邮件发送重试 — 最多3次",
+          "precondition": "首次邮件发送失败（网络抖动）",
+          "test_input": "第1次发送失败，第2次成功",
+          "expected_result": "自动重试2次以内成功则邮件正常送达，不生成异常报告",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-005-TP-004",
+          "module": "LOG",
+          "type": "BOUNDARY",
+          "title": "邮件重试3次后仍失败（引用S4-R05风险）",
+          "precondition": "邮件服务持续不可用",
+          "test_input": "连续3次邮件发送均返回ERROR",
+          "expected_result": "邮件状态标记「发送失败」，记录DB补偿任务，人工补偿处理",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-005-TP-005",
+          "module": "LOG",
+          "type": "NEGATIVE",
+          "title": "邮件字段缺失 — 部分字段为空",
+          "precondition": "邮件模板中道具名称字段为空",
+          "test_input": "道具数据异常，名称字段=null",
+          "expected_result": "邮件发送失败，记录错误日志，不影响购买主流程，标记「字段异常」",
+          "priority": "P2",
+          "regression": false
+        },
+        {
+          "id": "BIZ-PURCHASE-005-TP-006",
+          "module": "LOG",
+          "type": "EXCEPTION",
+          "title": "邮件服务DB连接失败（引用S4-10.3异常树）",
+          "precondition": "日志数据库连接失败",
+          "test_input": "邮件写入DB时抛出ConnectionException",
+          "expected_result": "写本地降级文件，标记「待补录」，不阻塞购买流程",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "BIZ-PURCHASE-005-TP-007",
+          "module": "LOG",
+          "type": "NEGATIVE",
+          "title": "日志中金额字段为空时不阻塞主流程（引用S4-10.3异常树）",
+          "precondition": "日志记录时金额字段=null",
+          "test_input": "邮件模板渲染时金额=null",
+          "expected_result": "邮件字段显示为空或「—」，不影响邮件发送，不影响购买流程",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-005"
+    },
+    {
+      "story_id": "CONFIG-VIP-001",
+      "epic_id": "CONFIG-VIP",
+      "title": "VIP等级配置管理",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "RELOAD_4_MODE",
+            "FIELD_LEGALITY",
+            "FIELD_INTRA_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "CONFIG-VIP-001-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "策划保存VIP配置 — 实时生效",
+          "precondition": "策划登录配置后台",
+          "test_input": "VIP1折扣=95%，VIP2折扣=90%，VIP3折扣=85%",
+          "expected_result": "配置保存成功，全服实时生效（引用S4-2.4风险点）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-001-TP-002",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "配置变更后购买立即应用新折扣",
+          "precondition": "VIP1折扣从95%改为92%",
+          "test_input": "VIP1玩家在配置变更后发起购买",
+          "expected_result": "以新折扣92%计算，不受购买流程进行中影响（新订单用新配置）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-001-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "折扣比例边界值 — 上限100%",
+          "precondition": "策划设置折扣=100%",
+          "test_input": "VIP1折扣=100%（即无折扣）",
+          "expected_result": "前端校验通过，保存成功，以100%计价（等价于无VIP折扣）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-VIP-001-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "折扣比例边界值 — 下限0%",
+          "precondition": "策划设置折扣=0%",
+          "test_input": "VIP1折扣=0%（即免费）",
+          "expected_result": "前端校验拦截，提示「折扣比例需在0-100%之间」，不保存",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-VIP-001-TP-005",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "解锁条件冲突（引用S4-2.3异常树）",
+          "precondition": "策划设置VIP3解锁条件与VIP2冲突",
+          "test_input": "VIP3累计消费=500元，VIP2累计消费=1000元（冲突：低等级条件更严格）",
+          "expected_result": "后端校验拒绝保存，提示「解锁条件冲突」，策划调整后重新保存",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-001-TP-006",
+          "module": "CONFIG",
+          "type": "EXCEPTION",
+          "title": "配置中心连接失败（引用S4-2.3异常树）",
+          "precondition": "配置中心不可用",
+          "test_input": "策划点击保存，配置中心返回ERROR",
+          "expected_result": "返回「配置保存失败」，策划重试，不生成脏数据",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-001-TP-007",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "VIP等级配置值超出0-100范围（引用S4-2.3异常树）",
+          "precondition": "策划设置折扣=-5%（超出范围）",
+          "test_input": "VIP1折扣=-5%",
+          "expected_result": "后端校验拒绝，提示「折扣比例需在0-100%之间」，不保存",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-006"
+    },
+    {
+      "story_id": "CONFIG-VIP-002",
+      "epic_id": "CONFIG-VIP",
+      "title": "VIP折扣计算",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_CROSS_DEP",
+            "FIELD_INTRA_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "CONFIG-VIP-002-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "VIP各等级折扣计算正确",
+          "precondition": "原价=100元，VIP1=95折，VIP2=90折，VIP3=85折",
+          "test_input": "VIP1用户购买，原价100元",
+          "expected_result": "VIP1实付95元，VIP2实付90元，VIP3实付85元",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-002-TP-002",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "VIP折扣与促销叠加（取最优价）",
+          "precondition": "VIP2=90折，道具同时有95折促销（引用CONFIG-DISCOUNT-005）",
+          "test_input": "原价100元，VIP2折后=90元，限时促销售后=95元",
+          "expected_result": "取最优价min(90,95)=90元，以VIP折扣结算（引用S4-3.3异常树叠加规则）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-002-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "灰度用户无VIP等级",
+          "precondition": "玩家为非VIP用户（灰度）",
+          "test_input": "无VIP等级记录",
+          "expected_result": "视为无折扣，按原价计算，不报错（引用S4-2.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-002-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "VIP等级变更后立即生效（引用SPECIAL-VIP-CHANGE）",
+          "precondition": "玩家VIP等级从VIP1升级为VIP2",
+          "test_input": "升级时刻T，购买道具",
+          "expected_result": "以VIP2=90折计价，不受升级前配置影响（引用S4-11.4风险点）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-002-TP-005",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "折扣比例配置为空",
+          "precondition": "某VIP等级折扣字段=null",
+          "test_input": "VIP1折扣=null",
+          "expected_result": "视为无VIP折扣，按原价计算（引用S4-2.3异常树）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-VIP-002-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "VIP等级读取延迟（引用S4-2.4风险点）",
+          "precondition": "DB已更新VIP等级，但缓存未失效",
+          "test_input": "VIP等级刚变更，缓存TTL>0",
+          "expected_result": "缓存失效TTL≤5秒，超时后读取最新等级，以新等级计算折扣",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-002-TP-007",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "道具同时有VIP专属标签和普通标签（引用S4-2.3异常树）",
+          "precondition": "道具配置了VIP专属标签，同时又配置了非VIP标签",
+          "test_input": "访问该道具的展示接口",
+          "expected_result": "VIP专属标签优先，道具在VIP玩家商城展示，非VIP不展示",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-VIP-002-TP-008",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "VIP等级配置小数折扣值（如95.5%）（引用S4-2.3异常树）",
+          "precondition": "策划设置VIP1折扣=95.5%",
+          "test_input": "折扣比例=95.5%",
+          "expected_result": "四舍五入为96%保存，提示策划确认，或前端拒绝小数输入",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 8,
+      "case_id": "BIZ-TC-007"
+    },
+    {
+      "story_id": "CONFIG-VIP-003",
+      "epic_id": "CONFIG-VIP",
+      "title": "VIP专属道具可见性",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_LEGALITY"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "LAYOUT"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "CONFIG-VIP-003-TP-001",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "VIP专属道具 — 等级满足可见",
+          "precondition": "VIP2专属道具，VIP2玩家访问商城",
+          "test_input": "玩家VIP等级=VIP2，道具要求VIP2可见",
+          "expected_result": "道具在商城展示（引用S4-2.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-003-TP-002",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "高等级访问低等级专属道具 — 可见",
+          "precondition": "VIP1专属道具，VIP3玩家访问",
+          "test_input": "玩家VIP等级=VIP3，道具要求VIP1可见",
+          "expected_result": "道具在商城展示（≥等级即可见）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-003-TP-003",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "非VIP用户访问VIP专属道具",
+          "precondition": "VIP1专属道具，非VIP玩家访问",
+          "test_input": "玩家无VIP等级，道具要求VIP1可见",
+          "expected_result": "道具不在商城展示，不出现在任何列表中（引用S4-2.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-003-TP-004",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "等级不足访问高阶专属道具",
+          "precondition": "VIP3专属道具，VIP1玩家访问",
+          "test_input": "玩家VIP等级=VIP1，道具要求VIP3可见",
+          "expected_result": "道具不在商城展示，访问URL返回403（引用S4-2.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-003-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "玩家尝试通过URL直接访问专属道具",
+          "precondition": "玩家VIP等级不足",
+          "test_input": "直接访问专属道具URL：/item/VIP3_ITEM_001",
+          "expected_result": "后端鉴权返回403，前端提示「权限不足」，不展示道具信息",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-003-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "VIP等级刚变更时可见性判断（引用S4-2.3异常树）",
+          "precondition": "VIP2玩家刚降级为VIP1，缓存未刷新",
+          "test_input": "VIP2专属道具，高等级缓存中仍有VIP2",
+          "expected_result": "以最新配置为准，VIP1无法访问VIP2专属道具（实时生效）",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-VIP-003-TP-007",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "VIP专属道具在非VIP玩家搜索结果中不出现（引用S4-2.3异常树）",
+          "precondition": "非VIP玩家搜索关键词匹配VIP专属道具",
+          "test_input": "非VIP玩家搜索「屠龙刀」（VIP3专属）",
+          "expected_result": "搜索结果为空，道具不出现在列表中，不展示403",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-008"
+    },
+    {
+      "story_id": "CONFIG-DISCOUNT-001",
+      "epic_id": "CONFIG-DISCOUNT",
+      "title": "促销配置管理",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "RELOAD_4_MODE",
+            "FIELD_LEGALITY",
+            "FIELD_INTRA_DEP"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "CONFIG-DISCOUNT-001-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "策划创建促销 — 实时生效",
+          "precondition": "策划登录配置后台",
+          "test_input": "促销名称「限时5折」，折扣=50%，时间=2026-06-15 00:00至2026-06-20 00:00",
+          "expected_result": "促销规则保存成功，全服实时生效，道具自动展示折扣标签",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-001-TP-002",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "促销配置全字段校验",
+          "precondition": "策划填写促销配置",
+          "test_input": "促销名称/时间段/折扣比例/适用分类/标签字段均填写",
+          "expected_result": "配置保存成功，所有字段正确存储",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-001-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "促销时间边界 — 结束时间等于开始时间",
+          "precondition": "策划设置促销开始=结束",
+          "test_input": "开始时间=2026-06-15 00:00，结束时间=2026-06-15 00:00",
+          "expected_result": "后端拒绝创建，提示「开始时间需早于结束时间」（引用S4-3.3异常树）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-001-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "促销时间超过系统上限",
+          "precondition": "策划设置促销结束时间>90天后",
+          "test_input": "结束时间=2027-06-15（超过上限）",
+          "expected_result": "提示超出上限（90天），策划缩短后重新提交",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-001-TP-005",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "促销时间与已有促销重叠（引用S4-3.3异常树）",
+          "precondition": "道具A已有促销2026-06-15至2026-06-20",
+          "test_input": "策划新增同一道具促销2026-06-18至2026-06-25",
+          "expected_result": "提示时间冲突，策划调整时间或道具范围",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-001-TP-006",
+          "module": "CONFIG",
+          "type": "EXCEPTION",
+          "title": "促销开始时间已过期（引用S4-3.3异常树）",
+          "precondition": "当前时间=2026-06-20",
+          "test_input": "策划设置促销开始时间=2026-06-10（已过期）",
+          "expected_result": "后端拒绝创建，提示「开始时间需晚于当前时间」",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-001-TP-007",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "促销时间开始时间晚于结束时间（引用S4-3.3异常树）",
+          "precondition": "策划设置促销开始时间=2026-06-20，结束时间=2026-06-15",
+          "test_input": "保存促销配置",
+          "expected_result": "后端拒绝保存，提示「开始时间需早于结束时间」",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-009"
+    },
+    {
+      "story_id": "CONFIG-DISCOUNT-002",
+      "epic_id": "CONFIG-DISCOUNT",
+      "title": "限时折扣管理",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_CROSS_DEP",
+            "RELOAD_4_MODE"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "LAYOUT",
+            "CONTROL_EXISTENCE"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "HINT": {
+          "covered": true,
+          "points": [
+            "RED_DOT"
+          ]
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "CONFIG-DISCOUNT-002-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "限时折扣生效 — 倒计时展示",
+          "precondition": "促销在生效时间窗口内（2026-06-15 00:00至2026-06-20 00:00）",
+          "test_input": "当前时间=2026-06-16 12:00",
+          "expected_result": "折扣标签显示，倒计时正确（引用S4-R07风险点：服务器时间戳）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-002-TP-002",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "折扣标签渲染 — 角标+划线原价+倒计时",
+          "precondition": "道具配置了折扣标签「限时5折」",
+          "test_input": "展示折扣道具",
+          "expected_result": "折扣角标+划线原价+倒计时三者均正确显示",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-002-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "折扣倒计时最后一秒购买（引用S4-R07风险）",
+          "precondition": "促销结束倒计时=1秒",
+          "test_input": "玩家在倒计时归零前1秒发起购买",
+          "expected_result": "以促销价格结算（服务器时间戳精确到秒，不存在边界争议）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-002-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "折扣刚过期后立即购买",
+          "precondition": "促销刚结束（倒计时=0）",
+          "test_input": "促销结束时刻玩家发起购买",
+          "expected_result": "以原价结算（不享受折扣），折扣标签消失",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-002-TP-005",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "促销未开始时折扣标签不显示",
+          "precondition": "当前时间=2026-06-14（促销尚未开始）",
+          "test_input": "展示开始时间为2026-06-15的促销道具",
+          "expected_result": "折扣标签不展示，显示原价",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-002-TP-006",
+          "module": "CONFIG",
+          "type": "EXCEPTION",
+          "title": "程序定时检查失败（引用S4-3.3异常树）",
+          "precondition": "定时任务服务异常",
+          "test_input": "折扣状态检查定时任务崩溃",
+          "expected_result": "监控告警，配置中心事件驱动触发状态变更，不阻塞手动配置",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-002-TP-007",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "促销结束后折扣标签立即消失（引用S4-R07风险）",
+          "precondition": "促销结束倒计时归零",
+          "test_input": "促销结束时刻玩家刷新商城页面",
+          "expected_result": "折扣标签消失，显示原价，不展示任何促销标记",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-010"
+    },
+    {
+      "story_id": "CONFIG-DISCOUNT-003",
+      "epic_id": "CONFIG-DISCOUNT",
+      "title": "满减活动管理",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_CROSS_DEP",
+            "FIELD_INTRA_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "LAYOUT"
+          ]
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "CONFIG-DISCOUNT-003-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "满100减10 — 触发门槛",
+          "precondition": "订单原价=150元",
+          "test_input": "满100减10，订单金额150元",
+          "expected_result": "满减后价格=140元（引用S4-3.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-003-TP-002",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "满200减25 — 触发更高门槛",
+          "precondition": "订单原价=250元",
+          "test_input": "满200减25，订单金额250元",
+          "expected_result": "满减后价格=225元（不叠加满100减10）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-003-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "刚好满100元 — 触发满减",
+          "precondition": "订单原价=100元",
+          "test_input": "满100减10，订单金额100元",
+          "expected_result": "满减后价格=90元（包含边界值）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-003-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "满减金额不超过订单总额（引用S4-3.3异常树）",
+          "precondition": "订单原价=5元，满100减10（不满门槛）",
+          "test_input": "订单原价=8元，满100减10",
+          "expected_result": "不触发满减，按原价8元结算，满减后价格≥0",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-003-TP-005",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "不满门槛时满减不触发",
+          "precondition": "订单原价=50元（不满100元门槛）",
+          "test_input": "满100减10，订单金额50元",
+          "expected_result": "不触发满减，以原价50元结算",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-003-TP-006",
+          "module": "CONFIG",
+          "type": "EXCEPTION",
+          "title": "满减叠加折扣计算顺序（引用S4-3.3异常树）",
+          "precondition": "原价100元，折扣5折（50元），满100减10（折扣后不满足）",
+          "test_input": "折扣先计算=50元，再计算满减（不满足100门槛）",
+          "expected_result": "最终价格=50元（满减在折扣之后计算，折扣后不满足满减门槛）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-003-TP-007",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "满减与限时折扣同时配置但只生效一种（引用S4-3.3异常树）",
+          "precondition": "道具同时配置了满减和限时折扣",
+          "test_input": "原价200元，满100减20，限时折扣8折",
+          "expected_result": "按折扣叠加规则计算（限时折扣优先，满减在折扣后判定）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-003-TP-008",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "满减金额超出订单金额（引用S4-3.3异常树）",
+          "precondition": "订单原价=5元，满100减10（不满门槛）",
+          "test_input": "订单原价=8元，满100减10",
+          "expected_result": "满减不触发，以原价8元结算，满减后价格≥0",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 8,
+      "case_id": "BIZ-TC-011"
+    },
+    {
+      "story_id": "CONFIG-DISCOUNT-004",
+      "epic_id": "CONFIG-DISCOUNT",
+      "title": "新手礼包管理",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_LEGALITY",
+            "FIELD_CROSS_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "LAYOUT"
+          ]
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "CONFIG-DISCOUNT-004-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "新玩家第7天可购买（引用S4-3.3边界）",
+          "precondition": "玩家注册时间=2026-06-05，当前=2026-06-12（第7天）",
+          "test_input": "玩家在第7天访问新手礼包",
+          "expected_result": "包含第7天，玩家可购买新手礼包（引用S4-3.3边界：注册时间≤7天）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-004-TP-002",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "购买后礼包立即下架",
+          "precondition": "新玩家购买新手礼包",
+          "test_input": "购买成功后（订单号=ORD_NEWBIE_001）",
+          "expected_result": "礼包立即从商城下架（同一玩家不可重复购买，引用S4-R08风险点）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-004-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "时区差异统一UTC（引用S4-3.3异常树）",
+          "precondition": "玩家在UTC+8时区注册，UTC 00:00切换",
+          "test_input": "注册时间=UTC+8 2026-06-12 00:00（即UTC 2026-06-11 16:00）",
+          "expected_result": "以UTC时间判定，第7天截止=UTC 2026-06-18 00:00",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-004-TP-004",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "非新注册玩家不可购买",
+          "precondition": "玩家注册时间=2026-01-01（已超7天）",
+          "test_input": "玩家访问新手礼包",
+          "expected_result": "新手礼包不可购买，不展示购买按钮",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-004-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "已购买玩家通过URL绕过限制（引用S4-R08风险）",
+          "precondition": "玩家已购买过新手礼包",
+          "test_input": "直接访问礼包购买链接：/item/NEWBIE_PACK",
+          "expected_result": "返回「已购买过」，订单级唯一约束+玩家ID+礼包ID联合索引防重复",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-004-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "多设备并发购买绕过（引用S4-R08风险）",
+          "precondition": "新玩家在设备A和设备B同时发起购买",
+          "test_input": "两台设备同时调用购买接口",
+          "expected_result": "订单级唯一约束确保只有一笔订单成功，另一笔返回「已购买」",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-004-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "注册时间刚好第7天截止时刻（UTC时间边界）（引用S4-R18）",
+          "precondition": "玩家注册时间=UTC 2026-06-05 23:59:59（UTC+8 2026-06-06 07:59:59）",
+          "test_input": "在第7天截止时刻访问新手礼包",
+          "expected_result": "以UTC时间判定，若UTC 2026-06-12 00:00前则可购买，00:00后不可购买",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-012"
+    },
+    {
+      "story_id": "CONFIG-DISCOUNT-005",
+      "epic_id": "CONFIG-DISCOUNT",
+      "title": "折扣叠加规则 [fallback]",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_CROSS_DEP",
+            "FIELD_INTRA_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "LAYOUT"
+          ]
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "CONFIG-DISCOUNT-005-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "限时折扣+VIP折扣 — 取最优价min（默认策略）",
+          "precondition": "原价100元，限时折扣=5折（50元），VIP3=85折（85元）",
+          "test_input": "VIP3玩家购买有5折促销的道具",
+          "expected_result": "限时折后50元 < VIP折后85元，取min=50元结算（引用S4-3.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-005-TP-002",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "VIP折扣优于限时折扣时取VIP价",
+          "precondition": "原价100元，限时折扣=9折（90元），VIP3=85折（85元）",
+          "test_input": "VIP3玩家购买有9折促销的道具",
+          "expected_result": "VIP折后85元 < 限时折后90元，取min=85元结算",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-005-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "限时折扣+VIP折扣价格相等",
+          "precondition": "原价100元，限时折扣=85折（85元），VIP3=85折（85元）",
+          "test_input": "VIP3玩家购买有85折促销的道具",
+          "expected_result": "两者价格相等，取任意一个均为85元（min(85,85)=85）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-005-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "仅限时折扣生效（无VIP）",
+          "precondition": "原价100元，限时折扣=8折（80元），玩家无VIP",
+          "test_input": "非VIP玩家购买有8折促销的道具",
+          "expected_result": "无VIP折扣，以限时折后80元结算",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-005-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "配置优先级字段覆盖默认min策略",
+          "precondition": "配置表优先级字段=VIP优先（替代默认min策略）",
+          "test_input": "VIP3=85折，限时促销=5折，按VIP优先策略",
+          "expected_result": "以VIP优先（即使限时更低），最终价格=85元（按配置表优先级）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "CONFIG-DISCOUNT-005-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "促销与VIP同时过期边界（引用S4-3.3异常树）",
+          "precondition": "限时折扣和VIP等级在同一时刻失效",
+          "test_input": "玩家在失效时刻发起购买",
+          "expected_result": "以失效前状态判定（全按原价/无折扣处理，不产生歧义）",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "CONFIG-DISCOUNT-005-TP-007",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "无任何折扣配置时按原价计算（引用S4-3.3异常树）",
+          "precondition": "道具无VIP折扣、无促销、无满减",
+          "test_input": "非VIP玩家购买无折扣道具",
+          "expected_result": "以原价结算，不展示任何折扣标签",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-013"
+    },
+    {
+      "story_id": "UI-SHOP-001",
+      "epic_id": "UI-SHOP",
+      "title": "热门道具展示",
+      "module_coverage": {
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "LAYOUT",
+            "RESOLUTION_COMPAT"
+          ]
+        },
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "RELOAD_4_MODE"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "ENTITY_CACHE"
+          ]
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "UI-SHOP-001-TP-001",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "热门道具展示 — 前10个",
+          "precondition": "存在≥10个标记hot标签的道具",
+          "test_input": "首页加载热门道具",
+          "expected_result": "展示前10个热门道具，按策划优先级排序（引用S4-4.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-001-TP-002",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "热门道具<10个时全部展示",
+          "precondition": "只有5个hot标签道具",
+          "test_input": "首页加载热门道具",
+          "expected_result": "全部展示5个，不补位填充至10个（引用S4-4.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-001-TP-003",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "无热门道具时展示空状态",
+          "precondition": "没有hot标签道具",
+          "test_input": "首页加载热门道具",
+          "expected_result": "热门区不展示或展示「暂无热门道具」，不报错",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-SHOP-001-TP-004",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "热门道具变更后缓存刷新（引用S4-R09风险）",
+          "precondition": "策划修改hot标签，新增道具A",
+          "test_input": "缓存TTL=5分钟，变更后4分钟刷新",
+          "expected_result": "最长5分钟生效（引用S4-4.4风险点），配置变更主动失效缓存",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-SHOP-001-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "Redis缓存穿透（引用S4-4.3异常树）",
+          "precondition": "恶意用户大量请求不存在道具",
+          "test_input": "搜索不存在的道具ID×10000次",
+          "expected_result": "空结果也缓存TTL=1min（防止缓存穿透）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-SHOP-001-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "Redis连接失败降级（引用S4-7.3异常树）",
+          "precondition": "Redis服务不可用",
+          "test_input": "首页请求道具数据",
+          "expected_result": "降级为直查DB，返回数据，记录监控告警",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-001-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "热门道具被删除后缓存未及时失效（引用S4-R09风险）",
+          "precondition": "热门道具被删除，Redis缓存TTL未过期",
+          "test_input": "请求已删除道具的数据",
+          "expected_result": "返回空结果或404，缓存下次过期后自动清除",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-014"
+    },
+    {
+      "story_id": "UI-SHOP-002",
+      "epic_id": "UI-SHOP",
+      "title": "分类导航与道具列表",
+      "module_coverage": {
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "LAYOUT",
+            "RESOLUTION_COMPAT",
+            "INTERACTION"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "UI-SHOP-002-TP-001",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "5个分类导航存在且可点击",
+          "precondition": "玩家在商城首页",
+          "test_input": "查看分类导航栏",
+          "expected_result": "展示武器/时装/坐骑/消耗品/礼包5个分类按钮，点击后正确筛选",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-002-TP-002",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "道具列表分页 — 每页20个",
+          "precondition": "分类下有>20个道具",
+          "test_input": "点击武器分类",
+          "expected_result": "展示前20个道具，包含名称/图标/价格（已换算）/折扣标签，可翻页",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-002-TP-003",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "分类下道具刚好20个 — 无翻页",
+          "precondition": "分类下道具=20个",
+          "test_input": "点击该分类",
+          "expected_result": "展示20个道具，不出现「下一页」按钮",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-SHOP-002-TP-004",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "分类下道具21个 — 翻页正常",
+          "precondition": "分类下道具=21个",
+          "test_input": "第1页后点击「下一页」",
+          "expected_result": "第1页20个，第2页1个，无第3页",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-SHOP-002-TP-005",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "分类ID非法（引用S4-4.3异常树）",
+          "precondition": "传入非法分类ID",
+          "test_input": "GET /shop/items?category=INVALID",
+          "expected_result": "返回空列表，不报错，不崩溃",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-SHOP-002-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "数据库查询超时（引用S4-4.3异常树）",
+          "precondition": "DB查询超时>5秒",
+          "test_input": "点击分类",
+          "expected_result": "服务降级返回缓存数据，前端提示「数据可能非最新」",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-002-TP-007",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "分类导航返回超长分类名称截断展示（引用S4-4.3异常树）",
+          "precondition": "分类名称超出UI最大显示宽度",
+          "test_input": "分类名称=「限时特惠大礼包（仅限VIP3）」",
+          "expected_result": "分类名称截断展示，超出部分以省略号替代，完整名称在悬停提示中展示",
+          "priority": "P2",
+          "regression": false
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-015"
+    },
+    {
+      "story_id": "UI-SHOP-003",
+      "epic_id": "UI-SHOP",
+      "title": "搜索功能",
+      "module_coverage": {
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "INTERACTION"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": true,
+          "points": [
+            "SYS_MSG"
+          ]
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "UI-SHOP-003-TP-001",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "搜索 ≥2字符触发",
+          "precondition": "玩家在商城页面",
+          "test_input": "输入搜索词「屠龙」（3字符）",
+          "expected_result": "输入2字符后不触发，输入第3字符时立即发起搜索，显示结果列表",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-003-TP-002",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "搜索结果展示正确字段",
+          "precondition": "搜索词「龙」有匹配结果",
+          "test_input": "搜索「龙」",
+          "expected_result": "展示匹配道具列表，每项包含名称/图标/价格（引用S4-4.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-003-TP-003",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "搜索词刚好2字符",
+          "precondition": "玩家输入搜索词",
+          "test_input": "输入「屠龙」=2字符",
+          "expected_result": "2字符即触发搜索（≥2字符，边界包含2）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-SHOP-003-TP-004",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "搜索词1字符不触发",
+          "precondition": "玩家输入1字符",
+          "test_input": "输入「屠」=1字符",
+          "expected_result": "不发起搜索请求，提示「至少输入2个字符」（引用S4-4.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-003-TP-005",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "无匹配结果空状态（引用S4-4.3异常树）",
+          "precondition": "搜索词无匹配道具",
+          "test_input": "搜索「不存在的道具名称XYZ」",
+          "expected_result": "展示空状态提示「未找到相关道具」，不展示任何道具",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-003-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "搜索SQL注入防护（引用S4-R10风险）",
+          "precondition": "恶意搜索词含SQL注入payload",
+          "test_input": "搜索「'; DROP TABLE items; --」",
+          "expected_result": "参数化查询，不拼接字符串，搜索结果为空或安全处理，不执行注入",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-SHOP-003-TP-007",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "搜索关键词含特殊Unicode字符（引用S4-R10风险）",
+          "precondition": "恶意用户输入Unicode控制字符",
+          "test_input": "搜索「\\u0000」或「\\u200B」（零宽空格）",
+          "expected_result": "过滤特殊字符，搜索结果为空或正常处理，不出现乱码",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-SHOP-003-TP-008",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "搜索结果超过1000条时仅返回前1000条（引用S4-4.3异常树）",
+          "precondition": "搜索关键词匹配大量道具",
+          "test_input": "搜索「武器」（匹配1500个道具）",
+          "expected_result": "返回前1000条，提示「结果较多，请添加筛选条件」",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 8,
+      "case_id": "BIZ-TC-016"
+    },
+    {
+      "story_id": "UI-DETAIL-001",
+      "epic_id": "UI-DETAIL",
+      "title": "道具详情展示",
+      "module_coverage": {
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "LAYOUT"
+          ]
+        },
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_CROSS_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "UI-DETAIL-001-TP-001",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "详情页完整展示所有字段",
+          "precondition": "道具ID有效",
+          "test_input": "点击道具进入详情页",
+          "expected_result": "展示名称/描述/属性加成/价格（已换算所有折扣）/折扣标签（引用S4-5.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-001-TP-002",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "道具预览功能",
+          "precondition": "道具支持角色穿戴预览",
+          "test_input": "道具详情页点击「预览」",
+          "expected_result": "展示角色穿戴效果预览图/动画（引用S4-5.1流程图）",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-001-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "道具价格显示已应用所有折扣后的最终价",
+          "precondition": "道具原价100元，VIP3=85折，限时促销=9折",
+          "test_input": "VIP3玩家访问有9折促销的道具",
+          "expected_result": "显示最优价min(85,90)=85元（引用CONFIG-DISCOUNT-005叠加规则）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-001-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "详情页价格与结算价格不一致（引用S4-R11风险）",
+          "precondition": "详情页显示价格=85元，结算前促销刚结束",
+          "test_input": "详情页显示85元，玩家点击购买，促销在点击时刻过期",
+          "expected_result": "以结算页价格为准（原价），详情页价格仅供参考（不作为纠纷依据）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-001-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "道具不存在返回404（引用S4-5.3异常树）",
+          "precondition": "道具ID无效",
+          "test_input": "访问 /item/INVALID_ID",
+          "expected_result": "返回404，前端跳转商城首页，提示「道具不存在」",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-001-TP-006",
+          "module": "CONFIG",
+          "type": "EXCEPTION",
+          "title": "VIP等级无法读取（引用S4-5.3异常树）",
+          "precondition": "VIP等级服务不可用",
+          "test_input": "详情页加载时获取VIP等级失败",
+          "expected_result": "视为无折扣，按原价展示，不阻塞页面加载（降级处理）",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-001-TP-007",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "道具价格显示时小数精度丢失（引用S4-3.3边界）",
+          "precondition": "汇率换算后价格=49.999元（角分精度问题）",
+          "test_input": "展示汇率换算后的道具价格",
+          "expected_result": "显示50.00元（角分四舍五入），不出现49.999或50",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-DETAIL-001-TP-008",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "道具描述含敏感词被过滤（引用S4-5.3异常树）",
+          "precondition": "道具描述包含违规敏感词",
+          "test_input": "加载含敏感词的道具详情",
+          "expected_result": "敏感词被*替换展示，不阻断页面加载，触发内容审核告警",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 8,
+      "case_id": "BIZ-TC-017"
+    },
+    {
+      "story_id": "UI-DETAIL-002",
+      "epic_id": "UI-DETAIL",
+      "title": "数量选择与购买",
+      "module_coverage": {
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "LAYOUT",
+            "INTERACTION"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL"
+          ]
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": true,
+          "points": [
+            "CURRENCY_FLOAT"
+          ]
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "UI-DETAIL-002-TP-001",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "数量选择范围1-99可用",
+          "precondition": "玩家在道具详情页",
+          "test_input": "滑动/输入数量选择器",
+          "expected_result": "数量选择器范围1-99，选择后总价实时更新（引用S4-5.2时序图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-002-TP-002",
+          "module": "HINT",
+          "type": "POSITIVE",
+          "title": "总价实时计算显示（飘字动画）",
+          "precondition": "选择数量时",
+          "test_input": "调整数量从1→5→10",
+          "expected_result": "总价随数量实时刷新，显示货币飘字动画（引用S4-5.2时序图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-002-TP-003",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "余额不足时购买按钮禁用（引用S4-5.1流程图）",
+          "precondition": "余额=1000游戏币，道具单价=200",
+          "test_input": "选择数量=6（总价=1200 > 余额1000）",
+          "expected_result": "购买按钮显示禁用状态，提示「余额不足」，不可点击",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-002-TP-004",
+          "module": "UI",
+          "type": "BOUNDARY",
+          "title": "数量超出前端拦截（引用S4-1.3异常树）",
+          "precondition": "尝试输入数量>99",
+          "test_input": "直接修改输入框为100",
+          "expected_result": "前端拦截，提示「数量超出范围(1-99)」，数量框回退为上次有效值",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-002-TP-005",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "数量选择XSS注入防护（引用S4-R11风险）",
+          "precondition": "恶意输入含特殊字符",
+          "test_input": "数量输入框输入「<script>alert(1)</script>」",
+          "expected_result": "前端数值类型强校验，非数字字符被过滤，不执行脚本",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "UI-DETAIL-002-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "促销配置读取失败（引用S4-5.3异常树）",
+          "precondition": "促销配置服务异常",
+          "test_input": "详情页加载时促销配置获取失败",
+          "expected_result": "降级为原价展示，不阻塞购买（促销读取失败≠无促销折扣不展示）",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "UI-DETAIL-002-TP-007",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "道具被下架后详情页返回404（引用S4-5.3异常树）",
+          "precondition": "道具被管理员下架",
+          "test_input": "访问已下架道具的URL",
+          "expected_result": "返回404，前端展示「道具不存在或已下架」，不展示任何购买入口",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-018"
+    },
+    {
+      "story_id": "BIZ-ORDER-001",
+      "epic_id": "BIZ-ORDER",
+      "title": "订单列表查看",
+      "module_coverage": {
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE",
+            "LAYOUT"
+          ]
+        },
+        "LOG": {
+          "covered": true,
+          "points": [
+            "ASSET_CHANGE"
+          ]
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "BIZ-ORDER-001-TP-001",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "订单列表展示最近30天（引用S4-R11风险）",
+          "precondition": "玩家有多笔购买记录",
+          "test_input": "进入订单列表",
+          "expected_result": "展示最近30天订单（UTC 00:00精确到天，引用S4-6.4风险点），倒序排列",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-ORDER-001-TP-002",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "订单字段完整展示",
+          "precondition": "有购买记录",
+          "test_input": "查看订单列表",
+          "expected_result": "每条订单展示：订单号/道具名称/数量/金额（含币种）/支付方式/购买时间",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-ORDER-001-TP-003",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "订单创建成功后立即查询（引用S4-6.4风险点）",
+          "precondition": "购买成功后立即进入订单列表",
+          "test_input": "购买完成时刻T，订单列表查询",
+          "expected_result": "订单创建后同步写入DB，查询无延迟，新订单立即出现在列表首位",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-ORDER-001-TP-004",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "时间筛选边界 — 刚好第31天不显示",
+          "precondition": "存在一笔30天前的订单",
+          "test_input": "查询时间范围=30天前至今",
+          "expected_result": "30天前订单不显示，31天前订单不在列表中（引用S4-6.4风险点）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-ORDER-001-TP-005",
+          "module": "UI",
+          "type": "NEGATIVE",
+          "title": "订单列表为空正常展示",
+          "precondition": "玩家从未购买",
+          "test_input": "进入订单列表",
+          "expected_result": "展示空列表，提示「暂无购买记录」，不报错（引用S4-6.3异常树）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-ORDER-001-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "订单不存在或无权查看（引用S4-6.3异常树）",
+          "precondition": "玩家尝试查看他人订单",
+          "test_input": "GET /order/OTHER_PLAYER_ORDER_001（订单属于其他玩家）",
+          "expected_result": "返回403，前端提示「订单不存在」",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-ORDER-001-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "订单号格式非法（引用S4-6.3异常树）",
+          "precondition": "前端修改了订单号参数",
+          "test_input": "GET /orders?playerId=xxx&page=abc（非数字）",
+          "expected_result": "参数校验拒绝，返回400错误，提示参数格式错误",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-019"
+    },
+    {
+      "story_id": "BIZ-ORDER-002",
+      "epic_id": "BIZ-ORDER",
+      "title": "订单详情查看",
+      "module_coverage": {
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": true,
+          "points": [
+            "CONTROL_EXISTENCE"
+          ]
+        },
+        "LOG": {
+          "covered": true,
+          "points": [
+            "ASSET_CHANGE",
+            "PROGRESS_TRIGGER"
+          ]
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "BIZ-ORDER-002-TP-001",
+          "module": "UI",
+          "type": "POSITIVE",
+          "title": "订单详情页完整展示",
+          "precondition": "有订单记录",
+          "test_input": "点击订单查看详情",
+          "expected_result": "展示完整购买信息+邮件通知状态（引用S4-6.2时序图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "BIZ-ORDER-002-TP-002",
+          "module": "LOG",
+          "type": "POSITIVE",
+          "title": "邮件发送状态正确显示",
+          "precondition": "购买成功",
+          "test_input": "查看订单详情",
+          "expected_result": "邮件状态=「已发送」，显示邮件发送时间",
+          "priority": "P1",
+          "regression": true
+        },
+        {
+          "id": "BIZ-ORDER-002-TP-003",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "订单详情邮件状态「发送中」",
+          "precondition": "邮件异步发送中（首次未完成）",
+          "test_input": "购买后立即查看订单详情",
+          "expected_result": "邮件状态显示「发送中」，后台异步重试（引用S4-6.3异常树）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-ORDER-002-TP-004",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "订单详情邮件状态「发送失败」",
+          "precondition": "邮件发送失败（重试3次后）",
+          "test_input": "查看对应订单详情",
+          "expected_result": "邮件状态显示「发送失败」，记录DB补偿任务，人工处理",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "BIZ-ORDER-002-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "查看已删除订单",
+          "precondition": "订单记录被清理（超过30天）",
+          "test_input": "访问已过期订单URL",
+          "expected_result": "返回空或「订单已过期」，不展示详情",
+          "priority": "P2",
+          "regression": false
+        },
+        {
+          "id": "BIZ-ORDER-002-TP-006",
+          "module": "LOG",
+          "type": "EXCEPTION",
+          "title": "日志字段缺失不影响详情展示（引用S4-10.3异常树）",
+          "precondition": "日志中金额字段缺失",
+          "test_input": "订单详情加载时金额=null",
+          "expected_result": "字段显示为空或「—」，不影响订单详情页渲染，标记异常日志",
+          "priority": "P2",
+          "regression": false
+        },
+        {
+          "id": "BIZ-ORDER-002-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "订单详情页访问其他玩家订单返回403（引用S4-6.3异常树）",
+          "precondition": "玩家尝试访问非本人的订单",
+          "test_input": "GET /order/OTHER_PLAYER_ORDER_ID",
+          "expected_result": "返回403，前端展示「无权查看此订单」或「订单不存在」",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-020"
+    },
+    {
+      "story_id": "AUX-CACHE-001",
+      "epic_id": "AUX-CACHE",
+      "title": "道具数据缓存",
+      "module_coverage": {
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "ENTITY_CACHE"
+          ]
+        },
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "RELOAD_4_MODE"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "AUX-CACHE-001-TP-001",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "缓存命中时快速返回",
+          "precondition": "道具数据已缓存，TTL未过期",
+          "test_input": "GET /item/test_item_001（第2次请求）",
+          "expected_result": "直接从Redis返回数据，响应时间<10ms，无DB查询",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-CACHE-001-TP-002",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "缓存失效后自动重新加载（TTL=5分钟）",
+          "precondition": "缓存已过期（TTL=5分钟）",
+          "test_input": "缓存过期后请求道具数据",
+          "expected_result": "从DB重新加载，回填缓存，TTL重新计时",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-CACHE-001-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "配置变更主动失效缓存（引用S4-7.4风险点）",
+          "precondition": "道具配置发生变更",
+          "test_input": "策划修改道具价格，主动推送失效通知",
+          "expected_result": "缓存立即失效，立即加载新配置（不等待TTL过期，引用S4-R12风险点）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-CACHE-001-TP-004",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "缓存击穿防护（引用S4-R12风险）",
+          "precondition": "热门道具缓存失效瞬间，大量并发请求涌入",
+          "test_input": "同一热门道具TTL过期时刻，100个并发请求",
+          "expected_result": "互斥锁机制确保只有一个请求查DB，其他请求等待缓存回填后返回",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-CACHE-001-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "缓存数据损坏回退DB",
+          "precondition": "Redis缓存数据损坏（脏数据）",
+          "test_input": "读取缓存数据解析失败",
+          "expected_result": "删除损坏缓存，从DB重新加载，更新缓存（引用S4-7.3异常树）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "AUX-CACHE-001-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "Redis连接失败降级直查DB（引用S4-7.3异常树）",
+          "precondition": "Redis服务不可用",
+          "test_input": "GET /item/xxx",
+          "expected_result": "降级为直查DB，记录监控告警，不影响业务响应",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-CACHE-001-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "缓存TTL为0时每次请求都穿透到DB（引用S4-7.3异常树）",
+          "precondition": "道具缓存TTL被错误配置为0",
+          "test_input": "请求该道具的数据",
+          "expected_result": "每次请求都直查DB，响应时间增加，记录配置异常告警",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "AUX-CACHE-001-TP-008",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "缓存键名包含特殊字符导致读取失败（引用S4-7.3异常树）",
+          "precondition": "道具ID包含非法字符",
+          "test_input": "GET /item/it em_001（含空格）",
+          "expected_result": "URL编码校验拒绝，返回400，提示道具ID格式错误",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 8,
+      "case_id": "BIZ-TC-021"
+    },
+    {
+      "story_id": "AUX-EXRATE-001",
+      "epic_id": "AUX-EXRATE",
+      "title": "汇率表管理",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "RELOAD_4_MODE",
+            "FIELD_LEGALITY",
+            "FIELD_CROSS_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "AUX-EXRATE-001-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "汇率启动时加载 + 热更新",
+          "precondition": "系统启动",
+          "test_input": "各渠道汇率配置已存在",
+          "expected_result": "程序启动时加载汇率表，支持热更新（引用S4-8.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-EXRATE-001-TP-002",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "汇率按渠道独立换算",
+          "precondition": "Android汇率=1.0，iOS汇率=1.2，Web汇率=0.9",
+          "test_input": "原价100元，各渠道查询汇率",
+          "expected_result": "Android=100元，iOS=120元，Web=90元（引用S4-8.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-EXRATE-001-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "汇率值非法（≤0）拒绝加载（引用S4-8.3异常树）",
+          "precondition": "某渠道汇率配置≤0",
+          "test_input": "Android汇率=0或-1",
+          "expected_result": "拒绝加载，使用默认汇率1:1，记录错误日志（引用S4-8.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-EXRATE-001-TP-004",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "汇率热更新失败（引用S4-8.3异常树）",
+          "precondition": "更新汇率时配置中心异常",
+          "test_input": "推送新汇率失败",
+          "expected_result": "继续使用旧汇率，记录告警，待恢复后重新推送",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "AUX-EXRATE-001-TP-005",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "汇率锁定订单后汇率再变更（引用S4-R03风险）",
+          "precondition": "订单创建时汇率锁定=1.0，之后汇率变为1.5",
+          "test_input": "同一订单两次查询汇率",
+          "expected_result": "以订单创建时汇率快照计算（引用S4-R13风险点），不受后续汇率变更影响",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-EXRATE-001-TP-006",
+          "module": "CONFIG",
+          "type": "EXCEPTION",
+          "title": "渠道汇率配置缺失（引用S4-8.3异常树）",
+          "precondition": "某渠道（Android）汇率未配置",
+          "test_input": "Android用户选择人民币支付",
+          "expected_result": "禁用该渠道人民币支付，提示「该渠道暂不支持」",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "AUX-EXRATE-001-TP-007",
+          "module": "CONFIG",
+          "type": "NEGATIVE",
+          "title": "汇率配置为负数时拒绝加载（引用S4-8.3异常树）",
+          "precondition": "渠道汇率配置=-0.5",
+          "test_input": "加载汇率配置",
+          "expected_result": "拒绝加载，使用默认汇率1:1，记录错误日志",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-022"
+    },
+    {
+      "story_id": "LINK-PAYMENT-001",
+      "epic_id": "LINK-PAYMENT",
+      "title": "支付接口集成",
+      "module_coverage": {
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "PROTOCOL",
+            "DB_PERSIST"
+          ]
+        },
+        "LINK": {
+          "covered": true,
+          "points": [
+            "CORRELATION_TEST",
+            "REGRESSION_TEST"
+          ]
+        },
+        "LOG": {
+          "covered": true,
+          "points": [
+            "ASSET_CHANGE",
+            "ANOMALY"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "LINK-PAYMENT-001-TP-001",
+          "module": "LINK",
+          "type": "POSITIVE",
+          "title": "游戏币支付成功链路",
+          "precondition": "玩家选择游戏币支付",
+          "test_input": "调用账户系统扣款",
+          "expected_result": "扣款成功，订单更新为已支付，道具到账（引用S4-9.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LINK-PAYMENT-001-TP-002",
+          "module": "LINK",
+          "type": "POSITIVE",
+          "title": "渠道支付回调更新订单状态",
+          "precondition": "玩家完成渠道支付（Android）",
+          "test_input": "渠道服务器回调",
+          "expected_result": "订单状态更新为已支付，道具到账（引用S4-9.2时序图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LINK-PAYMENT-001-TP-003",
+          "module": "LINK",
+          "type": "BOUNDARY",
+          "title": "渠道支付超时（>30秒）处理（引用S4-1.3异常树）",
+          "precondition": "渠道支付超过30秒无响应",
+          "test_input": "渠道支付回调超时",
+          "expected_result": "查询渠道支付状态，确认失败后解冻余额，提示支付失败",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LINK-PAYMENT-001-TP-004",
+          "module": "LINK",
+          "type": "BOUNDARY",
+          "title": "SDK初始化失败降级（引用S4-9.3异常树）",
+          "precondition": "渠道SDK初始化异常",
+          "test_input": "调用渠道SDK创建订单",
+          "expected_result": "返回「支付通道维护中」，提示玩家切换支付方式",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LINK-PAYMENT-001-TP-005",
+          "module": "LOG",
+          "type": "NEGATIVE",
+          "title": "渠道回调签名校验失败（引用S4-R14风险）",
+          "precondition": "伪造回调请求",
+          "test_input": "模拟无签名/错误签名回调",
+          "expected_result": "签名校验不通过，忽略请求，不处理订单，记录告警日志",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LINK-PAYMENT-001-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "渠道重复回调幂等处理（引用S4-R02风险）",
+          "precondition": "渠道重复推送同一支付成功回调",
+          "test_input": "同一订单号回调推送2次",
+          "expected_result": "订单号唯一约束+已处理标记，第2次回调返回success但不重复处理订单",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LINK-PAYMENT-001-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "支付方式接口返回未知类型（引用S4-9.3异常树）",
+          "precondition": "后端返回的支付方式类型超出前端已处理范围",
+          "test_input": "后端返回 paymentType=UNKNOWN（未定义枚举值）",
+          "expected_result": "前端展示「支付方式不可用」，不展示该选项，记录枚举值异常",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "LINK-PAYMENT-001-TP-008",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "同一设备多渠道并发支付（引用S4-R14风险）",
+          "precondition": "玩家在多个设备同时发起支付",
+          "test_input": "设备A游戏币支付，设备B人民币支付，同一时刻",
+          "expected_result": "两笔订单均创建成功，每笔独立处理，余额冻结和扣款互不影响",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 8,
+      "case_id": "BIZ-TC-023"
+    },
+    {
+      "story_id": "LOG-PAYMENT-001",
+      "epic_id": "LOG-PAYMENT",
+      "title": "支付操作日志",
+      "module_coverage": {
+        "LOG": {
+          "covered": true,
+          "points": [
+            "ASSET_CHANGE",
+            "PROGRESS_TRIGGER",
+            "ANOMALY"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "CONFIG": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "LOG-PAYMENT-001-TP-001",
+          "module": "LOG",
+          "type": "POSITIVE",
+          "title": "支付成功日志字段完整",
+          "precondition": "支付操作完成",
+          "test_input": "记录支付成功事件",
+          "expected_result": "日志包含：玩家ID/道具ID/数量/金额/支付方式/时间戳/结果=成功",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LOG-PAYMENT-001-TP-002",
+          "module": "LOG",
+          "type": "POSITIVE",
+          "title": "日志持久化存储支持审计查询",
+          "precondition": "日志已写入",
+          "test_input": "管理员查询支付日志",
+          "expected_result": "按条件（玩家ID/时间范围/订单号）查询，返回完整日志记录",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LOG-PAYMENT-001-TP-003",
+          "module": "LOG",
+          "type": "BOUNDARY",
+          "title": "批量缓冲写入 ≥100条或≥1秒刷新",
+          "precondition": "日志缓冲队列积累",
+          "test_input": "积累100条日志事件",
+          "expected_result": "触发批量写入DB，缓冲清空（引用S4-10.2时序图）",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "LOG-PAYMENT-001-TP-004",
+          "module": "LOG",
+          "type": "BOUNDARY",
+          "title": "支付异常日志记录错误码（引用S4-10.3异常树）",
+          "precondition": "支付失败，错误码=PAY_TIMEOUT",
+          "test_input": "支付异常事件",
+          "expected_result": "日志记录错误码+错误信息，触发监控告警",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LOG-PAYMENT-001-TP-005",
+          "module": "LOG",
+          "type": "NEGATIVE",
+          "title": "磁盘空间不足降级（引用S4-10.3异常树）",
+          "precondition": "日志DB磁盘空间不足",
+          "test_input": "写入日志时磁盘空间耗尽",
+          "expected_result": "告警通知，扩展存储，优先写内存缓冲区，不阻塞主业务",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "LOG-PAYMENT-001-TP-006",
+          "module": "LOG",
+          "type": "EXCEPTION",
+          "title": "服务崩溃时日志丢失防护（引用S4-R16风险）",
+          "precondition": "服务进程崩溃，内存缓冲未刷新",
+          "test_input": "批量缓冲≥50条日志时服务崩溃",
+          "expected_result": "定期强制刷盘（≤1秒），崩溃时最多丢失<1秒日志（引用S4-10.4风险点）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "LOG-PAYMENT-001-TP-007",
+          "module": "LOG",
+          "type": "NEGATIVE",
+          "title": "日志字段包含敏感信息（手机号/身份证）被合规过滤（引用S4-10.3异常树）",
+          "precondition": "日志字段包含脱敏手机号",
+          "test_input": "查询支付日志",
+          "expected_result": "手机号字段显示为138****5678，不展示完整号码，符合合规要求",
+          "priority": "P1",
+          "regression": false
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-024"
+    },
+    {
+      "story_id": "SPECIAL-VIP-CHANGE-001",
+      "epic_id": "SPECIAL-VIP-CHANGE",
+      "title": "VIP等级变更生效 [fallback]",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "RELOAD_4_MODE",
+            "FIELD_CROSS_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": true,
+          "points": [
+            "SWITCH_TO_BACKGROUND"
+          ]
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "SPECIAL-VIP-CHANGE-001-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "VIP等级变更后折扣实时生效",
+          "precondition": "VIP1玩家升级为VIP2",
+          "test_input": "升级时刻T，购买道具",
+          "expected_result": "以VIP2=90折计价，下次购买立即享受新折扣（引用S4-11.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-001-TP-002",
+          "module": "BIZ",
+          "type": "POSITIVE",
+          "title": "购买进行中等級变更，以订单创建时为准（引用S4-R17风险）",
+          "precondition": "玩家在购买流程中（已选道具未支付），VIP等级升级",
+          "test_input": "VIP1→VIP2变更发生在订单创建前",
+          "expected_result": "以订单创建时刻的VIP等级计算折扣，不受购买中途变更影响（引用S4-R17风险点）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-001-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "配置表等级规则变更（引用S4-11.3异常树）",
+          "precondition": "VIP2折扣从90%改为88%（规则变更，非玩家等级变更）",
+          "test_input": "变更后VIP2玩家购买",
+          "expected_result": "新玩家立即应用，已购玩家下次购买时应用新折扣",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-001-TP-004",
+          "module": "BIZ",
+          "type": "BOUNDARY",
+          "title": "批量玩家等级变更性能（引用S4-11.4风险点）",
+          "precondition": "10000名玩家同时升级",
+          "test_input": "批量处理等级变更",
+          "expected_result": "分批处理+异步队列，每批1000人，不阻塞其他业务",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-001-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "等级变更通知失败（引用S4-11.3异常树）",
+          "precondition": "通知全服玩家时网络异常",
+          "test_input": "批量通知时服务崩溃",
+          "expected_result": "重试3次，失败后记录DB，后台任务补偿",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-001-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "VIP等级降级后立即享受旧折扣被拒绝",
+          "precondition": "VIP2玩家降级为VIP1",
+          "test_input": "降级后购买道具",
+          "expected_result": "以VIP1=95折计价，不允许使用VIP2折扣（引用S4-11.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-001-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "玩家等级变更时正在进行的购买流程（引用S4-R17风险）",
+          "precondition": "玩家在购买确认页已选道具，VIP等级在此时升级",
+          "test_input": "VIP1→VIP2变更发生在玩家点击购买按钮之前",
+          "expected_result": "以点击购买时刻的VIP等级（VIP2=90折）计算折扣",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-025"
+    },
+    {
+      "story_id": "SPECIAL-VIP-CHANGE-002",
+      "epic_id": "SPECIAL-VIP-CHANGE",
+      "title": "VIP等级时效处理",
+      "module_coverage": {
+        "CONFIG": {
+          "covered": true,
+          "points": [
+            "FIELD_LEGALITY",
+            "FIELD_CROSS_DEP"
+          ]
+        },
+        "BIZ": {
+          "covered": true,
+          "points": [
+            "DB_PERSIST",
+            "PROTOCOL"
+          ]
+        },
+        "UI": {
+          "covered": false,
+          "points": []
+        },
+        "HINT": {
+          "covered": false,
+          "points": []
+        },
+        "LINK": {
+          "covered": false,
+          "points": []
+        },
+        "SPECIAL": {
+          "covered": true,
+          "points": [
+            "DUPLICATE_PACKET",
+            "HIGH_FREQ_PACKET"
+          ]
+        },
+        "LOG": {
+          "covered": false,
+          "points": []
+        }
+      },
+      "scenario_test_points": [
+        {
+          "id": "SPECIAL-VIP-CHANGE-002-TP-001",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "等级时效配置为「降级」（引用S4-11.3异常树）",
+          "precondition": "VIP2配置有时效，到期后降级为VIP1",
+          "test_input": "等级到期考核时刻",
+          "expected_result": "VIP2→VIP1降级，实时生效，新折扣立即应用（引用S4-11.1流程图）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-002-TP-002",
+          "module": "CONFIG",
+          "type": "POSITIVE",
+          "title": "等级时效配置为「保留资格」（引用S4-11.3异常树）",
+          "precondition": "VIP2配置为保留资格，到期后不降级",
+          "test_input": "等级到期考核时刻",
+          "expected_result": "等级不变，记录变更日志，仍享受VIP2折扣",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-002-TP-003",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "等级时效配置为「无时效」— 永久有效",
+          "precondition": "VIP3配置为无时效（永久）",
+          "test_input": "不触发时效考核",
+          "expected_result": "VIP3永久有效，不参与定期考核（引用S4-11.3异常树）",
+          "priority": "P0",
+          "regression": true
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-002-TP-004",
+          "module": "CONFIG",
+          "type": "BOUNDARY",
+          "title": "时效考核与购买流程并发（引用S4-R17风险）",
+          "precondition": "等级到期时刻正好有购买进行中",
+          "test_input": "到期考核触发时玩家在订单创建流程中",
+          "expected_result": "以订单创建时刻等级为准（引用S4-R17风险点），不受考核影响",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-002-TP-005",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "时效到期后重复申请高频检测（引用S4-11.3异常树）",
+          "precondition": "等级刚降级，玩家频繁尝试购买",
+          "test_input": "降级后1分钟内发起10次购买",
+          "expected_result": "每次均以当前等级（降级后）计算折扣，记录高频操作日志",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-002-TP-006",
+          "module": "BIZ",
+          "type": "EXCEPTION",
+          "title": "时效考核定时任务重复触发（引用S4-11.3异常树）",
+          "precondition": "定时任务服务异常，同一考核被执行2次",
+          "test_input": "VIP2等级到期考核被触发2次",
+          "expected_result": "幂等处理，第2次触发时等级已变更，忽略重复执行",
+          "priority": "P1",
+          "regression": false
+        },
+        {
+          "id": "SPECIAL-VIP-CHANGE-002-TP-007",
+          "module": "BIZ",
+          "type": "NEGATIVE",
+          "title": "等级时效考核与新手礼包窗口重叠（引用S4-R18）",
+          "precondition": "玩家刚过新手期（第7天），同时触发时效考核",
+          "test_input": "UTC第7天23:59:59购买新手礼包，同时等级时效考核触发",
+          "expected_result": "以UTC第7天截止时刻判定，新手礼包仍可购买（包含第7天）",
+          "priority": "P0",
+          "regression": true
+        }
+      ],
+      "total_points": 7,
+      "case_id": "BIZ-TC-026"
+    }
+  ]
+}
