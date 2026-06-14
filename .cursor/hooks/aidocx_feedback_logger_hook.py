@@ -23,6 +23,16 @@ two narrow signals:
 
 All events are append-only JSONL. Downstream S8 self-iteration
 (ai_workflow/iteration_aggregator.py) reads them.
+
+Stage resolution rules (sh-only fix vs main):
+  - The same artifact name (e.g. review_report.{md,json}) may be owned
+    by multiple stages (S1 + S7).  The LAST stage in STAGE_ARTIFACTS
+    that claims it wins.  So S7's review_report.md overrides S1's.
+  - Some stages intentionally drop artifacts into a sibling stage's
+    directory (S7 writes review_report.{md,json} into
+    "「S6 测试用例生成」/").  When the stage directory name does NOT
+    contain the artifact's natural owner, we fall back to the
+    artifact → owner lookup.  This is the case the fix targets.
 """
 from __future__ import annotations
 
@@ -39,22 +49,46 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 FEEDBACK_LOGS_DIR = REPO_ROOT / "workflow_assets" / "feedback_logs"
 WORKFLOW_ASSETS = REPO_ROOT / "workflow_assets"
 
-# Stages we recognize, in order. Match a substring of either the
-# stage directory name (Chinese fullwidth quotes) or the artifact file.
+# Stages we recognize, in order. The order matters: when two stages
+# claim the same artifact name (e.g. review_report.md for S1 and S7),
+# the LATER entry wins.
+#
+# Each tuple: (stage_code, dir_substring, pass_artifact, fail_artifact).
+# We list BOTH .md and .json variants where the stage produces them,
+# so the auto-scanner picks up whichever the AI wrote.
 STAGE_ARTIFACTS = [
     ("S1",   "S1",  "review_report.md",    "fail_report_S1.md"),
+    ("S1",   "S1",  "review_report.json",  "fail_report_S1.md"),
     ("S1.5", "S1.5", "exit_permission.json", "fail_report_S1_5.md"),
     ("S2",   "S2",  "backlog.md",          "fail_report_S2.md"),
+    ("S2",   "S2",  "backlog.json",        "fail_report_S2.md"),
     ("S2.5", "S2.5", "iteration_plan.md",   "fail_report_S2_5.md"),
+    ("S2.5", "S2.5", "iteration_plan.json", "fail_report_S2_5.md"),
     ("S3",   "S3",  "prototype.md",         "fail_report_S3.md"),
+    ("S3",   "S3",  "prototype.json",      "fail_report_S3.md"),
     ("S4",   "S4",  "business_flow.md",     "fail_report_S4.md"),
     ("S5",   "S5",  "test_points.json",     "fail_report_S5.md"),
+    ("S5",   "S5",  "test_points.md",       "fail_report_S5.md"),
     ("S6",   "S6",  "test_cases.json",      "fail_report_S6.md"),
+    ("S6",   "S6",  "test_cases.md",        "fail_report_S6.md"),
+    # S7 must come AFTER S1 so ARTIFACT_OWNER resolves review_report.*
+    # to S7 (last-wins).  S7 writes into "「S6 测试用例生成」/" so the
+    # CROSS_DIRECTORY_DROPS table below also routes it correctly.
     ("S7",   "S7",  "review_report.md",     "fail_report_S7.md"),
+    ("S7",   "S7",  "review_report.json",   "fail_report_S7.md"),
     ("S8",   "S8",  "iteration.json",       "fail_report_S8.md"),
+    ("S8",   "S8",  "iteration.md",         "fail_report_S8.md"),
 ]
-# When the same artifact name (e.g. review_report.md) appears under both S1
-# and S6, prefer the more recent / deeper stage. We resolve ties later.
+
+# Flatten for last-wins directory-name matching.
+STAGE_ARTIFACTS_ORDER: list[str] = [c for c, _, _, _ in STAGE_ARTIFACTS]
+
+# Build (artifact_name → owning_stage_code) lookup. Later entries
+# overwrite earlier ones, so S7 wins over S1 for review_report.md.
+ARTIFACT_OWNER: dict[str, str] = {}
+for _code, _, _ok, _fail in STAGE_ARTIFACTS:
+    ARTIFACT_OWNER[_ok] = _code
+    ARTIFACT_OWNER[_fail] = _code
 
 # User-side keywords that signal "I'm starting stage X"
 STAGE_KEYWORDS = {
@@ -110,41 +144,74 @@ def _safe_read_jsonl(path: Path) -> list[dict]:
 
 # ── detection: was a stage just finished in the previous turn? ──────────────
 
+# Special cross-directory drops: a stage that writes into a SIBLING
+# stage's directory.  Maps (sibling_dir_substring, artifact_name) →
+# true owner.  Last-wins on artifact_name.
+CROSS_DIRECTORY_DROPS: list[tuple[str, str, str]] = [
+    # S7 writes review_report.{md,json} into "「S6 测试用例生成」/".
+    # When we see review_report.md/json inside a S6 directory, the
+    # owner is S7, not S6.
+    ("S6", "review_report.md", "S7"),
+    ("S6", "review_report.json", "S7"),
+    # (S6 itself writes test_cases.{md,json,xlsx} into its own dir — no
+    # cross-directory drop needed.)
+]
+
+
 def _detect_finished_stage() -> tuple[str | None, str | None, str | None]:
     """Return (stage, req_name, verdict) for the most recent stage artifact.
 
     verdict ∈ {"pass", "fail", None}. None = no fresh artifact.
+
+    Resolution rules (see module docstring):
+      1. Directory name match (last-wins) is the primary signal.
+      2. Fallback to ARTIFACT_OWNER lookup when the directory name
+         doesn't contain any stage code (cross-directory drops like
+         S7 → 「S6」).
     """
     if not WORKFLOW_ASSETS.exists():
         return None, None, None
 
-    # Find the most recently modified stage artifact across all requirements.
+    # Each candidate is (mtime, stage_code, req_name, verdict, artifact_relpath).
     candidates: list[tuple[float, str, str, str, str]] = []
     for req_dir in WORKFLOW_ASSETS.iterdir():
         if not req_dir.is_dir():
             continue
-        # skip non-requirement dirs like feedback_logs, billing_logs
-        if not (req_dir.name.endswith("系统") or "_" in req_dir.name
-                or req_dir.name.startswith("游戏") or req_dir.name.startswith("tool")
-                or req_dir.name == "review_reports"):
-            # accept Chinese-titled dirs and known non-underscore names
-            pass
         for stage_dir in req_dir.iterdir():
             if not stage_dir.is_dir():
                 continue
             for version_dir in stage_dir.iterdir():
                 if not version_dir.is_dir():
                     continue
-                for code, _, ok_artifact, fail_artifact in STAGE_ARTIFACTS:
-                    if code not in stage_dir.name and code.replace(".", "") not in stage_dir.name:
+                for fname, owner in ARTIFACT_OWNER.items():
+                    p = version_dir / fname
+                    if not p.exists():
                         continue
-                    ok_p = version_dir / ok_artifact
-                    fail_p = version_dir / fail_artifact
-                    for p in (ok_p, fail_p):
-                        if p.exists():
-                            mtime = p.stat().st_mtime
-                            verdict = "pass" if p is ok_p else "fail"
-                            candidates.append((mtime, code, req_dir.name, verdict, str(p.relative_to(REPO_ROOT))))
+                    # Stage resolution priority:
+                    #   1. CROSS_DIRECTORY_DROPS — overrides everything
+                    #      (handles S7 writing review_report.{md,json}
+                    #      into "「S6 测试用例生成」/").
+                    #   2. Directory name match (last-wins when multiple
+                    #      stages appear in the name; e.g. S2.5 wins
+                    #      over S2 in "「S2.5 迭代规划」").
+                    #   3. ARTIFACT_OWNER lookup (last-wins across the
+                    #      STAGE_ARTIFACTS list).
+                    resolved: str | None = None
+                    for cd_dir, cd_fname, cd_owner in CROSS_DIRECTORY_DROPS:
+                        if cd_fname == fname and cd_dir in stage_dir.name:
+                            resolved = cd_owner
+                            break
+                    if resolved is None:
+                        for code in STAGE_ARTIFACTS_ORDER:
+                            if code in stage_dir.name or code.replace(".", "") in stage_dir.name:
+                                dir_match = code
+                        resolved = dir_match if dir_match is not None else owner
+                    verdict = "fail" if fname.startswith("fail_") else "pass"
+                    mtime = p.stat().st_mtime
+                    candidates.append((
+                        mtime, resolved, req_dir.name, verdict,
+                        str(p.relative_to(REPO_ROOT)),
+                    ))
     if not candidates:
         return None, None, None
     candidates.sort(reverse=True)
