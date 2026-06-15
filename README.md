@@ -175,16 +175,13 @@ AIDocxWorkFlow/
 ├── .cursor/                         # Cursor 规则、skills、hooks
 │   ├── rules/                       # 阶段规则文件 (STAGE_S*.mdc)
 │   ├── skills/                      # 12 个通用 AI 技能 (SKILL.md)
-│   │   ├── aidocx-s1-review/...   # 12 个阶段 / 编排 / 对话 skill
+│   │   ├── aidocx-s1-review/...   # 10 个阶段 skill + 反馈 + 对话编排
 │   │   └── aidocx-feedback-logger/  # 阶段反馈收集（人工触发的 skill）
-│   └── hooks/                       # 钩子（SKILL 验证、计费等）
+│   └── hooks/                       # 钩子（产物同步 + 反馈日志）
 │       ├── docx_hook.py                    # beforeSubmitPrompt：自动收 docx
-│       ├── billing_hook.py                 # postMCPExecution：MCP 计费
-│       ├── session_billing.py              # afterAgentResponse/sessionEnd：会话计费
-│       ├── tool_billing.py                 # postToolUse：工具计费
-│       ├── mcp_billing.py                  # MCP 集成计费
-│       ├── token_engine.py                 # 计费 token 估算共用模块
-│       └── aidocx_feedback_logger_hook.py  # beforeSubmitPrompt+sessionEnd：自动 stage_started/finished 事件
+│       ├── aidocx_feedback_logger_hook.py  # beforeSubmitPrompt+sessionEnd：自动 stage_started/finished 事件
+│       ├── sync_modules_table.py           # afterFileEdit：MODULES.md 副本同步
+│       └── scan_module_definitions.py      # sessionStart：8 模块副本体检
 │
 ├── ai_workflow/                     # Python 自动化模块（离线可跑）
 │   ├── requirement_reviewer_auto.py # S1 自动评分
@@ -206,8 +203,7 @@ AIDocxWorkFlow/
     │   ├── 「S6 测试用例生成」/v1.0/
     │   └── 「S8 自迭代」/v1.0/
     ├── feedback_logs/               # 每轮反馈日志
-    ├── feedback_archive/            # AI 经验知识库（按"业务/方法论/界面/配置"分类）
-    └── billing_logs/                # 计费日志（如果开了 token 计费）
+    └── feedback_archive/            # AI 经验知识库（按"业务/方法论/界面/配置"分类）
 ```
 
 ---

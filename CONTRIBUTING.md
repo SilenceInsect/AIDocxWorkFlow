@@ -115,7 +115,7 @@ description: <one-sentence; < 1024 chars; no "I"/"you"/"we">
 ## 钩子（Hooks）
 
 `.cursor/hooks.json` 控制 `sessionStart`、`beforeSubmitPrompt`、
-`afterAgentResponse` 等事件上跑什么。这里的改动会影响到项目上的
+`afterFileEdit`、`sessionEnd` 等事件上跑什么。这里的改动会影响到项目上的
 **每一位**开发者。只有在以下情况才去动它：
 
 - 你要加的钩子对所有人都能帮上忙（例如实验性分支中提出的 SKILL 校验器）。

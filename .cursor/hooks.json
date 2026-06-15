@@ -4,7 +4,7 @@
     "sessionStart": [
       {
         "type": "prompt",
-        "prompt": "You are working in the AIDocxWorkFlow project. All 13 SKILL.md (12 stage skills under .cursor/skills/ + 1 aidocx-feedback-logger) are loaded automatically. The aidocx-feedback-logger hook (.cursor/hooks/aidocx_feedback_logger_hook.py) is also registered on beforeSubmitPrompt and sessionEnd — it auto-records stage_started / stage_finished / session_summary events to workflow_assets/feedback_logs/session_*.jsonl. When the user expresses dissatisfaction (e.g. 'this stage is wrong', 'the test cases miss X', 'rerun S6'), proactively invoke the aidocx-feedback-logger skill to write a structured feedback event alongside the auto-recorded ones."
+        "prompt": "You are working in the AIDocxWorkFlow project. All 12 SKILL.md are loaded automatically (10 stage skills under .cursor/skills/ + aidocx-feedback-logger + aidocx-workflow-conversation). The aidocx-feedback-logger hook (.cursor/hooks/aidocx_feedback_logger_hook.py) is also registered on beforeSubmitPrompt and sessionEnd — it auto-records stage_started / stage_finished / session_summary events to workflow_assets/feedback_logs/session_*.jsonl. When the user expresses dissatisfaction (e.g. 'this stage is wrong', 'the test cases miss X', 'rerun S6'), proactively invoke the aidocx-feedback-logger skill to write a structured feedback event alongside the auto-recorded ones."
       },
       {
         "type": "command",
@@ -27,13 +27,6 @@
       {
         "command": ".cursor/hooks/aidocx_feedback_logger_hook.py",
         "timeout": 10
-      }
-    ],
-    "postMCPExecution": [
-      {
-        "command": ".cursor/hooks/billing_hook.py",
-        "type": "command",
-        "timeout": 30
       }
     ],
     "sessionEnd": [

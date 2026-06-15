@@ -4,7 +4,8 @@ This directory contains hook scripts that automate behavior around agent events.
 
 ## Files
 
-- `docx_hook.py` - Auto-converts .docx files to .md when user describes test case requirements
+- `aidocx_feedback_logger_hook.py` - **阶段反馈自动收集器**: 在 `beforeSubmitPrompt` / `sessionEnd` 触发,扫描 `workflow_assets/<req>/「S*」/v*/` 下的产物,自动写入 `stage_started` / `stage_finished` / `session_summary` 事件到 `workflow_assets/feedback_logs/session_*.jsonl`
+- `docx_hook.py` - **DOCX 快速启动钩子**: 当用户说"开始全流程/完整流程/快速流程/快速流水线"等触发语,自动收集 prompt 中的 `.md` 引用、运行简化流水线 (S1→S2→S4→S5→S6),把产物路径写回 prompt
 - `sync_modules_table.py` - **SSoT 同步钩子**: 编辑 `MODULES.md` 后, 自动同步所有 `<aside data-modules-sync-block="§X">` 标记的副本
 - `scan_module_definitions.py` - **SSoT 一致性体检钩子**: sessionStart 时扫所有未迁移的 8 模块定义副本
 
