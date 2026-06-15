@@ -1,0 +1,80 @@
+# macOS / OS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Editors / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+venv/
+.venv/
+env/
+ENV/
+
+# Cursor / agent tooling
+.cursor/.DS_Store
+.cursor/hooks/__pycache__/
+.cursor/skills/.DS_Store
+.cursor/sync_logs/
+
+# CodeGraph — machine-local code index cache (do not commit)
+.codegraph/
+
+# Workflow assets — keep artifacts, drop OS noise
+workflow_assets/.DS_Store
+workflow_assets/**/.DS_Store
+workflow_assets/**/__pycache__/
+ai_workflow/.DS_Store
+ai_workflow/__pycache__/
+
+# Local secrets / config
+.env
+.env.local
+*.local
+secrets.json
+
+# Logs
+*.log
+logs/

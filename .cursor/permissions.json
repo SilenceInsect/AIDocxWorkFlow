@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "terminalAllowlist": [
+    "git status",
+    "git add",
+    "git commit",
+    "git diff",
+    "git log",
+    "python3 *",
+    "pip install *",
+    "npm install *",
+    "node *",
+    "ls",
+    "cat",
+    "mkdir",
+    "rmdir",
+    "cp",
+    "mv",
+    "open"
+  ],
+  "mcpTools": {
+    "aidocx-workflow": {
+      "tools": [
+        "wf_full_flow",
+        "wf_simple_flow",
+        "wf_review_requirement",
+        "wf_break_down_requirement",
+        "wf_export_prototype",
+        "wf_export_flowchart",
+        "wf_generate_test_points",
+        "wf_generate_test_cases",
+        "wf_review_test_cases",
+        "wf_self_iterate",
+        "wf_list_versions",
+        "wf_archive_version",
+        "wf_log_feedback",
+        "wf_log_batch_feedback",
+        "wf_get_artifacts",
+        "wf_parse_docx",
+        "wf_billing_summary",
+        "wf_query_bus",
+        "wf_diff",
+        "wf_generate_smoke",
+        "wf_add_l2_trigger",
+        "wf_list_triggers",
+        "wf_pause_resume",
+        "wf_list_pauses"
+      ],
+      "autoRun": true
+    }
+  },
+  "autoRun": {
+    "terminal": {
+      "defaultBehavior": "allow",
+      "allowDangerous": false,
+      "instructions": "Always allow read-only git commands (status, diff, log, add, commit). Always allow python3 script execution in the project directory. Allow file creation (Write, New file) for test cases, requirements, and markdown output. Allow npm/pip install commands. Allow ls, cat for file inspection. Block: git push --force, rm -rf, drop database, sudo without arguments."
+    },
+    "mcp": {
+      "defaultBehavior": "allow",
+      "instructions": "All aidocx-workflow tools are project-specific workflow tools. Allow all MCP tools from aidocx-workflow server to run without confirmation since they are scoped to test case generation workflows. Tools only read/write within the project directory."
+    }
+  }
+}

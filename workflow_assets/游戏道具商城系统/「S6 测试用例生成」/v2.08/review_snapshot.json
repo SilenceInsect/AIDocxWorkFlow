@@ -1,0 +1,200 @@
+{
+  "total_cases": 77,
+  "structure": {
+    "total_cases": 77,
+    "total_fields_filled": 231,
+    "total_fields": 308,
+    "fill_rate": 0.75,
+    "missing_field_cases": [
+      {
+        "case_id": "UI-TC-001",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-002",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-003",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-004",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-005",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-006",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-007",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-008",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-009",
+        "field": "steps"
+      },
+      {
+        "case_id": "HINT-TC-001",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-010",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-011",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-001",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-002",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-003",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-004",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-005",
+        "field": "steps"
+      },
+      {
+        "case_id": "HINT-TC-002",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-006",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-007",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-008",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-009",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-010",
+        "field": "steps"
+      },
+      {
+        "case_id": "UI-TC-012",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-011",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-012",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-013",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-014",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-015",
+        "field": "steps"
+      },
+      {
+        "case_id": "BIZ-TC-016",
+        "field": "steps"
+      }
+    ]
+  },
+  "coverage": {
+    "E1": {
+      "epic_id": "E1",
+      "epic_title": "商城基础展示",
+      "total_stories": 2,
+      "covered_stories": 2,
+      "missing_stories": []
+    },
+    "E2": {
+      "epic_id": "E2",
+      "epic_title": "购买交易核心",
+      "total_stories": 2,
+      "covered_stories": 2,
+      "missing_stories": []
+    },
+    "E3": {
+      "epic_id": "E3",
+      "epic_title": "VIP与促销",
+      "total_stories": 2,
+      "covered_stories": 2,
+      "missing_stories": []
+    },
+    "E4": {
+      "epic_id": "E4",
+      "epic_title": "支付与基础服务",
+      "total_stories": 2,
+      "covered_stories": 2,
+      "missing_stories": []
+    },
+    "E5": {
+      "epic_id": "E5",
+      "epic_title": "监控与容错",
+      "total_stories": 4,
+      "covered_stories": 4,
+      "missing_stories": []
+    },
+    "E6": {
+      "epic_id": "E6",
+      "epic_title": "配置管理",
+      "total_stories": 2,
+      "covered_stories": 2,
+      "missing_stories": []
+    },
+    "E7": {
+      "epic_id": "E7",
+      "epic_title": "玩家提示反馈",
+      "total_stories": 1,
+      "covered_stories": 1,
+      "missing_stories": []
+    }
+  },
+  "module_counter": {
+    "UI": 12,
+    "HINT": 8,
+    "BIZ": 20,
+    "CONFIG": 10,
+    "LINK": 5,
+    "LOG": 10,
+    "AUX": 5,
+    "SPECIAL": 7
+  },
+  "type_counter": {
+    "POSITIVE": 30,
+    "BOUNDARY": 19,
+    "NEGATIVE": 12,
+    "EXCEPTION": 16
+  },
+  "ai_input_summary": "===== 事实快照（脚本机械统计） =====\n用例总数: 77\n必填字段填写率: 75.0%\n模块分布: {'UI': 12, 'HINT': 8, 'BIZ': 20, 'CONFIG': 10, 'LINK': 5, 'LOG': 10, 'AUX': 5, 'SPECIAL': 7}\n类型分布: {'POSITIVE': 30, 'BOUNDARY': 19, 'NEGATIVE': 12, 'EXCEPTION': 16}\nEpic 覆盖事实:\n  E1 (商城基础展示): 2/2 Story, missing=[]\n  E2 (购买交易核心): 2/2 Story, missing=[]\n  E3 (VIP与促销): 2/2 Story, missing=[]\n  E4 (支付与基础服务): 2/2 Story, missing=[]\n  E5 (监控与容错): 4/4 Story, missing=[]\n  E6 (配置管理): 2/2 Story, missing=[]\n  E7 (玩家提示反馈): 1/1 Story, missing=[]\n缺失字段用例（前10条）:\n  UI-TC-001: 缺失「steps」\n  UI-TC-002: 缺失「steps」\n  UI-TC-003: 缺失「steps」\n  UI-TC-004: 缺失「steps」\n  UI-TC-005: 缺失「steps」\n  UI-TC-006: 缺失「steps」\n  UI-TC-007: 缺失「steps」\n  UI-TC-008: 缺失「steps」\n  UI-TC-009: 缺失「steps」\n  HINT-TC-001: 缺失「steps」\n===== 审查交由 LLM（请按 S7 SKILL.md §2 五维度做语义审查） =====",
+  "date": "2026-06-15"
+}

@@ -1,0 +1,93 @@
+{
+  "version": "v1.0",
+  "stage": "S3",
+  "date": "2026-06-15",
+  "req_name": "游戏道具商城系统",
+  "page_count": 14,
+  "pages": [
+    {
+      "id": "P-01",
+      "name": "商城首页",
+      "module": "UI",
+      "entry": "主菜单「商城」"
+    },
+    {
+      "id": "P-02",
+      "name": "道具详情页",
+      "module": "UI",
+      "entry": "首页点击道具"
+    },
+    {
+      "id": "P-03",
+      "name": "道具列表（分类）",
+      "module": "UI",
+      "entry": "首页分类导航"
+    },
+    {
+      "id": "P-04",
+      "name": "搜索结果页",
+      "module": "UI",
+      "entry": "首页搜索框"
+    },
+    {
+      "id": "P-05",
+      "name": "购买确认弹窗",
+      "module": "HINT",
+      "entry": "详情页「购买」按钮"
+    },
+    {
+      "id": "P-06",
+      "name": "支付选择页",
+      "module": "UI",
+      "entry": "弹窗「确认」"
+    },
+    {
+      "id": "P-07",
+      "name": "支付结果页",
+      "module": "HINT",
+      "entry": "支付完成"
+    },
+    {
+      "id": "P-08",
+      "name": "订单列表",
+      "module": "UI",
+      "entry": "主菜单「订单」"
+    },
+    {
+      "id": "P-09",
+      "name": "订单详情",
+      "module": "UI",
+      "entry": "订单列表点击"
+    },
+    {
+      "id": "P-10",
+      "name": "VIP 专属商城",
+      "module": "UI",
+      "entry": "首页顶部 Tab"
+    },
+    {
+      "id": "P-11",
+      "name": "限时促销页",
+      "module": "UI",
+      "entry": "首页 Banner"
+    },
+    {
+      "id": "P-12",
+      "name": "新手礼包",
+      "module": "HINT",
+      "entry": "首次登录引导"
+    },
+    {
+      "id": "P-13",
+      "name": "管理后台-道具配置",
+      "module": "CONFIG",
+      "entry": "/admin/items"
+    },
+    {
+      "id": "P-14",
+      "name": "监控看板",
+      "module": "LOG",
+      "entry": "/admin/monitor"
+    }
+  ]
+}

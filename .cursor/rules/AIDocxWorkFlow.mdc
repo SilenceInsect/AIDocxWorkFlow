@@ -1,0 +1,246 @@
+---
+description: AIDocxWorkFlow — 9-stage modular test-case generation pipeline
+alwaysApply: true
+---
+
+# AIDocxWorkFlow — AI Test Case Generation Pipeline
+
+This project uses a 9-stage **modular pipeline**. Each stage is **independently callable** with its own dedicated rule, output directory, and failure report.
+
+**Core pattern**: 丢材料 → 审查材料 → [合格] 开始阶段产出结果 / [不合格] 生成失败报告停止
+
+Type `/` in the chat input for all available workflow commands.
+
+---
+
+## 编排开关（环境变量）
+
+| 环境变量 | 默认 | 含义 |
+|---|---|---|
+| `AIDOCX_INCLUDE_S2_5` | **未设置（false）** | 是否在**全流程模式**中包含 S2.5 迭代规划阶段。`true` / `1` = 包含；其他 = 跳过。**S2.5 对测试点/用例产出无强关系**，全流程默认跳过；需要做迭代排期/资源规划时再显式声明。 |
+
+> **S2.5 触发方式不变**：`/aidocx-s2-5-iteration` 或粘贴 S2 backlog 仍然可单独调用该阶段（不受 `AIDOCX_INCLUDE_S2_5` 控制）。
+
+> ⚠️ **模块定义见 [`.cursor/MODULES.md`](./MODULES.md)（项目级唯一真相源）**。
+> 本文件不重写模块表。所有 SKILL.md / .mdc / 代码均通过引用 MODULES.md 获取模块定义。
+
+---
+
+## Stage Architecture
+
+||| Stage | Name | Trigger | Input Material | Output Dir | Failure Report |
+||-------|------|---------|---------------|-----------|----------------|
+||| **S1** | 需求评审 | `/aidocx-s1-review` | 原始需求文档 | `<req_name>/「S1 需求评审」/` | `fail_report_S1.md` |
+||| **S1.5** | 业务澄清与准出 | — | clarification_checklist（人工填写） | `<req_name>/「S1 需求评审」/` | `fail_report_S1_5.md` |
+||| **S2** | 需求拆解 | `/aidocx-s2-breakdown` | S1.5 exit_permission + 终版需求.md | `<req_name>/「S2 需求拆解」/` | `fail_report_S2.md` + `requirement_objects.md/json` |
+||| **S2.5** | 迭代规划 ⚙️opt-in | `/aidocx-s2-5-iteration` | S2 backlog | `<req_name>/「S2.5 迭代规划」/` | `fail_report_S2_5.md` |
+||| **S3** | 原型导出 | `/aidocx-s3-prototype` | S2 backlog | `<req_name>/「S3 原型导出」/` | `fail_report_S3.md` |
+||| **S4** | 流程图导出 | `/aidocx-s4-flowchart` | S2 backlog + S3 prototype | `<req_name>/「S4 流程图导出」/` | `fail_report_S4.md` |
+||| **S5** | 测试点生成 | `/aidocx-s5-test-points` | S2 backlog | `<req_name>/「S5 测试点生成」/` | `fail_report_S5.md` |
+||| **S6** | 测试用例生成 | `/aidocx-s6-test-cases` | S5 test_points.json | `<req_name>/「S6 测试用例生成」/` | `fail_report_S6.md` |
+||| **S7** | 用例审查 | `/aidocx-s7-review` | S6 test_cases.json | `<req_name>/「S6 测试用例生成」/` | `fail_report_S7.md` |
+||| **S8** | 自迭代 | `/aidocx-s8-self-iteration` | S7 review_report + feedback_logs | `<req_name>/「S8 自迭代」/` | `fail_report_S8.md` |
+
+---
+
+## S1 → S1.5 → S2 流程说明
+
+```
+S1 需求评审
+    ↓ 判决 PASS / NEEDS_REVISION
+S1 产出:
+  - review_report.md（评分报告）
+  - clarification_checklist.md（待确认问题清单，人工填写）
+  - 终版需求.md（草稿，S1.5 后续完善）
+    ↓ 用户填写 clarification_checklist.md 后
+S1.5 业务澄清
+    ↓ 完善终版需求.md + 生成 exit_permission.json（准出许可）
+S2 需求拆解
+    ↓ 读取 exit_permission：
+      - can_proceed_to_s2 == true → 正常执行
+      - fallback_rules → 按需补充保底 Story
+      - quality_level → 调整拆解深度
+```
+
+**重要原则**：
+- S1 阶段**不对终版需求设置准出门槛评分**。评分仅用于判断是否进入澄清流程。
+- S1.5 阶段生成 `exit_permission.json`，S2 必须读取后执行。
+- 只要 P0 项全部填写完毕，`can_proceed_to_s2` 即为 true（可带 fallback_rules 执行）。
+- **S2.5 默认跳过**：S2.5 迭代规划对测试点/用例产出无强关系，全流程默认不执行。需要在全流程中包含 S2.5 时，显式设置 `AIDOCX_INCLUDE_S2_5=true`（详见顶部「编排开关」节）。无论开关如何，`/aidocx-s2-5-iteration` 单独调用 S2.5 的方式始终可用。
+
+---
+
+## Quality Gate Thresholds
+
+| Stage | Gate | Threshold |
+|-------|------|-----------|
+| S1 | 评审评分（判断是否进入澄清流程） | ≥ 7.0/10.0 |
+| S1.5 | P0 项全部填写 | P0 项 100% 填写 |
+| S2 | Epic 拆解精度 | ≥ 90% |
+| S2.5 | 排期与资源规划 | ≥ 80% |
+| S3 | 原型覆盖度 | 100% UI入口 |
+| S4 | 异常路径覆盖率 | > 80% |
+| S5 | 测试点数量 | ≥ 6/story (2+2+1+1) |
+| S6 | 用例格式完整性 | 100% 必填字段 |
+| S7 | 覆盖率 + 结构完整性 | ≥ 85% + ≥ 90% |
+| S8 | 建议可执行性 | ≥ 3 条可执行建议 |
+
+---
+
+## Usage Pattern
+
+1. **Each stage is independently callable** — trigger by command or by pasting the required input material.
+2. **Always check input materials first** — if materials fail review, generate a failure report and stop.
+3. **Pass outputs forward** — each stage's output is the next stage's input material.
+4. **S1 → S1.5 → S2 chain**: S2 must read `exit_permission.json` before executing.
+
+---
+
+## Per-Stage Rules
+
+Each stage has its own dedicated rule file (`.cursor/rules/STAGE_S*.mdc`) and skill (`.cursor/skills/`):
+
+| Rule File | Skill | Stage | Details |
+|-----------|-------|-------|---------|
+| `STAGE_S1_REVIEW.mdc` | `aidocx-s1-review/` | S1 | 输入审查 → 5维度评分 → 产出终版需求.md草稿 + clarification_checklist |
+| `STAGE_S1.5 Clarification.mdc` | `aidocx-s1-5-clarification/` | S1.5 | 完善终版需求.md → 生成 exit_permission.json（准出许可）→ S2 可执行 |
+| `STAGE_S2_BREAKDOWN.mdc` | `aidocx-s2-breakdown/` | S2 | Epic/Story分解 → 读取 exit_permission → 可选 fallback_rules 保底 → backlog.md+JSON |
+| `STAGE_S2_5_ITERATION.mdc` | `aidocx-s2-5-iteration/` | S2.5 | 7步迭代规划 → 负载平衡 → 里程碑 |
+| `STAGE_S3_PROTOTYPE.mdc` | `aidocx-s3-prototype/` | S3 | 页面原型 → Mermaid页面流图 |
+| `STAGE_S4_FLOWCHART.mdc` | `aidocx-s4-flowchart/` | S4 | 业务流程图 → 时序图 → 异常决策树 |
+| `STAGE_S5_TEST_POINTS.mdc` | `aidocx-s5-test-points/` | S5 | 8 模块测试点 → 6点/story (2+2+1+1)（模块定义见 `.cursor/MODULES.md`）|
+| `STAGE_S6_TEST_CASES.mdc` | `aidocx-s6-test-cases/` | S6 | 测试用例 → Markdown+JSON+Excel 3 Sheet |
+| `STAGE_S7_REVIEW.mdc` | `aidocx-s7-review/` | S7 | 双审查员 → 结构完整性+覆盖率 → overall_pass |
+| `STAGE_S8_SELF_ITERATION.mdc` | `aidocx-s8-self-iteration/` | S8 | 缺陷分析 → Prompt改进 → 归档经验 |
+
+### S1 Input Processing Sub-pipeline
+
+S1 包含一个自动化 DOCX→Markdown+OCR 子模块，位于 `ai_workflow/stage_s1_input/`：
+
+| Module | Purpose |
+|--------|---------|
+| `DocxExtractor` | 解析 .docx/.doc，提取文本+图片字节流 |
+| `ImageRenamer` | OCR 预览分析 → 语义分类标签（`ui_prototype`/`flow_chart`/`data_schema` 等） |
+| `OCREngine` | Tesseract OCR → 结构化 JSON（置信度+提取元素） |
+| `MarkdownConverter` | 生成 Markdown，图片引用使用语义名称 |
+| `S1Pipeline` | 串联全流程，输出标准化目录结构 |
+| `read_clarification_checklist` | 读取人工填写的澄清清单 |
+| `read_exit_permission` | 读取 S1.5 生成的准出许可 JSON |
+
+**图片引用命名**：`img_<序号>_<语义标签>.<扩展名>`
+- OCR JSON 字段：`image_ref`、`ocr_text`、`extracted_elements`、`confidence`、`page`
+- 索引文件：`image_index.json`（统一映射表）
+
+**调用方式**：
+```python
+from ai_workflow.stage_s1_input import run_s1_pipeline
+result = run_s1_pipeline(docx_path, req_name="游戏道具商城系统")
+```
+
+---
+
+## Output Directory Structure
+
+> **格式规范**：`workflow_assets/{需求名}/「阶段名」/「version」/物料`
+
+```
+workflow_assets/
+  review_reports/                                ← S1 报告 + 失败报告（根级公共）
+  <req_name>/
+    「S1 需求评审」/
+      <version>/
+        raw/
+          extracted_text.md                       ← Markdown（含语义图片引用）
+          image_index.json                       ← 图片引用索引映射
+          extracted_images/                      ← 重命名后的图片
+            img_001_ui_prototype.png
+            img_002_flow_chart.png
+          ocr_results/                           ← OCR 结构性 JSON
+            img_001_ui_prototype.json
+            img_002_flow_chart.json
+        review_report.md                         ← S1 产出
+        review_report.json
+        clarification_checklist.md               ← S1 产出（人工填写处理方案）
+        终版需求.md                              ← S1 产出草稿，S1.5 完善
+        exit_permission.json                     ← S1.5 产出（准出许可）
+        clarification_report.md                  ← S1.5 产出（业务澄清文档）
+        fail_report_S1.md                       ← S1 失败报告
+        fail_report_S1_5.md                     ← S1.5 失败报告
+    「S2 需求拆解」/
+      <version>/
+        backlog.md                               ← S2 产出（Epic/Story层）
+        backlog.json
+        requirement_objects.md                   ← S2 产出（需求对象+功能点层）
+        requirement_objects.json
+        fail_report_S2.md                       ← S2 失败报告
+    「S2.5 迭代规划」/
+      <version>/
+        iteration_plan.md                         ← S2.5 产出
+        iteration_plan.json
+        fail_report_S2_5.md                     ← S2.5 失败报告
+    「S3 原型导出」/
+      <version>/
+        prototype.md                              ← S3 产出
+        fail_report_S3.md                        ← S3 失败报告
+    「S4 流程图导出」/
+      <version>/
+        business_flow.md                          ← S4 产出
+        fail_report_S4.md                        ← S4 失败报告
+    「S5 测试点生成」/
+      <version>/
+        test_points.json                          ← S5 产出
+        fail_report_S5.md                        ← S5 失败报告
+    「S6 测试用例生成」/
+      <version>/
+        test_cases.md                             ← S6 产出
+        test_cases.json
+        test_cases.xlsx
+        review_report.md                          ← S7 产出（随 S6 目录）
+        review_report.json
+        fail_report_S6.md                        ← S6 失败报告
+        fail_report_S7.md                        ← S7 失败报告
+    「S8 自迭代」/
+      <version>/
+        iteration.md                              ← S8 产出
+        iteration.json
+        fail_report_S8.md                        ← S8 失败报告
+  feedback_logs/                                 ← 执行反馈
+  feedback_archive/                              ← AI 经验知识库
+  test_case_library/                             ← 8 模块通用用例库（按模块前缀分目录，定义见 `.cursor/MODULES.md`）
+  test_point_library/                            ← 测试点库
+  example_test_points/                           ← 示例参考
+  example_test_cases/                            ← 示例参考
+```
+
+---
+
+## Key Conventions
+
+- **Version**: Default `v1.0`. Bump when starting a new requirements baseline.
+- **Failure report**: Every stage generates `fail_report_S*.md` when input materials fail review.
+- **Independent use**: Any stage can be invoked standalone by providing its required input material.
+- **Manual materials**: User can drop manual artifacts (e.g., manually written backlog.md) to skip a stage or replace AI output.
+- **S1+S1.5 exit gate**: S2 执行前必须读取 `exit_permission.json`，`can_proceed_to_s2 == true` 时方可执行。
+
+---
+
+## CodeGraph
+
+使用 Cursor 内置 CodeGraph 进行代码结构查询。详见 `.cursor/rules/CODEGRAPH_SYNC.mdc`。
+
+---
+
+## Stage Details
+
+For detailed specifications (input review checklist, output format, failure report template, code entry points), refer to each stage's dedicated rule file:
+
+- `.cursor/rules/STAGE_S1_REVIEW.mdc`
+- `.cursor/rules/STAGE_S1.5 Clarification.mdc` (skill: `.cursor/skills/aidocx-s1-5-clarification/`)
+- `.cursor/rules/STAGE_S2_BREAKDOWN.mdc`
+- `.cursor/rules/STAGE_S2_5_ITERATION.mdc`
+- `.cursor/rules/STAGE_S3_PROTOTYPE.mdc`
+- `.cursor/rules/STAGE_S4_FLOWCHART.mdc`
+- `.cursor/rules/STAGE_S5_TEST_POINTS.mdc`
+- `.cursor/rules/STAGE_S6_TEST_CASES.mdc`
+- `.cursor/rules/STAGE_S7_REVIEW.mdc`
+- `.cursor/rules/STAGE_S8_SELF_ITERATION.mdc`

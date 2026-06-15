@@ -1,0 +1,360 @@
+[
+  {
+    "obj_id": "OBJ-01",
+    "obj_name": "商城首页",
+    "module": "UI",
+    "role_ids": ["ROLE-01", "ROLE-04", "ROLE-05"],
+    "features": [
+      {"id": "F-01-1", "input": "首页请求", "process": "推荐服务 + 销量统计", "output": "热门道具列表（前10）"},
+      {"id": "F-01-2", "input": "分类点击", "process": "分类导航", "output": "分类道具列表"},
+      {"id": "F-01-3", "input": "搜索关键词", "process": "搜索服务", "output": "匹配道具列表"},
+      {"id": "F-01-4", "input": "翻页请求", "process": "分页服务", "output": "下一页道具"},
+      {"id": "F-01-5", "input": "推荐请求", "process": "推荐算法", "output": "个性化推荐列表"}
+    ],
+    "stories": [
+      {"id": "S-01-1", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "浏览热门推荐", "so_that": "快速发现热卖道具"},
+      {"id": "S-01-2", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "按分类导航浏览", "so_that": "快速找到目标类型"},
+      {"id": "S-01-3", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "通过关键词搜索道具", "so_that": "快速定位目标"},
+      {"id": "S-01-4", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "按页翻看道具列表", "so_that": "浏览更多道具"},
+      {"id": "S-01-5", "role": "ROLE-05", "as_a": "灰度账号", "i_want": "推荐按销量排序验证", "so_that": "确认排序规则"}
+    ],
+    "data_flow": {"entry": "推荐服务 / 销量统计表", "process": "排序算法 / 搜索服务", "exit": "渲染 UI 列表"},
+    "risks": ["10000并发下推荐服务响应时间", "搜索性能"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-02",
+    "obj_name": "道具详情页",
+    "module": "UI",
+    "role_ids": ["ROLE-01", "ROLE-02"],
+    "features": [
+      {"id": "F-02-1", "input": "道具ID", "process": "道具服务查询", "output": "道具属性详情"},
+      {"id": "F-02-2", "input": "预览请求", "process": "预览资源加载", "output": "穿戴效果预览"},
+      {"id": "F-02-3", "input": "购买数量", "process": "数量校验（1-99）", "output": "有效数量"},
+      {"id": "F-02-4", "input": "余额查询", "process": "余额校验", "output": "按钮启用/禁用"}
+    ],
+    "stories": [
+      {"id": "S-02-1", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "查看道具详情", "so_that": "了解属性加成"},
+      {"id": "S-02-2", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "预览穿戴效果", "so_that": "判断是否购买"},
+      {"id": "S-02-3", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "选择购买数量（1-99）", "so_that": "灵活购买"},
+      {"id": "S-02-4", "role": "ROLE-07", "as_a": "余额耗尽玩家", "i_want": "看到购买按钮置灰", "so_that": "了解余额不足"}
+    ],
+    "data_flow": {"entry": "道具ID", "process": "道具服务 / 预览资源", "exit": "详情页 UI"},
+    "risks": ["预览资源加载兼容性", "购买数量边界（0/负数/100+）"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-03",
+    "obj_name": "购买流程",
+    "module": "BIZ",
+    "role_ids": ["ROLE-01", "ROLE-02", "ROLE-07"],
+    "features": [
+      {"id": "F-03-1", "input": "购买请求", "process": "购买确认（道具/数量/总价）", "output": "确认弹窗"},
+      {"id": "F-03-2", "input": "游戏币支付", "process": "游戏币扣款", "output": "扣款结果"},
+      {"id": "F-03-3", "input": "人民币支付", "process": "第三方支付", "output": "支付回调"},
+      {"id": "F-03-4", "input": "支付成功", "process": "道具发放", "output": "道具入背包"},
+      {"id": "F-03-5", "input": "道具发放", "process": "邮件服务", "output": "系统邮件"},
+      {"id": "F-03-6", "input": "余额不足", "process": "余额校验", "output": "拦截 + Toast"}
+    ],
+    "stories": [
+      {"id": "S-03-1", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "购买前确认信息", "so_that": "避免误买"},
+      {"id": "S-03-2", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "用游戏币支付", "so_that": "消耗游戏内货币"},
+      {"id": "S-03-3", "role": "ROLE-02", "as_a": "VIP玩家", "i_want": "用人民币支付并享受折扣", "so_that": "充值购买"},
+      {"id": "S-03-4", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "支付后道具立即到账", "so_that": "即刻使用"},
+      {"id": "S-03-5", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "收到购买成功邮件通知", "so_that": "保留凭证"},
+      {"id": "S-03-6", "role": "ROLE-07", "as_a": "余额耗尽玩家", "i_want": "被拦截购买并提示", "so_that": "了解原因"}
+    ],
+    "data_flow": {"entry": "玩家支付请求", "process": "支付服务 / 道具发放 / 邮件", "exit": "道具入背包DB / 邮件DB / 资产流水"},
+    "risks": ["支付回调幂等", "并发购买同一道具", "网络重试"],
+    "purchase_strong": true,
+    "purchase_strong_quality": {
+      "program_self_test": "GM命令 gm_grant_item 道具ID 数量 给玩家发奖",
+      "test_coverage": "覆盖：发奖成功 / 邮件未领取状态 / 重复领取拦截 / 服务端权威校验",
+      "planning_acceptance": "策划在测试环境用 GM命令 抽检 10 个玩家背包，对照数值表"
+    }
+  },
+  {
+    "obj_id": "OBJ-04",
+    "obj_name": "订单管理",
+    "module": "BIZ",
+    "role_ids": ["ROLE-01"],
+    "features": [
+      {"id": "F-04-1", "input": "玩家ID", "process": "订单查询", "output": "30天订单列表"},
+      {"id": "F-04-2", "input": "订单ID", "process": "订单详情查询", "output": "订单详情"},
+      {"id": "F-04-3", "input": "时间范围", "process": "时间筛选", "output": "时段内订单"},
+      {"id": "F-04-4", "input": "道具名称", "process": "道具名筛选", "output": "该道具订单"}
+    ],
+    "stories": [
+      {"id": "S-04-1", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "查看最近30天订单", "so_that": "核对消费"},
+      {"id": "S-04-2", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "查看订单详情", "so_that": "了解每笔消费"},
+      {"id": "S-04-3", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "按时间筛选订单", "so_that": "定位特定时段消费"},
+      {"id": "S-04-4", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "按道具名筛选订单", "so_that": "追踪特定道具"}
+    ],
+    "data_flow": {"entry": "玩家ID", "process": "订单服务", "exit": "订单列表 UI"},
+    "risks": ["30天分页性能", "按道具名模糊查询性能"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-05",
+    "obj_name": "VIP专属商城",
+    "module": "BIZ",
+    "role_ids": ["ROLE-02", "ROLE-06"],
+    "features": [
+      {"id": "F-05-1", "input": "VIP等级", "process": "折扣计算（95/9/85折）", "output": "折扣价格"},
+      {"id": "F-05-2", "input": "VIP状态", "process": "道具可见性过滤", "output": "VIP专属道具列表"},
+      {"id": "F-05-3", "input": "折扣规则", "process": "折扣校验", "output": "不可叠加"}
+    ],
+    "stories": [
+      {"id": "S-05-1", "role": "ROLE-02", "as_a": "VIP1玩家", "i_want": "享95折", "so_that": "享受VIP优惠"},
+      {"id": "S-05-2", "role": "ROLE-02", "as_a": "VIP玩家", "i_want": "专属道具仅对我可见", "so_that": "发现VIP福利"},
+      {"id": "S-05-3", "role": "ROLE-06", "as_a": "VIP过期玩家", "i_want": "专属道具不可见", "so_that": "理解权益变化"}
+    ],
+    "data_flow": {"entry": "玩家VIP等级", "process": "VIP服务 / 折扣计算", "exit": "折扣价格 / 可见性"},
+    "risks": ["折扣与满减叠加冲突"],
+    "purchase_strong": true,
+    "purchase_strong_quality": {
+      "program_self_test": "GM命令 gm_set_vip_level 等级 设置玩家VIP等级",
+      "test_coverage": "覆盖：折扣计算 / 过期降级 / 不可叠加",
+      "planning_acceptance": "策划对照VIP等级表抽检3个玩家折扣价格"
+    }
+  },
+  {
+    "obj_id": "OBJ-06",
+    "obj_name": "促销系统",
+    "module": "BIZ",
+    "role_ids": ["ROLE-01", "ROLE-05"],
+    "features": [
+      {"id": "F-06-1", "input": "限时打折规则", "process": "时间窗匹配", "output": "限时折扣价"},
+      {"id": "F-06-2", "input": "订单金额", "process": "满减规则匹配", "output": "满减后价格"},
+      {"id": "F-06-3", "input": "新玩家状态", "process": "新手礼包校验", "output": "礼包发放"}
+    ],
+    "stories": [
+      {"id": "S-06-1", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "参与限时打折", "so_that": "低价购买"},
+      {"id": "S-06-2", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "享受满减活动", "so_that": "凑单减费"},
+      {"id": "S-06-3", "role": "ROLE-05", "as_a": "新玩家", "i_want": "领取新手礼包", "so_that": "快速上手"}
+    ],
+    "data_flow": {"entry": "促销规则 / 玩家订单", "process": "促销服务 / 折扣计算", "exit": "折扣后价格"},
+    "risks": ["限时时间窗边界", "满减叠加规则"],
+    "purchase_strong": true,
+    "purchase_strong_quality": {
+      "program_self_test": "GM命令 gm_set_promotion 活动ID 设置促销活动",
+      "test_coverage": "覆盖：限时打折 / 满减 / 新手礼包 / 时间窗边界",
+      "planning_acceptance": "策划用GM命令验证10个促销场景，对照规则表"
+    }
+  },
+  {
+    "obj_id": "OBJ-07",
+    "obj_name": "支付方式",
+    "module": "LINK",
+    "role_ids": ["ROLE-01", "ROLE-02"],
+    "features": [
+      {"id": "F-07-1", "input": "游戏币支付请求", "process": "内部支付", "output": "支付结果"},
+      {"id": "F-07-2", "input": "人民币支付请求", "process": "第三方支付", "output": "支付回调"},
+      {"id": "F-07-3", "input": "回调", "process": "幂等校验", "output": "唯一发货"}
+    ],
+    "stories": [
+      {"id": "S-07-1", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "用游戏币支付", "so_that": "消耗游戏内货币"},
+      {"id": "S-07-2", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "用人民币支付", "so_that": "充值购买"},
+      {"id": "S-07-3", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "支付回调不重复发货", "so_that": "避免重复扣款"}
+    ],
+    "data_flow": {"entry": "玩家支付请求", "process": "支付网关 / 第三方SDK", "exit": "支付结果回调"},
+    "risks": ["第三方支付回调重试", "网络中断"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-08",
+    "obj_name": "道具数据缓存",
+    "module": "AUX",
+    "role_ids": ["SYSTEM"],
+    "features": [
+      {"id": "F-08-1", "input": "道具查询", "process": "Redis缓存", "output": "缓存命中/DB查询"},
+      {"id": "F-08-2", "input": "配置变更", "process": "缓存失效", "output": "新配置生效"}
+    ],
+    "stories": [
+      {"id": "S-08-1", "role": "SYSTEM", "as_a": "内部服务", "i_want": "缓存5分钟", "so_that": "减轻DB压力"},
+      {"id": "S-08-2", "role": "SYSTEM", "as_a": "内部服务", "i_want": "缓存可被主动失效", "so_that": "配置变更生效"}
+    ],
+    "data_flow": {"entry": "道具服务请求", "process": "Redis缓存", "exit": "缓存命中 / DB查询"},
+    "risks": ["缓存与价格实时性冲突"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-09",
+    "obj_name": "商城页加载性能监控",
+    "module": "LOG",
+    "role_ids": ["SYSTEM"],
+    "features": [
+      {"id": "F-09-1", "input": "页面加载", "process": "埋点", "output": "加载时间指标"},
+      {"id": "F-09-2", "input": "接口调用", "process": "埋点", "output": "接口响应时间"}
+    ],
+    "stories": [
+      {"id": "S-09-1", "role": "SYSTEM", "as_a": "运维", "i_want": "采集页面加载时间", "so_that": "监控性能"},
+      {"id": "S-09-2", "role": "SYSTEM", "as_a": "运维", "i_want": "采集接口响应时间", "so_that": "定位慢接口"}
+    ],
+    "data_flow": {"entry": "客户端埋点", "process": "监控平台", "exit": "性能仪表盘"},
+    "risks": ["高频埋点对性能的影响"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-10",
+    "obj_name": "购买按钮置灰提示",
+    "module": "HINT",
+    "role_ids": ["ROLE-07"],
+    "features": [
+      {"id": "F-10-1", "input": "余额不足", "process": "按钮状态控制", "output": "按钮置灰"},
+      {"id": "F-10-2", "input": "余额不足", "process": "Toast服务", "output": "余额不足提示"},
+      {"id": "F-10-3", "input": "错误码", "process": "文案映射", "output": "统一文案"}
+    ],
+    "stories": [
+      {"id": "S-10-1", "role": "ROLE-07", "as_a": "余额耗尽玩家", "i_want": "看到购买按钮置灰", "so_that": "了解无法购买"},
+      {"id": "S-10-2", "role": "ROLE-07", "as_a": "余额耗尽玩家", "i_want": "看到余额不足提示", "so_that": "了解原因"},
+      {"id": "S-10-3", "role": "ROLE-01", "as_a": "玩家", "i_want": "所有错误提示文案统一", "so_that": "快速理解"}
+    ],
+    "data_flow": {"entry": "玩家余额查询", "process": "提示服务", "exit": "按钮状态 / Toast弹窗"},
+    "risks": ["提示文案歧义", "多语言支持"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-11",
+    "obj_name": "购买成功弹窗",
+    "module": "HINT",
+    "role_ids": ["ROLE-01"],
+    "features": [
+      {"id": "F-11-1", "input": "支付成功", "process": "弹窗服务", "output": "成功弹窗"},
+      {"id": "F-11-2", "input": "支付成功", "process": "邮件服务", "output": "系统邮件"}
+    ],
+    "stories": [
+      {"id": "S-11-1", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "看到购买成功弹窗", "so_that": "确认到账"},
+      {"id": "S-11-2", "role": "ROLE-01", "as_a": "普通玩家", "i_want": "看到邮件通知", "so_that": "保留凭证"}
+    ],
+    "data_flow": {"entry": "支付成功", "process": "弹窗服务 / 邮件服务", "exit": "模态弹窗 / 邮件DB"},
+    "risks": ["弹窗层级遮挡", "邮件发送失败"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-12",
+    "obj_name": "道具数据配置表",
+    "module": "CONFIG",
+    "role_ids": ["ROLE-03"],
+    "features": [
+      {"id": "F-12-1", "input": "道具字段", "process": "配置定义", "output": "道具配置表"},
+      {"id": "F-12-2", "input": "热更请求", "process": "热更服务", "output": "配置生效"},
+      {"id": "F-12-3", "input": "配置数据", "process": "数值校验", "output": "合法配置"}
+    ],
+    "stories": [
+      {"id": "S-12-1", "role": "ROLE-03", "as_a": "管理员", "i_want": "配置道具字段", "so_that": "上架新道具"},
+      {"id": "S-12-2", "role": "ROLE-03", "as_a": "管理员", "i_want": "热更新配置", "so_that": "及时调整价格"},
+      {"id": "S-12-3", "role": "SYSTEM", "as_a": "系统", "i_want": "数值约束生效", "so_that": "避免异常配置"}
+    ],
+    "data_flow": {"entry": "道具配置表", "process": "配置解析 / 热更服务", "exit": "道具服务"},
+    "risks": ["热更期间的数据一致性"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-13",
+    "obj_name": "VIP等级配置表",
+    "module": "CONFIG",
+    "role_ids": ["ROLE-03"],
+    "features": [
+      {"id": "F-13-1", "input": "VIP等级", "process": "配置定义", "output": "VIP配置表"},
+      {"id": "F-13-2", "input": "折扣率", "process": "折扣配置", "output": "折扣率生效"}
+    ],
+    "stories": [
+      {"id": "S-13-1", "role": "ROLE-03", "as_a": "管理员", "i_want": "配置VIP等级", "so_that": "定义会员体系"},
+      {"id": "S-13-2", "role": "ROLE-03", "as_a": "管理员", "i_want": "配置折扣率", "so_that": "促销调整"}
+    ],
+    "data_flow": {"entry": "VIP配置表", "process": "VIP服务", "exit": "折扣价格计算"},
+    "risks": ["VIP过期时间边界"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-14",
+    "obj_name": "促销配置表",
+    "module": "CONFIG",
+    "role_ids": ["ROLE-03"],
+    "features": [
+      {"id": "F-14-1", "input": "时间窗", "process": "时间窗配置", "output": "限时规则"},
+      {"id": "F-14-2", "input": "折扣率", "process": "折扣配置", "output": "折扣率生效"},
+      {"id": "F-14-3", "input": "满减规则", "process": "满减配置", "output": "满减生效"}
+    ],
+    "stories": [
+      {"id": "S-14-1", "role": "ROLE-03", "as_a": "管理员", "i_want": "配置限时打折时间窗", "so_that": "策划活动"},
+      {"id": "S-14-2", "role": "ROLE-03", "as_a": "管理员", "i_want": "配置折扣率", "so_that": "灵活促销"},
+      {"id": "S-14-3", "role": "ROLE-03", "as_a": "管理员", "i_want": "配置满减规则", "so_that": "提升客单价"}
+    ],
+    "data_flow": {"entry": "促销配置表", "process": "促销服务", "exit": "折扣价格"},
+    "risks": ["时间窗边界（0点/24点）", "折扣叠加"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-15",
+    "obj_name": "弱网/高并发降级",
+    "module": "SPECIAL",
+    "role_ids": ["SYSTEM"],
+    "features": [
+      {"id": "F-15-1", "input": "高并发流量", "process": "限流", "output": "降级响应"},
+      {"id": "F-15-2", "input": "弱网", "process": "重试", "output": "支付容错"},
+      {"id": "F-15-3", "input": "宕机", "process": "回档", "output": "数据恢复"}
+    ],
+    "stories": [
+      {"id": "S-15-1", "role": "SYSTEM", "as_a": "玩家", "i_want": "在弱网下支付容错", "so_that": "避免重复扣款"},
+      {"id": "S-15-2", "role": "SYSTEM", "as_a": "运维", "i_want": "在高峰期降级非核心功能", "so_that": "保证核心下单"},
+      {"id": "S-15-3", "role": "SYSTEM", "as_a": "运维", "i_want": "在宕机后回档", "so_that": "避免数据丢失"}
+    ],
+    "data_flow": {"entry": "高并发流量 / 弱网", "process": "限流 / 重试 / 降级", "exit": "服务响应"},
+    "risks": ["10000并发瓶颈", "宕机回档数据一致性"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-16",
+    "obj_name": "风控拦截",
+    "module": "SPECIAL",
+    "role_ids": ["ROLE-08"],
+    "features": [
+      {"id": "F-16-1", "input": "重复下单请求", "process": "风控引擎", "output": "拦截"},
+      {"id": "F-16-2", "input": "金额篡改", "process": "风控引擎", "output": "拦截"},
+      {"id": "F-16-3", "input": "风控事件", "process": "日志", "output": "风控日志"}
+    ],
+    "stories": [
+      {"id": "S-16-1", "role": "SYSTEM", "as_a": "系统", "i_want": "拦截重复下单", "so_that": "避免玩家损失"},
+      {"id": "S-16-2", "role": "SYSTEM", "as_a": "系统", "i_want": "拦截金额篡改", "so_that": "避免经济系统被攻击"}
+    ],
+    "data_flow": {"entry": "玩家支付请求", "process": "风控引擎", "exit": "拦截 / 放行"},
+    "risks": ["误判率", "漏判率"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-17",
+    "obj_name": "资产审计日志",
+    "module": "LOG",
+    "role_ids": ["SYSTEM"],
+    "features": [
+      {"id": "F-17-1", "input": "货币变更", "process": "审计日志", "output": "货币流水"},
+      {"id": "F-17-2", "input": "道具变更", "process": "审计日志", "output": "道具流水"}
+    ],
+    "stories": [
+      {"id": "S-17-1", "role": "SYSTEM", "as_a": "审计", "i_want": "追踪货币流水", "so_that": "对账"},
+      {"id": "S-17-2", "role": "SYSTEM", "as_a": "审计", "i_want": "追踪道具流水", "so_that": "排查异常"}
+    ],
+    "data_flow": {"entry": "货币/道具变更事件", "process": "审计日志服务", "exit": "审计日志表"},
+    "risks": ["日志完整性", "性能开销"],
+    "purchase_strong": false
+  },
+  {
+    "obj_id": "OBJ-18",
+    "obj_name": "支付链路日志",
+    "module": "LOG",
+    "role_ids": ["SYSTEM"],
+    "features": [
+      {"id": "F-18-1", "input": "支付回调", "process": "日志", "output": "支付回调记录"},
+      {"id": "F-18-2", "input": "支付异常", "process": "告警", "output": "告警通知"}
+    ],
+    "stories": [
+      {"id": "S-18-1", "role": "SYSTEM", "as_a": "运维", "i_want": "记录支付回调", "so_that": "排查支付问题"},
+      {"id": "S-18-2", "role": "SYSTEM", "as_a": "运维", "i_want": "支付异常时告警", "so_that": "快速响应"}
+    ],
+    "data_flow": {"entry": "支付事件", "process": "日志平台", "exit": "支付日志 / 告警"},
+    "risks": ["敏感信息脱敏"],
+    "purchase_strong": false
+  }
+]

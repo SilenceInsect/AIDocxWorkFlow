@@ -1,0 +1,310 @@
+---
+description: AIDocxWorkFlow Stage 4 — 流程图导出（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S4 — 流程图导出
+
+> **独立阶段**：可以单独调用。上游材料（S2 backlog + S3 prototype）审查合格后开始，失败写失败报告。
+>
+> ⚠️ **模块定义见 [`.cursor/MODULES.md`](./MODULES.md)（项目级唯一真相源）**。
+> 本文件不重写 8 模块表。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s4-flowchart` 或粘贴 S2 backlog + S3 prototype
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 | 缺失时 |
+|------|------|----------|--------|
+| S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story | 写 `fail_report_S4.md` 停止 |
+| S2 backlog.json | 同上目录 | `summary.epic_count ≥ 1` + 每 Epic ≥ 1 Story + `epic.module` 从 8 模块取值 | 写 `fail_report_S4.md` 停止 |
+| S1.5 exit_permission.json | `workflow_assets/<req_name>/「S1 需求评审」/<version>/exit_permission.json` | `can_proceed_to_s2 == true`（防御性核查） | 警告，不阻断 |
+| S3 prototype.md（推荐） | `workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md` | 存在则消费 `PAGE-XXX` 节点 | 警告，不阻断 |
+
+**材料缺失时**：生成失败报告，停止 S4。
+
+---
+
+## 核心任务（4 类产出）
+
+为每个 Epic 生成：
+
+1. **Mermaid 业务流程图**（Flowchart）
+2. **Mermaid 时序图**（Sequence Diagram）
+3. **异常/错误决策树**（含可机检叶子节点 ID）
+4. **风险点清单**（带 s4_reference 唯一 ID + 7 类典型清单归类）
+
+### 4 类可机检 ID（v1.1+ 关键约束）
+
+> **S7 审查员 B 100% 覆盖率硬约束**：风险点 + 异常树叶子必须可机检。
+
+| ID 格式 | 含义 | 命名规范 | 示例 |
+|---------|------|----------|------|
+| `R-NNN` | 风险点全局 ID | 3 位 0 填充 | `R-001` / `R-018` |
+| `R-{EpicID}-NN` | 风险点按 Epic 局部 ID | Epic ID + 2 位 0 填充 | `R-BIZ-PURCHASE-01` |
+| `S4-{EpicID}-X.Y.Z` | 异常树叶子节点 ID | Epic ID + 异常分支顺序 | `S4-BIZ-PURCHASE-1.3.2` |
+| `S4-{EpicID}-FNN` | 流程图分支节点 ID | Epic ID + 流程节点顺序 | `S4-BIZ-PURCHASE-F03` |
+
+**两个风险点 ID 等价**：`R-NNN`（机器友好）= `R-{EpicID}-NN`（人类可读）。
+S5 TP `s4_reference` 字段**推荐 `R-{EpicID}-NN` 格式**（与 `epic.id` 对齐）。
+
+---
+
+## 流程图类型
+
+```mermaid
+flowchart TD
+    S4-BIZ-PURCHASE-F01["玩家进入商城"] --> S4-BIZ-PURCHASE-F02["浏览道具"]
+    S4-BIZ-PURCHASE-F02 --> S4-BIZ-PURCHASE-F03{"检查余额"}
+    S4-BIZ-PURCHASE-F03 -->|"不足"| S4-BIZ-PURCHASE-F04["提示余额不足\n购买按钮禁用"]
+    S4-BIZ-PURCHASE-F03 -->|"充足"| S4-BIZ-PURCHASE-F05["选择支付方式"]
+    S4-BIZ-PURCHASE-F05 --> S4-BIZ-PURCHASE-F06["扣款 + 道具到账"]
+    S4-BIZ-PURCHASE-F04 --> End1["结束"]
+    S4-BIZ-PURCHASE-F06 --> End2["购买成功"]
+```
+
+```mermaid
+sequenceDiagram
+    participant P as 玩家
+    participant UI as 前端商城
+    participant SV as 后端服务
+    participant ACC as 账户系统
+    participant DB as 数据库
+    P->>UI: 点击购买
+    UI->>SV: POST /order/create
+    SV->>DB: 查询余额
+    DB-->>SV: 返回余额
+    SV->>ACC: 冻结余额
+    ACC-->>SV: 冻结成功
+    SV->>ACC: 扣减
+    ACC-->>SV: 扣减成功
+    SV->>DB: 创建订单
+    DB-->>SV: 订单成功
+    SV-->>UI: 购买成功
+    UI-->>P: 道具到账 + 弹窗
+```
+
+---
+
+## 风险点 7 类典型清单（必覆盖最小集）
+
+| 序号 | 风险类型 | 典型场景 | 关键判据 |
+|------|---------|---------|----------|
+| 1 | **竞态条件** | 同一玩家并发发起 N 个购买 | 涉及并发请求 / 锁 / 冻结 |
+| 2 | **时间依赖** | 促销倒计时最后一秒、跨日重置 | 涉及时间戳 / TTL / 倒计时 |
+| 3 | **状态损坏** | 配置热更期间订单进行中 | 涉及状态机 / 配置变更 |
+| 4 | **支付幂等性** | 渠道回调重复推送 | 涉及第三方回调 / 订单号 |
+| 5 | **数据一致性** | 扣款成功但到账失败 | 涉及事务 / 回滚 |
+| 6 | **资源/容量** | 背包满、邮件容量满 | 涉及上限 / 满载 |
+| 7 | **安全/合规** | 客户端篡改、防沉迷拦截 | 涉及鉴权 / 合规风控 |
+
+> **不允许出现的风险类型**（违反即重写）：
+> - ❌ "功能未实现"——这不是流程图风险，是 S1/S2 任务
+> - ❌ "性能瓶颈"——除非具体到 10w QPS 这种硬指标，否则归 S2.5 资源规划
+> - ❌ "文案错误"——这是 S1 review 任务
+
+---
+
+## 输入审查（门禁前置条件）
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| backlog.md 存在 | 必须 | 写 `fail_report_S4.md` |
+| backlog.json 存在 | 必须 | 写 `fail_report_S4.md` |
+| `summary.epic_count ≥ 1` | 必须 | 写 `fail_report_S4.md` |
+| 每个 Epic 至少 1 个 Story | 必须 | 写 `fail_report_S4.md` |
+| 每个 Epic `module` 字段从 8 模块取值 | 必须 | 写 `fail_report_S4.md` 标 `module_invalid` |
+| 至少 1 个 Epic 含 Story | 必须 | 写 `fail_report_S4.md` |
+| 风险点数量 | ≥ 3 | 警告（提示补充风险场景） |
+| 异常树叶子节点 | 每个 Epic ≥ 3 个 | 警告 |
+
+---
+
+## 输出规范
+
+### 成功产出（强制 1 个文件）
+
+**主文件**：`workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md`
+
+**主文件必备章节**（顺序不可乱）：
+
+```markdown
+# {需求名称} — 业务流程图
+
+**Version**: {version}
+**Date**: YYYY-MM-DD
+**Source**: S2 Backlog (X Epics, Y Stories) + S3 Prototype (Z Pages) [可选]
+**上游 S1.5 质量评价**: {quality_level} | P0 填写 {x}/{y}
+
+---
+
+## 0. 元信息
+
+| Epic ID | 模块（8模块） | 名称 | Story 数 | 风险点数 | 异常树叶子节点数 |
+|---------|--------------|------|----------|---------|-----------------|
+| {Epic1.ID} | {Epic1.module} | ... | X | N | M |
+| ... | | | | | |
+
+---
+
+## 1. {Epic1.ID} — {Epic1.title}
+
+### 1.1 主业务流程（Flowchart）
+
+```mermaid
+flowchart TD
+    S4-{Epic1ID}-F01["... 入口"] --> ...
+```
+
+### 1.2 时序图（Sequence）
+
+```mermaid
+sequenceDiagram
+    ...
+```
+
+### 1.3 异常/错误决策树
+
+```
+S4-{Epic1ID}-1.0  {Epic1.title} 异常决策树
+│
+├── S4-{Epic1ID}-1.1  场景A（如：余额不足）
+│   ├── S4-{Epic1ID}-1.1.1  子场景A1（前端拦截）
+│   └── S4-{Epic1ID}-1.1.2  子场景A2（后端拒绝）
+├── S4-{Epic1ID}-1.2  场景B（如：支付失败）
+└── ...
+```
+
+> **叶子节点 = 测试可触达的最细粒度**——每个叶子节点必须有对应 TP。
+
+### 1.4 风险点
+
+| 风险 ID（机器友好） | 风险 ID（人类可读） | 风险描述 | s4_reference | 解决方案 |
+|--------------------|--------------------|----------|--------------|----------|
+| R-001 | R-{Epic1ID}-01 | {描述} | R-001 | {方案} |
+
+---
+
+## N. 风险点汇总（全局）
+
+| 风险ID | Epic | 模块 | 风险描述 | 解决方案 | s4_reference | 异常树叶子 |
+|--------|------|------|----------|----------|--------------|-----------|
+| R-001 | BIZ-PURCHASE | BIZ | ... | ... | R-001 | S4-BIZ-PURCHASE-1.1.1 |
+| ... | | | | | | |
+
+---
+
+*由 AIDocxWorkFlow S4 流程图导出生成*
+```
+
+### 失败报告（S4 流程图失败）
+
+`workflow_assets/<req_name>/「S4 流程图导出」/<version>/fail_report_S4.md`
+
+```markdown
+# 流程图导出失败报告（S4）
+
+**阶段**: S4 流程图导出
+**日期**: YYYY-MM-DD
+**需求**: {req_name} v{version}
+
+## 失败原因（门禁不通过）
+
+| 检查项 | 期望 | 实际 | 状态 |
+|--------|------|------|------|
+| backlog.md 存在 | true | false | ❌ |
+| backlog.json 存在 | true | false | ❌ |
+| summary.epic_count | ≥ 1 | 0 | ❌ |
+| epic.module 8 模块 | true | {invalid_module} | ❌ |
+
+## 后续动作
+
+- [ ] 补充 S2 backlog 后重新提交 S4
+- [ ] 如 epic.module 非法，回到 S2 修正模块归属
+```
+
+---
+
+## 与其他阶段的衔接
+
+### 上游
+
+| 阶段 | 关系 | S4 消费 |
+|------|------|---------|
+| S1.5 | 间接 | 通过 S2 `priority_epics` / `risk_points` 优先处理高风险 Epic |
+| **S2** | **直接强依赖** | **必读 `backlog.json` 的 `epics[].stories[].acceptance_criteria` 推导异常路径** |
+| S3 | 直接弱依赖 | 推荐读取 `prototype.md` 的 `PAGE-XXX` 节点作为 S4 流程图节点命名参考 |
+
+### 下游
+
+| 阶段 | 关系 | S4 输出作用 |
+|------|------|------------|
+| **S5 测试点生成** | **直接强依赖** | **异常树叶子节点 + 风险点清单 = S5 EXCEPTION 类型 TP 的核心来源**（见 `.cursor/skills/aidocx-s5-test-points/SKILL.md`） |
+| S6 测试用例生成 | 间接参考 | S6 可参考 S4 流程图理解业务，**但禁止照抄节点名/异常树编号/风险点 ID 到用例字段**（见 `.cursor/skills/aidocx-s6-test-cases/SKILL.md` §"S4 参考规则"） |
+| **S7 用例审查** | **P0 硬约束** | **S7 审查员 B 100% S4 风险点覆盖率 + 100% 异常树叶子覆盖率**（见 `.cursor/skills/aidocx-s7-review/SKILL.md`） |
+| S8 自迭代 | 间接 | S4 风险点是 S8 缺陷分析的"已知风险"基线 |
+
+---
+
+## 引用规范（与项目级 SSoT 保持一致）
+
+> ⚠️ **模块定义见 [`.cursor/MODULES.md`](./MODULES.md)**。本文件不重写 8 模块表。
+
+S4 产出物中所有"模块归属"字段（风险点表"模块"列、Epic 元信息表"模块"列）必须从 `MODULES.md §1` 8 模块中取值：
+
+```
+CONFIG / UI / BIZ / AUX / LINK / LOG / SPECIAL / HINT
+```
+
+**HINT vs UI 边界判定**（误标高发区）见 `MODULES.md §4.11.2`。
+**BIZ vs AUX vs LINK vs SPECIAL 边界判定**（S4 高发区）见 `MODULES.md §3.5`。
+
+---
+
+## 质量门禁（S4 自身）
+
+| 检查项 | 阈值 | 缺失时 |
+|--------|------|--------|
+| 每个 Epic 有 4 类产出 | 100% | 写 `fail_report_S4.md` |
+| 风险点全局 ID 唯一 | 100%（无重复 `R-NNN`） | 写 `fail_report_S4.md` 标 `risk_id_duplicate` |
+| 风险点按 7 类典型清单归类 | 100% | 警告 |
+| 异常树叶子节点 ID 唯一 | 100%（`S4-{EpicID}-X.Y.Z` 不重复） | 警告 |
+| 风险点 ↔ 异常树叶子交叉引用 | ≥ 50%（每条风险点至少指向 1 个异常树叶子） | 警告 |
+| Mermaid 流程图语法合法 | 100% | 写 `fail_report_S4.md` 标 `mermaid_syntax_invalid` |
+| 时序图语法合法 | 100% | 写 `fail_report_S4.md` 标 `mermaid_syntax_invalid` |
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.conversation_skills import save_stage4_output, make_stage4_skill
+from ai_workflow.s4_validator import validate_s4_output  # 自行实现
+
+# 1. 生成 S4 prompt
+skill = make_stage4_skill(req_name=req_name, version=version)
+
+# 2. AI 协作产出 business_flow.md 后保存
+result = save_stage4_output(req_name=req_name, flow_md=flow_md, version=version)
+
+# 3. 验证产物（建议自检）
+report = validate_s4_output(flow_md_path=result["md"], backlog_path=backlog_json_path)
+# report['risk_id_duplicates']: list
+# report['orphan_risks']: list  # 未指向异常树叶子
+# report['mermaid_syntax_errors']: list
+```
+
+---
+
+## 关联文件
+
+- 上游规范：`.cursor/rules/STAGE_S1.5 Clarification.mdc` + `.cursor/rules/STAGE_S2_BREAKDOWN.mdc`
+- Prompt 模板：`ai_workflow/prompts/flowchart_export.md`
+- 模块定义 SSoT：`.cursor/MODULES.md` §1 / §3.5 / §4.11.2
+- 下游衔接：`.cursor/skills/aidocx-s5-test-points/SKILL.md` + `.cursor/skills/aidocx-s6-test-cases/SKILL.md` + `.cursor/skills/aidocx-s7-review/SKILL.md`
+- 保存逻辑：`ai_workflow/conversation_skills.py` → `save_stage4_output()`
+- 输出目录：`workflow_assets/<req_name>/「S4 流程图导出」/<version>/`

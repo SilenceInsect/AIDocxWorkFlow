@@ -1,0 +1,145 @@
+---
+description: AIDocxWorkFlow Stage 3 — 原型导出（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S3 — 原型导出
+
+> **独立阶段**：可以单独调用。上游材料（S2 backlog）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s3-prototype` 或粘贴 S2 backlog
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含有效 Epic/Story |
+
+**材料缺失时**：生成失败报告，停止 S3。
+
+---
+
+## 核心任务
+
+根据 S2 的 Epic/Story 列表，生成：
+
+1. **文本原型**：每个 Story 对应的页面原型（含关键 UI 元素、状态变化）
+2. **Mermaid 页面流图**：页面之间的导航关系
+
+### 原型内容要求
+
+每个 Story 需描述：
+
+| 要素 | 内容 |
+|------|------|
+| 页面名称 | 明确的页面/面板名称 |
+| 关键UI元素 | 按钮、输入框、显示区、指示器 |
+| 布局描述 | 从上到下或从左到右 |
+| 状态变化 | 默认、加载中、错误、成功、禁用 |
+| 测试隔离点 | 需要特殊状态（如登录态、冷却时间） |
+
+### Mermaid 页面流图
+
+```mermaid
+flowchart TD
+    ShopHome["商城首页"] --> Category["分类页"]
+    Category --> ItemDetail["道具详情页"]
+    ItemDetail --> Confirm["确认订单页"]
+    Confirm --> PaySuccess["支付成功"]
+```
+
+每个 Epic 至少 1 个完整页面流。
+
+---
+
+## 输入审查（门禁前置条件）
+
+| 检查项 | 要求 |
+|--------|------|
+| backlog.md 存在 | 必须 |
+| Epic 数量 ≥ 1 | 必须 |
+| Story 有 acceptance_criteria | 允许为空但标注 |
+
+---
+
+## 输出规范
+
+### 成功产出
+
+`workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md`
+
+```markdown
+# {需求名称} — 页面原型
+
+## 页面结构
+
+### 1. {页面名称} ({PageID})
+**关键UI元素**: 按钮A、输入框B、显示区C
+**布局**: 从上到下：A → B → C
+**状态**: 默认、加载中（骨架屏）、空分类提示
+
+### 2. ...
+
+## 页面流
+
+```mermaid
+flowchart TD
+    ...
+```
+```
+
+### 失败报告（S3 原型失败）
+
+`workflow_assets/<req_name>/「S3 原型导出」/<version>/fail_report_S3.md`
+
+```markdown
+# 原型导出失败报告
+
+**阶段**: S3 原型导出
+**日期**: YYYY-MM-DD
+**上游 backlog**: {Epic数} Epic, {Story数} Story
+
+---
+
+## 失败原因
+
+（列出具体问题）
+
+---
+
+## 后续动作
+
+[ ] 补充 backlog 后重新提交 S3
+[ ] 提供已有原型文件，跳过 S3
+```
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S2 需求拆解 | S4 流程图导出 |
+
+S3 产出（prototype.md）作为 S4 的输入之一。
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.conversation_skills import save_stage3_output
+save_stage3_output(version, breakdown, raw_output, req_name)
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/prototype_export.md`
+- 保存逻辑：`ai_workflow/conversation_skills.py` → `save_stage3_output()`
+- 输出目录：`workflow_assets/<req_name>/「S3 原型导出」/<version>/`

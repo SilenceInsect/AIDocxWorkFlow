@@ -1,0 +1,632 @@
+{
+  "summary": {
+    "epic_count": 14,
+    "story_count": 30,
+    "requirement_object_count": 12,
+    "feature_point_count": 80
+  },
+  "priority_epics": [
+    "EPIC-UI-1",
+    "EPIC-UI-2",
+    "EPIC-BIZ-1",
+    "EPIC-BIZ-2",
+    "EPIC-BIZ-3",
+    "EPIC-LINK-1",
+    "EPIC-SPECIAL-1",
+    "EPIC-SPECIAL-2"
+  ],
+  "epics": [
+    {
+      "id": "EPIC-UI-1",
+      "module": "UI",
+      "title": "商城首页展示与导航",
+      "estimated_weeks": 1.5,
+      "priority": true,
+      "stories": [
+        {
+          "id": "S1.1",
+          "title": "热门道具推荐展示",
+          "module": "UI",
+          "acceptance_criteria": [
+            "展示前 10 个按销量排序的道具",
+            "含名称/图标/价格/销量"
+          ],
+          "precondition": "玩家已登录，商城首页加载",
+          "input_data": "默认推荐（按销量排序）",
+          "expected_output": "显示前 10 个热门道具",
+          "source": "original"
+        },
+        {
+          "id": "S1.2",
+          "title": "道具列表分页与筛选",
+          "module": "UI",
+          "acceptance_criteria": [
+            "每页 20 个",
+            "可分页到最后一页"
+          ],
+          "precondition": "道具总数 = 200 个",
+          "input_data": "访问第 10 页（每页 20）",
+          "expected_output": "显示最后 20 个道具，分页控件正常",
+          "source": "original"
+        },
+        {
+          "id": "S1.3",
+          "title": "分类导航切换",
+          "module": "UI",
+          "acceptance_criteria": [
+            "5 大分类可切换",
+            "URL/筛选条件同步"
+          ],
+          "precondition": "玩家在商城首页",
+          "input_data": "点击'武器'分类",
+          "expected_output": "切换到武器分类列表",
+          "source": "original"
+        },
+        {
+          "id": "S1.4",
+          "title": "搜索关键词处理",
+          "module": "UI",
+          "acceptance_criteria": [
+            "1 字符建议补全",
+            "100 字符截断",
+            "无结果空状态"
+          ],
+          "precondition": "玩家在搜索框输入",
+          "input_data": "1 字符 / 100 字符 / 不存在关键词",
+          "expected_output": "1 字符建议补全；100 字符截断；不存在显示空状态",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-UI-2",
+      "module": "UI",
+      "title": "道具详情页交互",
+      "estimated_weeks": 1.0,
+      "priority": true,
+      "stories": [
+        {
+          "id": "S2.1",
+          "title": "道具属性展示",
+          "module": "UI",
+          "acceptance_criteria": [
+            "显示名称/描述/属性加成/价格/图标"
+          ],
+          "precondition": "玩家进入道具详情页",
+          "input_data": "道具：屠龙刀（武器）",
+          "expected_output": "完整属性展示",
+          "source": "original"
+        },
+        {
+          "id": "S2.2",
+          "title": "角色穿戴预览",
+          "module": "UI",
+          "acceptance_criteria": [
+            "3D 穿戴效果（旋转/缩放）"
+          ],
+          "precondition": "玩家进入详情页",
+          "input_data": "点击'预览'按钮",
+          "expected_output": "展示 3D 穿戴效果",
+          "source": "original"
+        },
+        {
+          "id": "S2.3",
+          "title": "购买数量输入",
+          "module": "UI",
+          "acceptance_criteria": [
+            "0 禁用",
+            "1/99 正常",
+            "100 边界禁止"
+          ],
+          "precondition": "玩家在详情页",
+          "input_data": "数量 = 0 / 1 / 99 / 100",
+          "expected_output": "边界值控制正确",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-UI-3",
+      "module": "UI",
+      "title": "订单管理",
+      "estimated_weeks": 0.5,
+      "priority": false,
+      "stories": [
+        {
+          "id": "S3.1",
+          "title": "订单列表展示",
+          "module": "UI",
+          "acceptance_criteria": [
+            "30 天订单按时间倒序"
+          ],
+          "precondition": "玩家有购买记录",
+          "input_data": "查询 30 天内订单",
+          "expected_output": "显示所有订单",
+          "source": "original"
+        },
+        {
+          "id": "S3.2",
+          "title": "订单详情展示",
+          "module": "UI",
+          "acceptance_criteria": [
+            "订单号/道具/数量/金额/时间"
+          ],
+          "precondition": "玩家点击订单",
+          "input_data": "查看订单详情",
+          "expected_output": "完整字段展示",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-BIZ-1",
+      "module": "BIZ",
+      "title": "购买流程核心",
+      "estimated_weeks": 2.0,
+      "priority": true,
+      "stories": [
+        {
+          "id": "S4.1",
+          "title": "游戏币支付",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "扣款 500",
+            "道具入背包",
+            "邮件通知"
+          ],
+          "precondition": "玩家余额充足",
+          "input_data": "余额=1000，道具单价=500，购买=1",
+          "expected_output": "扣款 500 + 道具到账 + 邮件",
+          "source": "original"
+        },
+        {
+          "id": "S4.2",
+          "title": "人民币支付",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "回调成功到账"
+          ],
+          "precondition": "玩家进入支付",
+          "input_data": "微信支付 100 元",
+          "expected_output": "回调成功后道具入背包",
+          "source": "original"
+        },
+        {
+          "id": "S4.3",
+          "title": "余额不足拦截",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "拦截下单",
+            "提示'余额不足'",
+            "不扣款"
+          ],
+          "precondition": "玩家余额=0",
+          "input_data": "尝试购买",
+          "expected_output": "拦截下单",
+          "source": "original"
+        },
+        {
+          "id": "S4.4",
+          "title": "支付回调幂等",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "同订单号重复回调只发 1 次奖"
+          ],
+          "precondition": "第三方回调 3 次重试",
+          "input_data": "同订单号重复回调",
+          "expected_output": "幂等：只发 1 次奖",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-BIZ-2",
+      "module": "BIZ",
+      "title": "VIP 折扣体系",
+      "estimated_weeks": 1.0,
+      "priority": true,
+      "stories": [
+        {
+          "id": "S5.1",
+          "title": "VIP 折扣计算",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "VIP0 无折扣",
+            "VIP1 95折",
+            "VIP3 85折",
+            "过期降级"
+          ],
+          "precondition": "玩家等级变化",
+          "input_data": "VIP0 / VIP1 / VIP3+ / 过期",
+          "expected_output": "按等级折扣计算",
+          "source": "original"
+        },
+        {
+          "id": "S5.2",
+          "title": "VIP 与限时叠加",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "VIP 95折优先",
+            "取较低价"
+          ],
+          "precondition": "VIP1 玩家订单 100 元",
+          "input_data": "VIP 折扣 95 元 + 满减 100-10",
+          "expected_output": "VIP 95 折生效",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-BIZ-3",
+      "module": "BIZ",
+      "title": "促销系统",
+      "estimated_weeks": 1.5,
+      "priority": true,
+      "stories": [
+        {
+          "id": "S6.1",
+          "title": "限时打折生效",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "时间窗内打 8 折",
+            "窗外原价"
+          ],
+          "precondition": "当前在促销时间窗内",
+          "input_data": "原价 100 打 8 折",
+          "expected_output": "结算价 80",
+          "source": "original"
+        },
+        {
+          "id": "S6.2",
+          "title": "满减活动",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "100-10 / 200-25 / 500-60"
+          ],
+          "precondition": "订单 100 元",
+          "input_data": "订单金额 = 99/100/200/500/501",
+          "expected_output": "对应满减",
+          "source": "original"
+        },
+        {
+          "id": "S6.3",
+          "title": "新手礼包",
+          "module": "BIZ",
+          "acceptance_criteria": [
+            "7 天内可购买 1 次",
+            "重复拦截"
+          ],
+          "precondition": "玩家已领取新手礼包",
+          "input_data": "尝试再次购买",
+          "expected_output": "拦截 + 提示'已领取'",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-LINK-1",
+      "module": "LINK",
+      "title": "第三方支付集成",
+      "estimated_weeks": 1.5,
+      "priority": true,
+      "stories": [
+        {
+          "id": "S7.1",
+          "title": "微信/支付宝支付",
+          "module": "LINK",
+          "acceptance_criteria": [
+            "SDK 拉起",
+            "支付成功回调"
+          ],
+          "precondition": "玩家选择支付方式",
+          "input_data": "微信/支付宝支付 100 元",
+          "expected_output": "支付成功",
+          "source": "original"
+        },
+        {
+          "id": "S7.2",
+          "title": "支付金额边界",
+          "module": "LINK",
+          "acceptance_criteria": [
+            "0.01 元 / 99999.99 元两端均正常"
+          ],
+          "precondition": "玩家支付",
+          "input_data": "金额 = 0.01 / 99999.99",
+          "expected_output": "两端均正常支付",
+          "source": "original"
+        },
+        {
+          "id": "S7.3",
+          "title": "支付回调重试",
+          "module": "LINK",
+          "acceptance_criteria": [
+            "同订单号只发 1 次奖"
+          ],
+          "precondition": "第三方回调 3 次重试",
+          "input_data": "同订单号重复回调",
+          "expected_output": "幂等：只发 1 次奖",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-AUX-1",
+      "module": "AUX",
+      "title": "道具数据缓存",
+      "estimated_weeks": 0.5,
+      "priority": false,
+      "stories": [
+        {
+          "id": "S8.1",
+          "title": "缓存命中/过期",
+          "module": "AUX",
+          "acceptance_criteria": [
+            "命中 Redis",
+            "过期回源 DB"
+          ],
+          "precondition": "缓存 5 分钟",
+          "input_data": "5 分钟内/外查询",
+          "expected_output": "命中/回源",
+          "source": "original"
+        },
+        {
+          "id": "S8.2",
+          "title": "缓存击穿保护",
+          "module": "AUX",
+          "acceptance_criteria": [
+            "互斥锁单飞"
+          ],
+          "precondition": "热 key 过期瞬间大量请求",
+          "input_data": "1000 QPS 同时查询",
+          "expected_output": "单次回源",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-SPECIAL-1",
+      "module": "SPECIAL",
+      "title": "弱网与高并发",
+      "estimated_weeks": 1.0,
+      "priority": true,
+      "stories": [
+        {
+          "id": "S9.1",
+          "title": "10000 并发支撑",
+          "module": "SPECIAL",
+          "acceptance_criteria": [
+            "P99 < 500ms",
+            "错误率 < 0.1%"
+          ],
+          "precondition": "10000 用户同时访问",
+          "input_data": "压测 10k QPS",
+          "expected_output": "服务正常响应",
+          "source": "original"
+        },
+        {
+          "id": "S9.2",
+          "title": "弱网支付容错",
+          "module": "SPECIAL",
+          "acceptance_criteria": [
+            "客户端重试",
+            "订单幂等"
+          ],
+          "precondition": "网络延迟 5000ms",
+          "input_data": "弱网下支付",
+          "expected_output": "客户端重试 + 订单幂等",
+          "source": "original"
+        },
+        {
+          "id": "S9.3",
+          "title": "宕机回档",
+          "module": "SPECIAL",
+          "acceptance_criteria": [
+            "回档到最近一致状态"
+          ],
+          "precondition": "服务宕机 5 分钟",
+          "input_data": "重启服务",
+          "expected_output": "数据回档到最近一致状态",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-SPECIAL-2",
+      "module": "SPECIAL",
+      "title": "风控与反作弊",
+      "estimated_weeks": 1.0,
+      "priority": true,
+      "stories": [
+        {
+          "id": "S10.1",
+          "title": "重复下单拦截",
+          "module": "SPECIAL",
+          "acceptance_criteria": [
+            "3 秒内重复支付拦截"
+          ],
+          "precondition": "同玩家 3 秒内重复支付",
+          "input_data": "同订单 3 次提交",
+          "expected_output": "第 2 次起拦截",
+          "source": "original"
+        },
+        {
+          "id": "S10.2",
+          "title": "金额篡改拦截",
+          "module": "SPECIAL",
+          "acceptance_criteria": [
+            "服务端校验失败，拦截"
+          ],
+          "precondition": "客户端篡改金额",
+          "input_data": "原价 100 改 0.01",
+          "expected_output": "拦截",
+          "source": "original"
+        },
+        {
+          "id": "S10.3",
+          "title": "误判放行",
+          "module": "SPECIAL",
+          "acceptance_criteria": [
+            "正常用户快速操作放行"
+          ],
+          "precondition": "正常用户快速操作",
+          "input_data": "5 秒内下 2 单",
+          "expected_output": "风控放行",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-LOG-1",
+      "module": "LOG",
+      "title": "监控埋点",
+      "estimated_weeks": 0.5,
+      "priority": false,
+      "stories": [
+        {
+          "id": "S11.1",
+          "title": "页面加载时间埋点",
+          "module": "LOG",
+          "acceptance_criteria": [
+            "上报加载时间",
+            "慢请求告警"
+          ],
+          "precondition": "玩家访问商城页",
+          "input_data": "正常/慢响应（>2s）",
+          "expected_output": "上报监控平台",
+          "source": "original"
+        },
+        {
+          "id": "S11.2",
+          "title": "埋点上报失败重试",
+          "module": "LOG",
+          "acceptance_criteria": [
+            "本地缓存重试",
+            "不影响业务"
+          ],
+          "precondition": "监控平台 5xx",
+          "input_data": "上报埋点",
+          "expected_output": "本地重试",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-LOG-2",
+      "module": "LOG",
+      "title": "审计与链路日志",
+      "estimated_weeks": 0.5,
+      "priority": false,
+      "stories": [
+        {
+          "id": "S12.1",
+          "title": "货币流水审计",
+          "module": "LOG",
+          "acceptance_criteria": [
+            "完整记录变动"
+          ],
+          "precondition": "玩家货币变动",
+          "input_data": "扣款/加款 100",
+          "expected_output": "完整流水",
+          "source": "original"
+        },
+        {
+          "id": "S12.2",
+          "title": "风控拦截日志",
+          "module": "LOG",
+          "acceptance_criteria": [
+            "记录触发条件"
+          ],
+          "precondition": "风控拦截",
+          "input_data": "记录风控事件",
+          "expected_output": "完整记录",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-CONFIG-1",
+      "module": "CONFIG",
+      "title": "道具数据配置",
+      "estimated_weeks": 0.5,
+      "priority": false,
+      "stories": [
+        {
+          "id": "S13.1",
+          "title": "道具字段定义",
+          "module": "CONFIG",
+          "acceptance_criteria": [
+            "配置生效",
+            "可查询"
+          ],
+          "precondition": "管理员编辑配置",
+          "input_data": "添加新道具字段",
+          "expected_output": "配置生效",
+          "source": "original"
+        },
+        {
+          "id": "S13.2",
+          "title": "折扣率配置",
+          "module": "CONFIG",
+          "acceptance_criteria": [
+            "0/1.5/-0.1 边界校验"
+          ],
+          "precondition": "管理员编辑折扣率",
+          "input_data": "折扣率 = 0 / 1.5 / -0.1",
+          "expected_output": "拒绝非法值",
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-HINT-1",
+      "module": "HINT",
+      "title": "错误与状态提示",
+      "estimated_weeks": 0.5,
+      "priority": false,
+      "stories": [
+        {
+          "id": "S14.1",
+          "title": "余额不足 Toast",
+          "module": "HINT",
+          "acceptance_criteria": [
+            "按钮置灰",
+            "Toast 提示'余额不足'"
+          ],
+          "precondition": "玩家余额 = 0",
+          "input_data": "尝试点击购买按钮",
+          "expected_output": "按钮置灰 + Toast",
+          "source": "original"
+        },
+        {
+          "id": "S14.2",
+          "title": "购买成功弹窗",
+          "module": "HINT",
+          "acceptance_criteria": [
+            "模态弹窗",
+            "邮件通知"
+          ],
+          "precondition": "支付成功",
+          "input_data": "支付回调成功",
+          "expected_output": "弹出成功弹窗",
+          "source": "original"
+        },
+        {
+          "id": "S14.3",
+          "title": "邮件发送失败降级",
+          "module": "HINT",
+          "acceptance_criteria": [
+            "重试",
+            "降级记录"
+          ],
+          "precondition": "邮件服务 5xx",
+          "input_data": "购买成功但邮件失败",
+          "expected_output": "重试 + 降级",
+          "source": "original"
+        }
+      ]
+    }
+  ],
+  "version": "v1.0",
+  "stage": "S2",
+  "req_name": "游戏道具商城系统"
+}

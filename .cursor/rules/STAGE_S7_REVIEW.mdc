@@ -1,0 +1,221 @@
+---
+description: AIDocxWorkFlow Stage 7 — 用例审查（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S7 — 用例审查
+
+> **独立阶段**：可以单独调用。上游材料（S6 test_cases.json）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s7-review` 或粘贴 S6 test_cases.json
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S6 test_cases.json | `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.json` | 存在且用例数量 > 0 |
+| S5 test_points.json（参考） | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 存在则用于覆盖率计算 |
+
+**材料缺失时**：生成失败报告，停止 S7。
+
+---
+
+## 核心任务
+
+双审查员审计 S6 产出的测试用例。
+
+### 审查员 A：结构完整性
+
+| 检查项 | 权重 | 说明 |
+|--------|------|------|
+| ID 规范化 | 固定 | 格式 `{Module}-TC-{NNN}` |
+| 字段完整性 | 固定 | precondition、steps、expected_result 全有值 |
+| 步骤质量 | 固定 | 原子性、无歧义、有具体数值 |
+| 预期结果可验证性 | 固定 | 每步有明确 pass/fail 条件 |
+| 无冗余 | 固定 | 无重复覆盖同一场景的用例 |
+
+### 审查员 B：覆盖率
+
+| 指标 | 阈值 | 说明 |
+|------|------|------|
+| 需求覆盖率 | ≥ 85% | 每个 Story/AC 至少 1 个正向用例 |
+| 边界覆盖率 | ≥ 85% | 所有边界值测试点被覆盖 |
+| 异常覆盖率 | ≥ 85% | 关键异常场景（超时、断网、崩溃）被覆盖 |
+| 负向覆盖率 | ≥ 30% | 无效输入、权限违规场景被覆盖 |
+
+### 质量门禁
+
+| 条件 | 判决 |
+|------|------|
+| 覆盖率 ≥ 85% **且** 结构完整性 ≥ 90% | **PASS** |
+| 否则 | **FAIL**（需修改后重审）|
+
+---
+
+## 输入审查（门禁前置条件）
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| test_cases.json 存在 | 必须 | 失败报告 |
+| 用例数量 ≥ 1 | 必须 | 失败报告 |
+| 用例有 ID 字段 | 必须 | 失败报告 |
+
+---
+
+## 输出规范
+
+### 成功产出
+
+**审查报告（Markdown）**：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/review_report.md`
+
+```markdown
+# 测试用例审查报告
+
+**阶段**: S7 用例审查
+**日期**: YYYY-MM-DD
+**版本**: v1.0
+
+---
+
+## 审查员A — 结构完整性
+
+| 指标 | 结果 |
+|------|------|
+| 总用例数 | 138 |
+| 通过数 | 138 |
+| 通过率 | 100% |
+
+### 问题列表
+
+| 用例ID | 字段 | 严重度 | 问题 | 建议 |
+|--------|------|--------|------|------|
+| UI-TC-005 | 操作步骤 | MINOR | 步骤描述可能不够精确 | ... |
+
+---
+
+## 审查员B — 覆盖率
+
+| 指标 | 值 | 阈值 | 状态 |
+|------|------|------|------|
+| 需求覆盖率 | 100% | 85% | PASS |
+| 边界覆盖率 | 33% | 85% | FAIL |
+| 异常覆盖率 | 39% | 85% | FAIL |
+| 负向覆盖率 | 9% | 30% | FAIL |
+
+---
+
+## 整体判决
+
+**[OK] PASS** | **[FAIL] FAIL**
+
+- 覆盖率: X%
+- 结构完整性: X%
+- 建议: ...
+```
+
+**审查报告（JSON）**：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/review_report.json`
+
+```json
+{
+  "reviewer_a": {
+    "total_cases": 138,
+    "passed": 138,
+    "pass_rate": 1.0,
+    "issues": []
+  },
+  "reviewer_b": {
+    "requirement_coverage": 1.0,
+    "boundary_coverage": 0.33,
+    "exception_coverage": 0.39,
+    "negative_coverage": 0.09,
+    "gaps": ["边界测试用例不足", "负向测试用例不足"],
+    "recommended_additions": []
+  },
+  "overall_pass": true,
+  "summary": "测试用例结构完整，覆盖率达标。"
+}
+```
+
+### 失败报告（S7 审查失败）
+
+`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/fail_report_S7.md`
+
+```markdown
+# 用例审查失败报告
+
+**阶段**: S7 用例审查
+**日期**: YYYY-MM-DD
+
+---
+
+## 审查结果
+
+### 审查员A — 结构完整性
+- 通过率: X%
+- 阻断性问题: N
+
+### 审查员B — 覆盖率
+- 需求覆盖率: X% (阈值: 85%)
+- 边界覆盖率: X% (阈值: 85%)
+
+---
+
+## 失败原因
+
+（列出阻断性问题和覆盖率缺口）
+
+## 建议修复
+
+### 高优先级
+- ...
+
+### 中优先级
+- ...
+
+---
+
+## 后续动作
+
+[ ] 根据审查报告修改 S6 用例
+[ ] 重新提交 S7 审查
+```
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S6 测试用例生成 | S8 自迭代（PASS 时） |
+
+S7 PASS 时，审查报告 + 建议的补充用例作为 S8 输入。
+S7 FAIL 时，返回 S6 修改建议，重新生成用例后重审。
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.auto_reviewer import auto_review
+review_result = auto_review(
+    test_cases,        # test_cases.json 内容
+    test_points,       # test_points.json 内容（可选）
+    config             # 阈值配置
+)
+# review_result['overall_pass'] ∈ {True, False}
+# review_result['reviewer_a']['pass_rate'] ∈ [0.0, 1.0]
+# review_result['reviewer_b']['requirement_coverage'] ∈ [0.0, 1.0]
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/test_case_review.md`
+- 自动审查引擎：`ai_workflow/auto_reviewer.py`
+- 阈值配置：`ai_workflow/config.py` → `COVERAGE_THRESHOLD`、`STRUCTURE_COMPLETENESS_THRESHOLD`
+- 输出目录：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/`
