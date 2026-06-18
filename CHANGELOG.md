@@ -11,6 +11,156 @@
 
 ---
 
+## [v3.1] — 2026-06-19 — 决策密度标准（DNA 自检增量）
+
+> **状态**：v3.0 已完成 + v3.1 增量落地。
+> **触发**：v3.0 实施期 Agent 单次改 8 文件 ≥ 20 决策点；用户反馈"小狗先执行有偏差，人工审查成本高"。
+> **核心动作**：在 v3.0 三层机制（知识 + 约束 + hook）上**追加**决策密度层——不替换任何现有内容。
+
+### 新增（Added）
+
+- **`DNA_3Q_CHECK.mdc` §7 决策密度标准**——单次响应 ≤ 3 文件改动 + 决策表模板 + Agent 行为承诺
+- **`v3/PLAN.md` §6.5**——决策密度标准的方案级描述（v3.1 候选规则）
+- **`v3/decisions.json` D-304**——决策密度 = v3.1 核心决策
+- **`v3/open_questions.md` Q-310~Q-313**——决策源 + 3 个 v3.2/v4 开放问题
+- **`v3/changes/diff_v2_to_v3.md` §7**——v3.0 → v3.1 增量 diff
+
+### 不变（Unchanged）
+
+- L3 hook 行为（`dna_violation_check.py` 211 行不动）
+- AGENTS.md（v3.1 红线翻案 60→65，加 1 行超链到 DNA_3Q_CHECK.mdc §7）
+- 9 阶段流水线 / install.sh / 12 份 STAGE_S*.mdc
+- v3.0 完成的 3 决策（D-301~D-303）
+
+### 设计论证（Q2 必然好论证）
+
+**问题**：v3.0 的"3 问自检"防"违规不自知"型——**防不了"单次动作决策点过多"**型。
+**解法**：决策密度 = 决策点数 / 改动数——直接对应"审查成本"。
+**为什么不写新 hook**：v3.0 §0.4 教训——hook 防不住"误读"型违规。决策密度是"明知故犯"型——**Agent 行为承诺 + DNA §3 知识类规则**够用。
+**与 v3.0 关系**：v3.0 = "违规不自知 → 自检机制"；v3.1 = "改太多不知先 ask → 决策密度"。**两者互补**。
+
+### 兼容性
+
+- **DNA_3Q_CHECK.mdc**：v3.1 在 §6 后**追加** §7，不替换任何现有段
+- **decisions.json**：v3.1 **追加** D-304
+- **回滚**：删 §7 + D-304 + §6.5 + Q-310~Q-313 + diff §7 即可回退 v3.0
+
+### 关键引用
+
+- 完整方案：`.cursor/design_iter/plans/v3/PLAN.md` §6.5
+- 决策档：`.cursor/design_iter/plans/v3/decisions.json` D-304
+- 约束：`.cursor/rules/DNA_3Q_CHECK.mdc` §7
+- 演化：`.cursor/design_iter/plans/v3/changes/diff_v2_to_v3.md` §7
+
+---
+
+## [v2.1] — 2026-06-17 — 规则体系重构方案（Phase 1 备份）
+
+> **状态**：方案完成，**等待用户对 5 个关键决策的确认**。**未开始 Phase 2 代码改动**。
+> **完整方案**：`workflow_assets/_refactor_backup/RULES_REFACTOR_PLAN_v1_2026-06-17.md`
+> **设计最高准则**："人更好理解和索引"——所有结构反推自此。
+
+### 关键修复（Fixed — Phase 1 方案）
+
+**5 个识别出的一致性问题**（项目自陈，非猜测）：
+
+1. **P1 SSOT 多头声明无质量保障**——`DESIGN §2.3` 写 S7 硬阈值 ≥ 0.85，但 v2.0 重构已废除
+2. **P2 知识当约束读**——`DESIGN §3`（DRY/KISS/命名）是给知识库的，被 `alwaysApply: true` 强读
+3. **P3 "事实已废"没同步到 SSOT**——CHANGELOG 记 v2.0 废硬阈值，但 SSOT 文件未更新
+4. **P4 阶段规则和 SKILL.md 重复 70%**——改一忘一是必然
+5. **P5 "我改 X 影响 Y"不可查**——没有索引
+
+### 核心方案（一句话）
+
+**"约束"和"知识"物理分离**：
+- 约束层 = `.mdc` + `SKILL.md` + `MODULES.md`（Agent 必读）
+- 知识层 = `.cursor/knowledge/`（人查阅，Agent 不读）
+- 双视图索引 = `RULES_INDEX.md`（人）+ `RULES_INDEX.json`（Agent）
+- 一致性守护 = `gen_rules_index.py` + `gen_consistency_check.py`
+
+### 识别出的 14 条规则（备份时的快照）
+
+R-001 S1 评分门禁 / R-002 S1.5 P0 必填 / R-003 S5 ≥ 6 TP/Story / R-006 S2 拆解精度 / R-007 S7 无硬阈值（v2.0 起）/ R-008 S8 输出判定 / R-009 模块边界严格隔离 / R-010 单写源原则 / R-011 JSON 字段名强约束 / R-012 S2.5 默认跳过 / R-013 失败报告命名 / R-014 is_assumed 强制要求
+
+### 待用户确认的 5 个决策
+
+1. `gen` 脚本定位 = 一致性守护者（不生成事实）？
+2. DESIGN §2.3 / §4.3 重写 = 硬阈值改"v2.0 起无硬阈值"？
+3. STAGE_S* vs SKILL.md 物理分离 = .mdc 写约束、SKILL 写入口？
+4. 双视图索引 = RULES_INDEX.md（人）+ RULES_INDEX.json（Agent）？
+5. DESIGN §3 知识层迁出 = 到 `knowledge/`？
+
+**这 5 件事点头后，开 Phase 2 写代码。**
+
+---
+
+## [v2.1] — 2026-06-17 — DNA 注入 + 方案迭代目录
+
+### 新增（Added）
+
+- `AGENTS.md`——项目级铁律入口（Cursor 启动自动加载；DNA 级精简版，~60 行）
+- `.cursor/hooks/project_dna_inject.py`——sessionStart hook 二次注入（DNA 缺失时阻断）
+- `.cursor/hooks/before_prompt_dna_check.py`——beforeSubmitPrompt hook，3 问自检前置（不阻断）
+- `.cursor/design_iter/`——方案迭代目录（INDEX.md + INDEX.json + plans/v1/ + scripts/ + README.md）
+- `.cursor/design_iter/plans/v1/PLAN.md`——v1 主方案（3 栏框架 + 原方案正文 398 行）
+- `.cursor/design_iter/plans/v1/open_questions.md`——v1 遗留问题（10 个未决）
+- `.cursor/design_iter/plans/v1/resolved_questions.md`——v1 已解决
+- `.cursor/design_iter/plans/v1/decisions.json`——v1 决策清单
+- `.cursor/design_iter/scripts/design_iter.py`——CLI 工具（6 子命令：new / list / diff / rollback / resolve / status）
+- `.cursor/design_iter/archive/`——覆盖前自动备份目录
+- 软链：`workflow_assets/_refactor_backup/RULES_REFACTOR_PLAN_v1_2026-06-17.md` → `.cursor/design_iter/plans/v1/PLAN.md`（保持引用方可达）
+
+### 修改（Changed）
+
+- `.cursor/hooks.json`——sessionStart 数组追加 1 项（`project_dna_inject.py`），beforeSubmitPrompt 数组追加 1 项（`before_prompt_dna_check.py`）；保留现有 4 hook 不动
+- 备份迁移：`workflow_assets/_refactor_backup/RULES_REFACTOR_PLAN_v1_2026-06-17.md` 原内容迁入 `.cursor/design_iter/plans/v1/PLAN.md`，原文件改为软链
+- 备份保留：`workflow_assets/_refactor_backup/PLAN_v1_2026-06-17_021.bak`（原 347 行内容）
+
+### 风险（Risks）
+
+- `project_dna_inject.py` exit 1 会**阻断会话启动**——内部 try/except 包裹 hook 自身崩溃
+- `before_prompt_dna_check.py` 失败**不阻断**用户 prompt（降级到 exit 0）
+- 现有 4 个 hook 行为不变（追加而非替换）
+- 软链依赖 macOS/Linux 符号链接——Windows 需改为复制
+
+### CLI 使用
+
+```bash
+python3 .cursor/design_iter/scripts/design_iter.py status
+python3 .cursor/design_iter/scripts/design_iter.py new v2 "<标题>"
+python3 .cursor/design_iter/scripts/design_iter.py rollback v1
+```
+
+### 修复（Fixed — 2026-06-17 晚 v2.1.1）
+
+> 修初版落地后的 2 个偏差 + 1 个潜在 bug。**"文档承诺" 兑现在现实**。
+
+**问题 1：软链未落实（Plan §2.2 已声明"原文件改为软链"，但落成 regular file）**
+- 现象：`workflow_assets/_refactor_backup/RULES_REFACTOR_PLAN_v1_2026-06-17.md` 是 20299 bytes regular file，与 `v1/PLAN.md` SHA-256 一致
+- 根因：复制时直接 `cp` 而非 `ln -s`——CHANGELOG 已写"原文件改为软链"，文档与现实不符（违反"人本可审查"）
+- 修复：删除 regular file → 创建 symlink `→ ../../.cursor/design_iter/plans/v1/PLAN.md`
+- 验证：`readlink` 解析正确；`cat` 仍能读出 398 行 v1 方案；`shasum` 与 v1/PLAN.md 一致
+
+**问题 2：`design_iter status` 报 `open=0 resolved=11`（与 `INDEX.json` 不一致）**
+- 现象：`status` 命令的 `_count_open_questions` 用 `line.strip().startswith("- [ ]")` 计数；`open_questions.md` 实际用 `- [ A ]`（默认候选标记）—— 0 匹配
+- 根因：CLI 计数逻辑假设了"标准 checkbox 格式"——但 design_iter 自有约定是"`- [ X ]` 标记当前默认候选 + `**Q-XXX**:` 标题"
+- 修复：`_count_open_questions` 改用 `re.findall(r"\*\*Q-\d+\*\*:", text)`；`_count_resolved` 同步支持 `- [X]`；`INDEX.json` 的 `resolved_questions_count` 从 3（手写低估）改为 11（与实际一致）
+- 验证：`status` 现报 `open=10 resolved=11`，与 `INDEX.json` 完全对齐
+
+**问题 3：`cmd_resolve` 潜在 bug（原 `pattern` 永远不匹配）**
+- 现象：`cmd_resolve` 用 `f"- [ ] **{qid}:"` 在 `open_questions.md` 中搜——但文件没有 `- [ ]` 格式
+- 根因：和 #2 同源——CLI 假设了"标准 checkbox 格式"而忽略了 `- [ X ]` 简写
+- 修复：pattern 改为 `f"**{qid}**:"`；`re.sub(r"^(\s*)-\s*\[\s*[A-Z]\s*\]", r"\1- [x]", line, count=1)` 把 `- [ B ]` 转换为 `- [x]`（保留其余内容）
+- 验证：副本 `/tmp/design_iter_test` 上 dry-run `Q-001` → 原文件未污染；转换后 `- [x] **Q-001**: ...` 正确移到 `resolved_questions.md`
+
+**同步更新**：
+- `.cursor/design_iter/INDEX.json` 的 `open_questions_note` / `resolved_questions_note`：从"已知行为"改为"已修复"
+- `.cursor/design_iter/INDEX.json` 的 `known_inconsistencies.KI-001`：标记 `已修复 v2.1`，加 `resolution` + `resolved_at` 字段
+
+**为什么不一起并入 v2.1 主段**：保留"v2.1.1 修复"小节，让人一眼区分"初版落地" vs "落地后发现问题再修"——**对"必然好"论证更友好**（v2 启动时能看清 v2.1 过程的完整时间线）。
+
+---
+
 ## [Unreleased]（未发布）
 
 ### 关键修复（Fixed — 2026-06-15 v2.0 重构）
