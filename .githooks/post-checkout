@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# git post-checkout hook: codegraph 增量同步
+# 触发时机: git checkout / git switch 切换分支后
+# 目的: 在外部编辑器 / CLI 场景下, 确保 codegraph 索引跟上代码版本
+
+set -e
+
+# 只在切换分支 / 检出版本时跑 (第三个参数 == 1)
+# 工作区内的单文件 checkout (restore) 不跑, 避免噪音
+if [ "$3" != "1" ]; then
+  exit 0
+fi
+
+CODEGRAPH_BIN="${CODEGRAPH_BIN:-/Users/gleon/.local/bin/codegraph}"
+
+if [ ! -x "$CODEGRAPH_BIN" ]; then
+  exit 0  # 找不到就静默, 不阻塞 git
+fi
+
+# 静默跑, 错误不阻塞
+"$CODEGRAPH_BIN" sync -q . 2>/dev/null || true
+
+exit 0

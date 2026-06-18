@@ -72,8 +72,7 @@ description: <one-sentence; < 1024 chars; no "I"/"you"/"we">
 
 ### 新增一个 skill
 
-1. 选择目录：通用 skill 放在 `.cursor/skills/<name>/SKILL.md`，
-   Hermes 专用 skill 放在 `workflow_assets/hermes_skills/<name>/SKILL.md`。
+1. 选择目录：所有 skill 放在 `.cursor/skills/<name>/SKILL.md`。
 2. 编写 `SKILL.md`（参见规范）。
 3. 如果该 skill 应当能在对话中被发现，需要在 `ai_workflow/__init__.py` 注册。
 4. 跑一次 `python3 ai_workflow/validate_skills.py .cursor/skills`。

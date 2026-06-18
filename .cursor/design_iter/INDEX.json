@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-06-17",
+  "current": "v2",
+  "plans": [
+    {
+      "version": "v1",
+      "title": "规则体系重构（备份迁入 + 3 栏框架）",
+      "status": "已被 v2 取代",
+      "created_at": "2026-06-17",
+      "based_on": null,
+      "path": ".cursor/design_iter/plans/v1/",
+      "open_questions_count": 10,
+      "open_questions_note": "v1 遗留问题——v2 启动后冻结,10 个 Q-XXX 由 v2 PLAN.md §⚠️ 启动必读 + v2 open_questions.md 跟踪。",
+      "resolved_questions_count": 11,
+      "resolved_questions_note": "v1 自身闭环:3 个 D-XXX + 8 个完成项 = 11。",
+      "files": ["PLAN.md", "open_questions.md", "resolved_questions.md", "decisions.json"],
+      "v2_blockers": [
+        "Q-001 gen 脚本定位",
+        "Q-002 DESIGN §2.3/§4.3 重写",
+        "Q-003 STAGE_S* vs SKILL 物理分离",
+        "Q-004 双视图索引",
+        "Q-005 DESIGN §3 知识层迁出"
+      ]
+    },
+    {
+      "version": "v2",
+      "title": "5 决策回答 + 4 步迁移实施",
+      "status": "待 5 决策",
+      "created_at": "2026-06-17",
+      "based_on": "v1",
+      "path": ".cursor/design_iter/plans/v2/",
+      "open_questions_count": 5,
+      "open_questions_note": "Q-001~Q-005 在 v2 PLAN.md §⚠️ 启动必答 等待点头(D-101~D-105 占位,decided=false);Q-101~Q-104 + Q-201 在 open_questions.md 跟踪,共 5 个次级问题,留 v3 评估。",
+      "resolved_questions_count": 3,
+      "resolved_questions_note": "v2 启动决策:D-201/D-202/D-203 = v2 启动原则决策(决策先于代码 + v2 主体 = 5 决策 + 4 步迁移 + v2 不重复 v1 设计)。",
+      "files": ["PLAN.md", "open_questions.md", "resolved_questions.md", "decisions.json"],
+      "v2_decision_placeholders": {
+        "D-101": "Q-001 gen 脚本定位 (默认 A: 守护者)",
+        "D-102": "Q-002 DESIGN §2.3/§4.3 重写 (默认 A: 全删硬阈值)",
+        "D-103": "Q-003 STAGE_S* vs SKILL 物理分离 (默认 A: 物理分离)",
+        "D-104": "Q-004 双视图索引 (默认 A: 双视图)",
+        "D-105": "Q-005 DESIGN §3 知识层迁出 (默认 A: 迁出到 knowledge/)"
+      },
+      "v3_blockers": [
+        "Q-101 design_iter 存什么",
+        "Q-102 design_iter 回滚粒度",
+        "Q-103 design_iter 和现有备份关系 (v1 D-003 已答)",
+        "Q-104 design_iter 回滚方式 (v1 D-001 已答)",
+        "Q-201 Agent '先执行' 误读防"
+      ]
+    }
+  ],
+  "structure": {
+    "INDEX.md": "人类索引（所有方案一览）",
+    "INDEX.json": "机器可读（元数据）",
+    "plans/": "方案目录（v1/, v2/, ...）",
+    "archive/": "覆盖前的自动备份",
+    "scripts/design_iter.py": "CLI 工具"
+  },
+  "conventions": {
+    "version_naming": "v1, v2, v3 ...",
+    "question_naming": "Q-001, Q-002 ... (3 位数)",
+    "decision_naming": "D-001, D-002 ... (v1 决策) / D-101+ (v2 决策) / D-201+ (v2 启动原则决策)",
+    "required_sections_per_plan": ["解决", "新增", "遗留"]
+  },
+  "known_inconsistencies": [
+    {
+      "id": "KI-001",
+      "summary": "(已修复 v2.1) CLI 计数已认 '**Q-XXX**:' 格式",
+      "resolution": "v2.1: _count_open_questions 改用正则 r'\\*\\*Q-\\d+\\*\\*:' 匹配 open_questions.md 行首;_count_resolved 已认 - [x] / - ✅ / - [X];cmd_resolve 同步修复",
+      "resolved_at": "2026-06-17"
+    }
+  ]
+}

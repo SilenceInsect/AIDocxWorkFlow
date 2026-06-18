@@ -733,12 +733,12 @@ def execute_simple_flow(req_text: str, req_name: str = "游戏道具商城系统
     """简化流水线：S1 → S2 → S5 → S6（Python 自动化 + AI 协作）"""
     results = {"stages": {}, "overall_status": "running"}
 
-    # S1：自动评分
-    from ai_workflow.requirement_reviewer_auto import auto_review_requirement
-    s1_result = auto_review_requirement(req_text)
-    results["stages"]["S1"] = s1_result
+    # S1：纯材料门禁（不做评分；5 维度评分和判决由 LLM 按 STAGE_S1_REVIEW.mdc 执行）
+    from ai_workflow.requirement_reviewer_auto import check_material_gate
+    gate = check_material_gate(req_text)
+    results["stages"]["S1"] = gate
 
-    if s1_result.get("verdict") == "REJECT":
+    if not gate["gate_passed"]:
         results["overall_status"] = "REJECTED"
         return results
 
@@ -775,3 +775,168 @@ def execute_full_flow(req_name: str = "游戏道具商城系统",
 if __name__ == "__main__":
     import pprint
     pprint.pprint(execute_full_flow())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S5 — 测试点生成保存
+# ─────────────────────────────────────────────────────────────────────────────
+
+def save_stage5_output(
+    req_name: str,
+    test_points_json: dict | str,
+    version: str = "v1.0",
+    *,
+    flow_md_text: str = "",
+) -> dict:
+    """保存 S5 测试点生成结果（JSON + 统计摘要）。
+
+    流程：
+    1. 解析 test_points_json（字符串或 dict）
+    2. 读 S4 business_flow.json（如存在）填充 s4_reference 格式 R-{EpicID}-NN
+    3. 写 test_points.json 到 <req_name>/「S5 测试点生成」/<version>/
+    4. 写 test_points_summary.json 统计摘要
+
+    Args:
+        req_name: 需求名称
+        test_points_json: S5 产出的测试点 JSON（dict 或 JSON 字符串）
+        version: 版本标识
+        flow_md_text: S4 business_flow.md 原文（如有，用于提取 s4_reference 格式）
+    """
+    import json, re, textwrap
+
+    d = _stage_dir(req_name, "S5")
+    d.mkdir(parents=True, exist_ok=True)
+
+    # ── 1. 解析输入 ──────────────────────────────────────────────────────
+    if isinstance(test_points_json, str):
+        try:
+            data = json.loads(test_points_json)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"S5 test_points JSON 解析失败: {e}") from e
+    else:
+        data = test_points_json
+
+    # 兼容三种结构：
+    # A) {"stories": [...]}          — compose_test_points_from_structure 输出
+    # B) [{"story_id": "...", ...}]   — 直接列表
+    # C) {"test_points": [...]}       — 备用
+    stories = data.get("stories") or (data if isinstance(data, list) else data.get("test_points", []))
+
+    # ── 2. 从 S4 business_flow.json 提取风险点映射（s4_reference 格式参考）──
+    s4_json_path = _stage_dir(req_name, "S4") / "business_flow.json"
+    s4_risks: dict[str, list[str]] = {}  # epic_id -> [risk_id_human, ...]
+    if s4_json_path.exists():
+        with s4_json_path.open(encoding="utf-8") as f:
+            s4_data = json.load(f)
+        for r in s4_data.get("risks", []):
+            rid_h = r.get("risk_id_human", "")
+            # e.g. "R-BIZ-PURCHASE-01" → epic_id = "BIZ-PURCHASE"
+            parts = rid_h.split("-")
+            if len(parts) >= 3 and rid_h.startswith("R-"):
+                epic_id = "-".join(parts[1:-1])  # BIZ-PURCHASE
+                s4_risks.setdefault(epic_id, []).append(rid_h)
+
+    # ── 3. 统计 ───────────────────────────────────────────────────────────
+    total_tp = 0
+    by_module: dict[str, int] = {}
+    by_type: dict[str, int] = {}
+    missing_module_count = 0
+    missing_type_count = 0
+    seed_tp_count = 0
+
+    for story in stories:
+        tps = story.get("scenario_test_points", [])
+        total_tp += len(tps)
+
+        # 判断是否种子 TP（字段未填满）
+        for tp in tps:
+            m = tp.get("module", "")
+            if m:
+                by_module[m] = by_module.get(m, 0) + 1
+            else:
+                missing_module_count += 1
+
+            t = tp.get("test_point_type", "")
+            if t:
+                by_type[t] = by_type.get(t, 0) + 1
+            else:
+                missing_type_count += 1
+
+            # 种子 TP 特征：description 为空或含占位符
+            desc = tp.get("description", "") or tp.get("描述", "")
+            placeholder_flags = ["[待", "待补充", "待 LLM", "TODO", "tbd", "待填写", "待定", "待填", "LLM"]
+            if any(p.lower() in desc.lower() for p in placeholder_flags):
+                seed_tp_count += 1
+
+    # ── 4. 写文件 ─────────────────────────────────────────────────────────
+    json_path = d / "test_points.json"
+    with json_path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"[S5] test_points.json → {json_path}")
+
+    # 统计摘要
+    summary = {
+        "version": version,
+        "stage": "S5",
+        "req_name": req_name,
+        "date": _today(),
+        "stories_count": len(stories),
+        "total_test_points": total_tp,
+        "by_module": by_module,
+        "by_type": by_type,
+        "missing_module": missing_module_count,
+        "missing_type": missing_type_count,
+        "seed_tp_count": seed_tp_count,
+        "seed_tp_ratio": round(seed_tp_count / total_tp, 3) if total_tp else None,
+        "s4_risks_loaded": len(s4_risks),
+    }
+
+    summary_path = d / "test_points_summary.json"
+    with summary_path.open("w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, indent=2)
+    print(f"[S5] test_points_summary.json → {summary_path}")
+
+    # 可读摘要（Markdown）
+    md_summary_lines = [
+        f"# S5 测试点统计摘要 — {req_name} {version}\n",
+        f"日期：{summary['date']}\n\n",
+        f"- Story 数：**{summary['stories_count']}**\n",
+        f"- 测试点总数：**{summary['total_test_points']}**\n",
+        f"- 种子 TP 数：{summary['seed_tp_count']} ({summary['seed_tp_ratio']:.1%})\n",
+        f"- 缺失 module：{summary['missing_module']} 个\n",
+        f"- 缺失 type：{summary['missing_type']} 个\n",
+        f"- S4 风险点加载：{summary['s4_risks_loaded']} 个 Epic\n\n",
+        "### 按模块分布\n\n",
+        "| 模块 | TP 数 |\n|---|---|\n",
+    ]
+    for m, cnt in sorted(by_module.items()):
+        md_summary_lines.append(f"| {m} | {cnt} |\n")
+
+    md_summary_lines.extend([
+        "\n### 按类型分布\n\n",
+        "| 类型 | TP 数 |\n|---|---|\n",
+    ])
+    for t, cnt in sorted(by_type.items()):
+        md_summary_lines.append(f"| {t} | {cnt} |\n")
+
+    md_summary_lines.append(
+        "\n> 种子 TP（含 `[待补充]` 占位符）由 LLM 在对话中填充完整字段后重新保存。\n"
+    )
+
+    md_summary_path = d / "test_points_summary.md"
+    with md_summary_path.open("w", encoding="utf-8") as f:
+        f.writelines(md_summary_lines)
+    print(f"[S5] test_points_summary.md → {md_summary_path}")
+
+    return {
+        "json": str(json_path),
+        "summary_json": str(summary_path),
+        "summary_md": str(md_summary_path),
+        "summary": summary,
+    }
+
+
+def _today() -> str:
+    """返回今天日期字符串 YYYY-MM-DD。"""
+    from datetime import date
+    return date.today().isoformat()

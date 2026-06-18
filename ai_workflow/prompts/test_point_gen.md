@@ -238,21 +238,18 @@
 
 ```python
 # 骨架生成（Python）
-from ai_workflow.test_case_formatter import compose_test_points_from_structure, _build_fallback_scenarios
+from ai_workflow.test_case_formatter import compose_test_points_from_structure
 
 breakdown = {
     "epics": [...],  # S2 backlog.json
     "_version": "v1.0"
 }
 skeleton = compose_test_points_from_structure(breakdown)
-# skeleton 中每个 Story 有 module + 真实测试点内容
+# skeleton 中每个 Story 仅含原始字段（story_id / title / module 等）
+# scenario_test_points: [] — 由 LLM 按 SKILL.md §1.4 推理填入
 
-# AI 补充（对话模式）
-# 根据骨架生成 scenario_test_points，4 类型必填 + s4_reference 必填
-
-# 保存
-from ai_workflow.conversation_skills import save_stage5_output
-save_stage5_output(version, breakdown, flowchart_text, raw_output, parsed, req_name)
+# 保存（LLM 手工 write_file）
+# 输出: workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json
 ```
 
 ---

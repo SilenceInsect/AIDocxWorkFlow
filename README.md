@@ -86,7 +86,6 @@ pip install -r requirements.txt
 | IDE | 说明 |
 |---|---|
 | **Cursor**（推荐） | 直接打开本目录；13 个 SKILL.md（12 通用 + 1 反馈记录）自动加载，钩子自动注册 |
-| **Hermes Agent** | `hermes skills install ./aidocx-s1-review` 等；批量跑多个需求用 `aidocx-batch-runner`（Hermes 专用）|
 | **Claude Code** | 把 `.cursor/skills/` 软链到 `~/.claude/skills/` |
 | **Codex CLI** | 软链 `.cursor/skills/` 到 `~/.codex/skills/` |
 
@@ -210,20 +209,14 @@ AIDocxWorkFlow/
 
 ## 质量门禁与失败报告
 
-每阶段都有**结构门禁 + 质量门禁 + 完整性门禁 + 边界门禁**四层校验。**原料不合格时不会硬产出**，而是生成 `fail_report_S*.md` 并暂停：
+每阶段都有**结构门禁 + 质量门禁 + 完整性门禁 + 边界门禁**四层校验。**原料不合格时不会硬产出**，而是生成 `fail_report_S*.md` 并暂停。
 
-| 阶段 | 通过条件 |
-|---|---|
-| S1 | 评分仅作参考；P0 问题已澄清即放行 |
-| S1.5 | P0 项 100% 填写 → `can_proceed_to_s2 = true` |
-| S2 | Epic/Story/需求对象/功能点字段齐全，无循环依赖 |
-| S2.5 | 关键里程碑（开发完成、转测、回归、上线）均有明确日期 |
-| S3 | 每个 UI 类 Story 有对应页面原型 |
-| S4 | 所有识别出的异常路径均已覆盖 |
-| S5 | 18 种测试设计方法 + S4 风险点全量映射（非固定数量） |
-| S6 | 100% 必填字段（前置条件、操作步骤、预期结果） |
-| S7 | S4 风险点覆盖率 = 100% 且异常树覆盖率 = 100% |
-| S8 | 每个根因有可执行改进建议 |
+> **🚨 强制阅读指令（MANDATORY）**：本节是**简介**，**非规则定义**。
+> - **规则定义唯一真相源（SSOT）**：`.cursor/rules/DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3 质量门禁 + §4.3 配置常量
+> - **详细判定逻辑**见各 `STAGE_S*.mdc` 的"质量门禁"节。
+> - **本节表格不可独立编辑**，任何阈值变更**必须**先修改 SSOT，再回写本表同步。
+
+> 详见 [`.cursor/rules/DESIGN_AND_EXECUTION_STANDARDS.mdc`](.cursor/rules/DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate) §2.3 与各阶段 `.mdc`。
 
 ---
 
@@ -262,8 +255,7 @@ S8 不是"产出物阶段"，而是**学习阶段**：
 | 分支 | 用途 |
 |---|---|
 | `main` | 稳定版，每个阶段都"跑通过"才能合 |
-| `cursor/<特性>` | 通过 Cursor AI 协作开发的特性分支（例：`cursor/integrate-superpowers-and-hermes-with-skill-standardization`） |
-| `hermes/<特性>` | Hermes Agent 协作分支（未来） |
+| `cursor/<特性>` | 通过 Cursor AI 协作开发的特性分支（例：`cursor/integrate-superpowers-and-skill-standardization`） |
 | `feat/<特性>` | 人类手动 PR 分支 |
 
 ### Commit 风格

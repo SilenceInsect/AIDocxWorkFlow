@@ -15,6 +15,41 @@ alwaysApply: false
 
 ---
 
+## Step 0 — 项目配置收集（强制前置，配置不全不得进入 7 步规划）
+
+> **执行 S2.5 时，检测到项目配置不完整，必须主动询问用户，逐项确认。禁止自行假设默认值后跳过。**
+
+### 必须收集的配置参数
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| 项目名（req_name） | 需求名称 | 游戏道具商城系统 |
+| 版本名（version） | 版本标识 | v1.0 |
+| 排期开始日期 | 迭代第一天 | 2025-07-01 |
+| 排期截止日期 | 迭代最后一天 | 2025-07-12 |
+| 策划预估工时（h） | 产品策划阶段估算工时 | 40h |
+| 前端预估工时（h） | 前端开发估算工时 | 80h |
+| 后端预估工时（h） | 后端开发估算工时 | 120h |
+| 测试预估工时（h） | 测试估算工时 | 60h |
+| 团队规模 | 各角色人数 | 前端2人·后端3人·测试2人 |
+| 迭代总工时（周） | 任务管线估算总时长 | 1.5周 |
+
+### 快速迭代参考基准（1.5 周全流程）
+
+```
+迭代周期 1.5 周 ≈ 7.5 工作日 ≈ 60h/人
+- 前端 2 人：共 120h
+- 后端 3 人：共 180h
+- 测试 2 人：共 120h
+- 合计：420h
+```
+
+### 配置保存
+
+**收集完成后，必须将配置保存为 `project_config.json` 并写入输出目录。**
+
+---
+
 ## 阶段入口
 
 **触发方式**：`/aidocx-s2-5-iteration` 或粘贴 S2 backlog
@@ -25,8 +60,21 @@ alwaysApply: false
 |------|------|----------|
 | S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story/Task |
 | S2 requirement_objects.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/requirement_objects.md` | 存在且含需求对象 + 功能点（工时估算依据） |
+| project_config.json | `workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/project_config.json` | 存在且全部字段填写 |
 
 **材料缺失时**：生成失败报告，停止 S2.5。
+
+---
+
+## §1.4 LLM 必读材料（阶段前置）
+
+**开始 7 步规划前，必须先读取以下全部材料。**
+
+| # | 材料 | 路径 | 读取原因 |
+|---|---|---|---|
+| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | 迭代任务按模块前缀组织；负载均衡以模块为单位 |
+| 2 | S2 backlog | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 迭代规划的对象；所有 Story/FP 的优先级和工作量是规划基准 |
+| 3 | 需求对象 | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/requirement_objects.json` | OBJ 层工作量估算更细 |
 
 ---
 
@@ -61,8 +109,16 @@ alwaysApply: false
 
 ## 输入审查（门禁前置条件）
 
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S2.5 阶段**输入物料门禁**的细化定义（**非全阶段门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **本表是 S2.5 阶段独有门禁**（project_config.json 必填），**全阶段门禁表**（速查）见 SSOT §2.3。
+> - **注意**：S2.5 默认被全流程跳过（`AIDOCX_INCLUDE_S2_5=false`），仅在做迭代排期/资源规划时显式触发，详见 [`.cursor/rules/AIDocxWorkFlow.mdc`](./AIDocxWorkFlow.mdc) 顶部「编排开关」节。
+> - 本表不可独立编辑；任何阈值变更**必须**先修改 SSOT，再回写本表。
+
 | 检查项 | 要求 | 缺失时 |
 |--------|------|--------|
+| project_config.json 存在 | 必须 | 失败报告 |
+| project_config.json 全部字段填写 | 必须 | 失败报告（提示逐项填写） |
 | backlog.md 存在 | 必须 | 失败报告 |
 | 有 Task 拆解 | 建议有 | 自动生成简化版 |
 | 有 Epic 优先级 | 必须 | 失败报告 |
@@ -71,9 +127,34 @@ alwaysApply: false
 
 ## 输出规范
 
-### 成功产出
+### 成功产出（3 个文件）
 
-`workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/iteration_plan.md`
+| 文件 | 路径 |
+|------|------|
+| 项目配置 | `workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/project_config.json` |
+| 迭代规划报告 | `workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/iteration_plan.md` |
+| 迭代规划数据 | `workflow_assets/<req_name>/「S2.5 迭代规划」/<version>/iteration_plan.json` |
+
+### project_config.json 格式
+
+```json
+{
+  "version": "v1.0",
+  "req_name": "游戏道具商城系统",
+  "schedule_start": "2025-07-01",
+  "schedule_end": "2025-07-12",
+  "duration_weeks": 1.5,
+  "team": {
+    "planning_hours": 40,
+    "frontend_hours": 80,
+    "backend_hours": 120,
+    "qa_hours": 60
+  },
+  "team_size": "前端2人·后端3人·测试2人"
+}
+```
+
+### iteration_plan.md 格式
 
 ```markdown
 # 迭代规划报告
@@ -84,18 +165,29 @@ alwaysApply: false
 
 ---
 
-## 1. 迭代目标
+## 1. 项目配置
+
+| 参数 | 值 |
+|------|-----|
+| 项目名 | ... |
+| 版本名 | ... |
+| 排期开始 | ... |
+| 排期截止 | ... |
+
+---
+
+## 2. 迭代目标
 
 - 目标1
 - 目标2
 
-## 2. 负载平衡
+## 3. 负载平衡
 
 | 成员 | 任务数 | 总工时(h) | 迭代可用(h) | 状态 |
 |------|--------|-----------|-------------|------|
 | 张三 | 5 | 40 | 40 | 正常 |
 
-## 3. 里程碑
+## 4. 里程碑
 
 | 里程碑 | 日期 | 说明 |
 |--------|------|------|
@@ -104,27 +196,24 @@ alwaysApply: false
 | 回归完成 | MM-DD | ... |
 | 上线 | MM-DD | ... |
 
-## 4. 资源锁定
+## 5. 资源锁定
 
 | 资源 | 负责人 | 状态 |
 |------|--------|------|
 | 压测服务器 | 李四 | 已申请 |
-| 测试环境 | 王五 | 已锁定 |
 
-## 5. 风险点
+## 6. 风险点
 
 | 风险 | 等级 | 应对措施 | 状态 |
 |------|------|----------|------|
 | ... | HIGH | ... | OPEN |
 
-## 6. 任务分配
+## 7. 任务分配
 
 | Epic | Story | Task | 负责人 | 工时 | 截止 |
 |------|-------|------|--------|------|------|
 | UI-001 | UI-001-001 | TASK-001 | 张三 | 8h | MM-DD |
 ```
-
-同时生成 JSON：`iteration_plan.json`
 
 ### 失败报告（S2.5 迭代规划失败）
 
@@ -160,8 +249,15 @@ S2.5 与 S3/S4 可并行执行，加速迭代。
 ## 代码入口
 
 ```python
-from ai_workflow.conversation_skills import save_iteration_plan
-save_iteration_plan(version, backlog, raw_output, parsed, req_name)
+from ai_workflow.conversation_skills import save_iteration_plan, make_stage2_5_skill
+
+# 生成协作技能（可传入 project_config）
+skill = make_stage2_5_skill(req_name="游戏道具商城系统", version="v1.0",
+                           project_config={"req_name": "...", "schedule": {...}, ...})
+
+# 保存结果
+save_iteration_plan(req_name, plan_md, plan_json, version,
+                    project_config={"req_name": "...", ...})
 ```
 
 ---

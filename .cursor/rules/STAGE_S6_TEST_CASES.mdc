@@ -17,103 +17,201 @@ alwaysApply: false
 
 | 材料 | 来源 | 审查要求 |
 |------|------|----------|
-| S5 test_points.json | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 存在且含 Story 列表 |
-| S2 backlog（参考） | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在则作为优先级参考 |
+| S5 test_points.json（**必须读取**） | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 每个 TP 含 module / test_point_type |
+| S2 backlog（**必须读取**） | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 作为优先级参考 |
+| S4 business_flow.md（**必须读取**） | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | 用于理解业务流程和风险场景 |
+| 模块子模板（**必须读取**） | `workflow_assets/module_templates/`（按 TP 的 module 字段） | 每个模块的子类枚举决定 TC 方法选择 |
 
-**材料缺失时**：生成失败报告，停止 S6。
-
----
-
-## 核心原则：LLM 推理 + 脚本整理
-
-> ⚠️ **v2.0 重构（2026-06-15）**：脚本不推导 TC 数量 / 不强制 1:N / 不分配 test_method。
->
-> - **TP = 测试意图**（LLM 在 S5 阶段生成）
-> - **TC = 具体可执行场景**（LLM 在 S6 阶段基于 TP 推理生成）
-> - **TP:TC 比例**由 LLM 根据业务复杂度自由决定：1:1 / 1:3 / 1:18 都行
-> - **脚本只做整理**：ID 分配、模块归一化、写 JSON/MD/XLSX
-> - **真实需求多种多样**——硬指标脚本只服务一种结构；**LLM 推理 + 脚本整理**能适配任意结构
-
-### LLM 在 S6 的工作流
-
-1. 读 S5 test_points.json → 获得 TP 列表（每个 TP 含 module + test_type）
-2. 读 S4 business_flow.md → 了解业务流程和风险点
-3. 读 `workflow_assets/module_templates/<MODULE>.md` → 了解命中模块的子类和测试方法
-4. 读 §1.4 LLM 必读指令 → 读 8 模块总表 + 边界文件
-5. 推理每个 TP 应派生几个 TC / 用什么方法 / 步骤怎么写
-6. 把生成的 case 列表写到 test_points.json 的 `llm_generated_cases` 字段
-
-### 脚本的工作（thin wrapper）
-
-- 读取 `llm_generated_cases` 字段（无则从 S5 1:1 转种子，**仅供 LLM 后续改写**）
-- 分配 case_id（按模块分组递增）
-- 归一化模块字段（中英 → 8 模块全名）
-- 写 test_cases.json / test_cases.md / test_cases.xlsx
-
-**不强制字段**：
-- `test_method` / `test_scenario`——LLM 视业务需要自由标注，**脚本不分配**
-- `优先级`——LLM 按业务风险自由决定，**脚本不分配**
+**前置材料缺失时**：生成失败报告，停止 S6。
 
 ---
 
-### 18 种测试方法派生规则
+## §1.4 LLM 必读材料（阶段前置）
 
-| TP 类型 | 选用方法 | 派生系数 |
-|---|---|---|
-| **POSITIVE** | 场景法 + 等价类 + 路径覆盖 + 兼容性 + 探索式 | 3-5 |
-| **BOUNDARY** | 边界值 + 等价类 + off-by-one + 性能边界 | 4-7 |
-| **NEGATIVE** | 错误猜测 + 判定表 + 安全合规 + 异常流 | 5-10 |
-| **EXCEPTION** | 异常流/容错 + 错误注入 + 并发竞态 + 资源耗尽 | 4-8 |
+**生成测试用例前，必须先读取以下全部材料。禁止凭印象直接生成。**
 
-### 模块风险加权
-
-| 模块 | 加权 |
-|---|---|
-| BIZ ×1.5 / LINK ×1.3 / SPECIAL ×1.3（高风险）| 高 |
-| HINT ×1.0 / UI ×1.0（中）| 中 |
-| LOG ×0.8 / CONFIG ×0.8 / AUX ×0.7（低）| 低 |
+| # | 材料 | 路径 | 读取原因 |
+|---|---|---|---|
+| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | 所有 TP 必须有模块前缀；模块 × 类型双维度决定 TC 拓宽方向 |
+| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md） | HINT vs UI、BIZ vs CONFIG 是 S6 高误标区；判定前必须读取 |
+| 3 | S5 test_points（**必须读取**） | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 每个 TP 的 module / test_point_type 是 TC 拓宽的输入 |
+| 4 | S4 business_flow（**必须读取**） | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | 异常决策树和风险点是 EXCEPTION TC 的核心来源 |
+| 5 | 模块子模板 | `workflow_assets/module_templates/`（按 TP 的 module 字段） | 每个模块的子类枚举（如 BIZ→A-I、HINT→A-M）决定 TC 方法选择 |
 
 ---
 
-## 核心任务
+## 核心原则
 
-将 S5 测试点转化为 **详细可执行的测试用例**。
+### 当前设计哲学（无硬指标）
 
-### 用例格式（10 列）
+> - **LLM 负责推理**：从 S5 TP 派生出几个 TC、用什么方法、步骤怎么写——全部由 LLM 推理决定
+> - **脚本只负责整理**：ID 分配 / 字段归一化 / 写文件
+> - **不设硬指标**：1:1 也行、1:5 也行、1:20 也行——业务复杂度自然决定
+
+**禁止出现的行为**：
+- ❌ 按"18 种测试方法派生系数"生成 TC
+- ❌ 按模块风险加权表分配优先级
+- ❌ 用脚本推导 TC 数量
+- ❌ 用脚本分配 test_method 字段
+- ❌ 强制 TP:TC = 1:N 的比例约束
+- ❌ 用模板语言编写步骤和预期结果
+
+---
+
+## 字段语义规范
+
+**LLM 自由创作，不是模板填充。**
+
+| 字段 | 定义 | 内容要求 |
+|------|------|----------|
+| **用例描述** | 用例标题 | **纯 Story 名称**（S2 backlog 的 Story.title），禁止加后缀、禁止加括号、禁止任何分隔符 |
+| **功能描述** | 该用例验证的具体功能点 | **LLM 自然语言创作**，描述"验证什么"，禁止复制 S4/S5 的节点名称 |
+| **前置条件** | 进入用例前系统所处的初始状态 | 具体数值（余额=xxx、道具备注=xxx），禁止模糊描述 |
+| **操作步骤** | 玩家或策划的具体行动 | **每步包含具体 UI 元素名或具体数值**；禁止模板语言 |
+| **预期结果** | 操作后系统应产生的行为 | **纯业务结果**；禁止引用 S4 编号，禁止括号说明 |
+| **test_method** | （可选）LLM 标注的测试方法 | 自由字符串，例如"等价类划分" / "异常流容错"——**不强制必须填** |
+| **test_scenario** | （可选）方法下的具体场景 | 自由字符串，例如"空值" / "边界+1" / "超时30s"——**不强制必须填** |
+
+**正确 vs 错误对比**：
+
+```
+✅ 用例描述: 购买确认流程
+✅ 功能描述: 余额不足时购买按钮禁用
+✅ 操作步骤: 1. 玩家余额=1000游戏币，道具单价=500
+            2. 尝试购买数量=3（总价=1500）
+            3. 系统检测余额不足
+✅ 预期结果: 1. 购买确认弹窗显示余额不足提示
+            2. 【购买】按钮禁用（灰色不可点击）
+
+❌ 用例描述: 购买确认弹窗 — 正常展示道具信息   （加了后缀，分隔符）
+❌ 功能描述: 余额不足时购买按钮禁用（引用S4-R01）  （加了括号引用）
+❌ 操作步骤: 执行操作：验证结果                     （模板语言）
+❌ 预期结果: 余额不足提示（引用S4-1.3异常树）      （括号引用）
+```
+
+---
+
+## 用例格式（10 列）
 
 | 字段 | 说明 |
 |------|------|
 | 用例ID | `{Module}-TC-{NNN}`，如 `UI-TC-001` |
-| 模块 | `UI (界面)` / `BIZ (业务)` / `CONFIG (配置)` / `AUX (辅助)` / `LINK (关联)` / `SPECIAL (特殊)` / `LOG (日志)` / `HINT (提示)`（双语格式，见 `.cursor/MODULES.md`） |
-| 用例描述 | 测试对象（被测的具体需求条目） |
-| 功能描述 | 该需求对象所具备的功能/行为 |
-| 前置条件 | 系统状态要求（具体账号、等级、VIP 等） |
-| 操作步骤 | 编号步骤，每步精确描述（具体 UI 元素名称 + 具体数值） |
-| 预期结果 | 每步对应的可验证结果 |
-| 优先级 | P0（必须）/ P1（重要）/ P2（可选） |
+| 模块 | `UI` / `BIZ` / `CONFIG` / `AUX` / `LINK` / `SPECIAL` / `LOG` / `HINT`（8 模块全名，禁止旧 4 字母缩写） |
+| 用例描述 | 纯 Story 标题，无分隔符 |
+| 功能描述 | LLM 自然语言，禁止引用 S4/S5 节点 |
+| 前置条件 | 具体数值，禁止模糊描述 |
+| 操作步骤 | 每步含具体 UI 元素名或具体数值，最大 8 步 |
+| 预期结果 | 纯业务结果，禁止引用 S4 编号 |
+| 优先级 | LLM 根据业务风险自由决定，脚本不强制分配 |
 | 用例状态 | Draft / Ready / Deprecated |
 | 备注 | 边界条件、测试数据要求 |
 
-### 步骤写作规则
-
-✅ **正确**：`点击【购买】按钮，弹出订单确认对话框`
-❌ **错误**：`点击购买按钮` | `验证页面正常`
-
-- 每步必须包含具体 UI 元素名称或具体数值
-- 每步独立可验证（能判断该步通过/失败）
-- 最大 8 步，超过则拆分
-
 ### 优先级判断
 
-| 优先级 | 适用场景 | 步骤详细程度 |
-|--------|----------|--------------|
-| P0 | 支付、购买、VIP折扣、促销、安全、日志 | 全量详细，含边界值 |
-| P1 | 普通业务逻辑、订单、邮件、权限 | 精简用例+核心测试点 |
-| P2 | 界面展示、搜索、分页、加载 | 核心测试点，不需要详细步骤 |
+| 优先级 | 适用场景 |
+|--------|----------|
+| P0 | 支付、购买、VIP折扣、促销、安全、日志 |
+| P1 | 普通业务逻辑、订单、邮件、权限 |
+| P2 | 界面展示、搜索、分页、加载 |
+
+> 优先级**由 LLM 根据业务风险自由决定**，脚本不强制套用任何映射表。
+
+---
+
+## 自检清单（提交前必须执行）
+
+**全部通过后方可提交 TC 产物。**
+
+- [ ] **第 1 项**：用例描述是否只含纯 Story 标题（无 `—`、无括号、无分隔符）？
+- [ ] **第 2 项**：功能描述是否自然语言（无 S4/S5 节点名、无括号说明）？
+- [ ] **第 3 项**：操作步骤是否无任何模板语言（无「执行操作：」「执行：」「准备符合前置条件的测试环境」「执行测试输入中的操作」）？
+- [ ] **第 4 项**：预期结果是否无任何括号引用（无 `（引用S4-xxx）`、`（引用R-xxx）`）？
+- [ ] **第 5 项**：全文搜索"引用"应为 0 处。
+
+**5 项任一不通过 → 必须修改至通过后方可提交。**
+
+---
+
+## S4 参考规则
+
+S4 流程图是 S6 **理解业务**的重要来源，但引用规则如下：
+
+- **可以参考**：阅读 S4 理解业务流程、异常路径、风险场景，据此设计用例步骤和预期结果
+- **禁止照抄**：不得将 S4 的节点名称、异常树编号、风险点名直接写入任何字段
+- **如需注明**：仅在「备注」字段中写 `[参考S4-章节]`（非强制）
+
+---
+
+## §1.5 决策 push 块
+
+### §1.5.1 LLM 自由推理原则
+
+**S6 LLM 在生成 TC 前必须遵守以下原则**：
+
+| 原则 | 具体要求 |
+|------|----------|
+| TP:TC 比例 | 由 LLM 根据业务复杂度自由决定，不设硬性 1:N 约束 |
+| test_method 字段 | 可选，不强制填写 |
+| 优先级分配 | LLM 根据业务风险自由决定，脚本不强制套用映射表 |
+| 模块加权 | 禁止使用模块风险加权表生成 TC |
+
+### §1.5.2 步骤写作强制规范
+
+**S6 LLM 在写操作步骤和预期结果时必须执行以下检查**：
+
+| 检查项 | 禁止内容 | 正确示范 |
+|--------|----------|----------|
+| 无模板语言 | 「执行操作：」「执行：」「准备符合前置条件」 | 具体 UI 元素名称或数值 |
+| 无 S4 节点引用 | `（引用S4-xxx）`、`（引用R-xxx）` | 纯业务结果描述 |
+| 无分隔符 | `—`、`：`、`（`后接引用 | 纯标题，无修饰 |
+
+### §1.5.3 模块 × 类型双维度拓宽
+
+**S6 LLM 基于 S5 TP 拓宽 TC 时，必须执行以下判定**：
+
+| TP 的 module | TP 的 test_point_type | TC 拓宽方向 |
+|-------------|----------------------|-------------|
+| UI | POSITIVE | UI 测样式/动画/布局 |
+| UI | BOUNDARY | UI 边界值（0 个道具/满背包） |
+| UI | NEGATIVE | UI 异常展示（网络错误/加载失败） |
+| UI | EXCEPTION | UI 容错（超时/降级） |
+| BIZ | POSITIVE | BIZ 测业务逻辑/事务 |
+| BIZ | BOUNDARY | BIZ 边界值（最大数量/最小值） |
+| BIZ | NEGATIVE | BIZ 校验失败（非法参数/越权） |
+| BIZ | EXCEPTION | BIZ 容错（超时/事务失败/幂等） |
+| LINK | POSITIVE | LINK 测第三方交互成功 |
+| LINK | BOUNDARY | LINK 超时/频率限制 |
+| LINK | NEGATIVE | LINK 回调失败/签名校验失败 |
+| LINK | EXCEPTION | LINK 第三方服务不可用/重试机制 |
+| SPECIAL | POSITIVE | SPECIAL 测风控/合规/反作弊正常拦截 |
+| SPECIAL | BOUNDARY | SPECIAL 临界值/竞态条件 |
+| SPECIAL | NEGATIVE | SPECIAL 黑名单/弱网环境 |
+| SPECIAL | EXCEPTION | SPECIAL 容错/Failover |
+| CONFIG | POSITIVE | CONFIG 测配置生效/热更 |
+| CONFIG | BOUNDARY | CONFIG 边界值（最大条目数/空配置） |
+| CONFIG | NEGATIVE | CONFIG 非法配置值/缺失必填字段 |
+| CONFIG | EXCEPTION | CONFIG 热更失败回滚 |
+| LOG | POSITIVE | LOG 测埋点上报成功/完整性 |
+| LOG | BOUNDARY | LOG 边界值（最大日志条数） |
+| LOG | NEGATIVE | LOG 缺失必填字段/脱敏失败 |
+| LOG | EXCEPTION | LOG 链路中断/缓存满 |
+| AUX | POSITIVE | AUX 测底层能力（加密/缓存/网络）正常 |
+| AUX | BOUNDARY | AUX 边界值（缓存满/连接池满） |
+| AUX | NEGATIVE | AUX 校验失败/签名失败 |
+| AUX | EXCEPTION | AUX 容错/降级 |
+| HINT | POSITIVE | HINT 测提示正常展示（红点/飘字/弹窗） |
+| HINT | BOUNDARY | HINT 边界值（同时多个提示/超时消失） |
+| HINT | NEGATIVE | HINT 异常内容/错误文案 |
+| HINT | EXCEPTION | HINT 降级（提示消失/不弹出） |
 
 ---
 
 ## 输入审查（门禁前置条件）
+
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S6 阶段**输入物料门禁**的细化定义（**非全阶段质量门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **配置常量 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §4.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#43-配置常量)
+> - 本表不可独立编辑；任何阈值变更**必须**先修改 SSOT，再回写本表。
 
 | 检查项 | 要求 | 缺失时 |
 |--------|------|--------|
@@ -128,34 +226,38 @@ alwaysApply: false
 
 ### 成功产出（3 个文件）
 
-1. **Markdown**：`「S6 测试用例生成」/<version>/test_cases.md`
-2. **JSON**：`「S6 测试用例生成」/<version>/test_cases.json`
-3. **Excel**：`「S6 测试用例生成」/<version>/test_cases.xlsx`（**3 个 Sheet**：测试用例 / 模块统计 / 类型统计）
-
-```json
-[
-  {
-    "用例ID": "UI-TC-001",
-    "模块": "UI",
-    "用例描述": "商城道具分类展示",
-    "功能描述": "玩家进入商城首页，点击分类导航，商城按分类展示对应道具列表",
-    "前置条件": "1. 玩家已登录系统，进入商城",
-    "操作步骤": "1. 进入商城首页\n2. 点击分类导航\n3. 验证道具列表展示",
-    "预期结果": "1. 页面正确加载\n2. 分类切换成功\n3. 道具列表按分类展示",
-    "优先级": "P1",
-    "用例状态": "Draft",
-    "备注": ""
-  }
-]
-```
+| 文件 | 路径 |
+|------|------|
+| Markdown | `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.md` |
+| JSON | `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.json` |
+| Excel（3 Sheet） | `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.xlsx` |
 
 ### Excel Sheet 说明
 
 | Sheet | 内容 |
 |-------|------|
 | Sheet1 | 测试用例详情 |
-| Sheet2 | 模块统计（机械 Counter）|
-| Sheet3 | 类型统计（机械 Counter）|
+| Sheet2 | 模块统计（机械 Counter） |
+| Sheet3 | 类型统计（机械 Counter） |
+
+### JSON 格式
+
+```json
+[
+  {
+    "case_id": "UI-TC-001",
+    "模块": "界面",
+    "用例描述": "购买确认流程",
+    "功能描述": "购买确认弹窗正常展示道具信息",
+    "前置条件": "玩家已登录，余额充足，道具可购买",
+    "操作步骤": "1. 玩家已登录，进入道具详情页\n2. 点击【购买】按钮\n3. 系统展示购买确认弹窗",
+    "预期结果": "1. 弹窗展示道具名称\n2. 弹窗展示购买数量\n3. 弹窗展示总价\n4. 弹窗展示当前余额充足提示",
+    "优先级": "P0",
+    "用例状态": "Draft",
+    "备注": ""
+  }
+]
+```
 
 ### 失败报告（S6 测试用例失败）
 
@@ -192,19 +294,21 @@ S6 产出（test_cases.xlsx/.json/.md）作为 S7 的输入。
 ## 代码入口
 
 ```python
-# 自动格式化（Python）
-from ai_workflow.test_case_formatter import format_test_cases, compute_layered_stats
-cases, meta = format_test_cases(tp_list, breakdown, test_points, 'test_cases')
+# 脚本只做整理：ID 分配 / 字段归一化 / 写文件
+from ai_workflow.s6_generate import collect_cases
+from ai_workflow.test_case_formatter import _assign_ids, _build_summary, _save_md, _save_xlsx
 
-# Excel 生成
-from ai_workflow.excel.test_case_writer import write_test_cases
-write_test_cases(cases, version, filename, metadata=meta)
+# LLM 在对话中生成的 case 列表 → 写入 test_points.json 的 llm_generated_cases 字段
+# 脚本读取后只做：
+# 1. 分配 case_id（按模块分组递增）
+# 2. 模块字段归一化（中英 → 8 模块全名）
+# 3. 写 JSON / Markdown / XLSX
 
-# 保存所有产出
-from ai_workflow.s6_report import generate_s6_report
-generate_s6_report(cases, version, req_name, filename, duration_s=0.0,
-                    s5_tp_count=total_tp, s5_output_path=tp_path, save=True)
+# 兜底：若无 llm_generated_cases，从 scenario_test_points 1:1 转种子 case
+# （保留 LLM 后续在对话中改写步骤/预期的入口）
 ```
+
+> **脚本不推导 TC 数量、不分配 test_method、不做模块加权**——这些全是 LLM 推理工作。
 
 ---
 

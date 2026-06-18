@@ -27,21 +27,67 @@ metadata:
 
 ---
 
-## §1.4 LLM 必读材料（阶段前置）
+## §1.4 必读材料与违规认定
+
+> ⚠️ **违反本节禁令 → 产出不合格，必须补读后重新生成。**
+
+### 违规认定（满足任一 → 产出不合格）
+
+- ❌ 未读取本节材料，直接凭印象生成
+- ❌ 跳过标注"强制"的材料，用其他来源替代
+- ❌ 产出的 module / s4_reference 与材料内容明显不符
+- ❌ 用"业务常识"替代必须读取的材料
+
+### 必读材料清单
 
 **生成测试用例前，必须先 Read 以下材料。禁止凭印象直接生成。**
 
 | # | 材料 | 路径 | 必读原因 |
 |---|---|---|---|
-| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表）| 所有 TP 必须有模块前缀；模块 × 类型双维度决定 TC 拓宽方向 |
-| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md）| HINT vs UI、BIZ vs CONFIG 是 S6 高误标区；判定前必读 |
-| 3 | S5 test_points | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 每个 TP 的 module / test_type 是 TC 拓宽的输入 |
-| 4 | S4 business_flow | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | 异常决策树和风险点是 EXCEPTION TC 的核心来源 |
-| 5 | 模块子模板 | `workflow_assets/module_templates/`（按 TP 的 module 字段）| 每个模块的子类枚举（如 BIZ→A-I、HINT→A-M）决定 TC 方法选择 |
+| ① | 8 模块总表 | `.cursor/MODULES.md`（§1 总表）| 所有 TP 必须有模块前缀；模块 × 类型双维度决定 TC 拓宽方向 |
+| ② | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md）| HINT vs UI、BIZ vs CONFIG 是 S6 高误标区；判定前必读 |
+| ③ | S5 test_points（强制） | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | 每个 TP 的 module / test_type 是 TC 拓宽的输入；未读取 → 无法拓宽 |
+| ④ | S4 business_flow（强制） | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | 异常决策树和风险点是 EXCEPTION TC 的核心来源 |
+| ⑤ | 命中模块子模板 | `workflow_assets/module_templates/<Module>/<Module>.md` | 子类枚举决定 TC 方法选择 |
 
 ---
 
-## 字段语义（LLM 自由创作，不是模板填充）
+## §5 一致性检查（SKILL ↔ Rule 自动对齐）
+
+> **触发时机**：本节读取后、正式执行前。**仅执行一次**（同一次对话中多次触发本阶段，不重复检查）。
+
+**检查类型**：A = 必读材料对齐 / B = 输出路径对齐 / C = 字段名对齐 / D = 模块枚举对齐
+
+```python
+from ai_workflow.consistency_check import run_consistency_check
+
+result = run_consistency_check(stage="s6")
+if not result["passed"]:
+    print(f"[一致性检查] 发现 {len(result['issues'])} 个问题（见日志）")
+```
+
+检查结果不阻断阶段执行，仅输出到日志供人工参考。
+
+---
+
+## §1.5 决策 push 块
+
+> **哲学**：不告诉 LLM 多少算合格，告诉 LLM 怎么思考产出质量。
+>
+> ⚠️ **未走 Push 即写 TC → 该 TC 不合格。**
+
+| # | 操作 | 目的 |
+|---|------|------|
+| Push 1 | 读 S5 test_points.json，确认每个 TP 的 module / test_point_type | 确认 TC 拓宽输入 |
+| Push 2 | 读 MODULES.md §3.5，确认模块归属无误 | 防止 HINT vs UI 误标 |
+| Push 3 | 读命中模块的 `<MODULE>.md`，匹配子类枚举，决定 TC 方法 | 确认 TC 方法 |
+| Push 4 | 读 S4 业务流，找到 EXCEPTION TC 的风险场景来源 | 异常流覆盖 |
+
+**4 步全部回答后，再开始写 TC。**
+
+---
+
+## §1.6 自检清单（提交前必走）
 
 | 字段 | 定义 | 内容要求 |
 |------|------|----------|
@@ -78,7 +124,7 @@ metadata:
 > - **用例ID 前缀**采用 8 模块英文全名（按 `MODULES.md` §1 总表顺序）：`CONFIG-TC-NNN` / `UI-TC-NNN` / `BIZ-TC-NNN` / `AUX-TC-NNN` / `LINK-TC-NNN` / `LOG-TC-NNN` / `SPECIAL-TC-NNN` / `HINT-TC-NNN`（**禁止**用旧 4 字母缩写 `CFG/LNK/SPC/HNT`）
 > - **模块字段**支持中英双语并存：`UI` 或 `界面` 任一；S6 阶段统一由 `test_case_formatter.py` 的 `normalize_module_name()` 归一化为 8 模块全名
 > - **v1.6.1 旧枚举**（`RED_DOT` / `SYS_MSG` 等）由 `format_test_cases()` 自动迁移到 v1.7+ 现行枚举
-> - 中英并存规则见 [`.cursor/MODULES.md` §3 中英映射表](../../MODULES.md)
+> - 中英并存规则见 [`.cursor/MODULES.md` §3 中英映射表](../../../MODULES.md)
 
 ```json
 [

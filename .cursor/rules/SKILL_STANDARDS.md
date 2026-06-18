@@ -120,13 +120,12 @@ disable-model-invocation: true   # 防止 Cursor 在不该触发时自动调用
 |---|---|---|
 | 9-stage 流水线 skill | `aidocx-s{N}-*` | `aidocx-s1-review` |
 | 辅助工具 skill | `aidocx-*` | `aidocx-feedback-logger` |
-| Hermes 后台 skill | `aidocx-*` | `aidocx-batch-runner` |
 | 顶层入口 skill | `aidocx-workflow-conversation` | `aidocx-workflow-conversation` |
 
 ## 5. 维护流程
 
 ### 新增 skill
-1. 在 `.cursor/skills/` 或 `workflow_assets/hermes_skills/` 创建目录
+1. 在 `.cursor/skills/` 创建目录
 2. 写 `SKILL.md`，遵循本规范
 3. 跑 `python3 ai_workflow/validate_skills.py <dir>` 验证
 4. 修复所有 errors（warnings 可接受但建议修）
@@ -148,12 +147,8 @@ disable-model-invocation: true   # 防止 Cursor 在不该触发时自动调用
 # 验证 Cursor skills
 python3 ai_workflow/validate_skills.py .cursor/skills
 
-# 验证 Hermes skills
-python3 ai_workflow/validate_skills.py workflow_assets/hermes_skills
-
-# 同时验证两个 + 输出 JSON
+# 输出 JSON 报告
 python3 ai_workflow/validate_skills.py .cursor/skills reports/cursor_v1.json
-python3 ai_workflow/validate_skills.py workflow_assets/hermes_skills reports/hermes_v1.json
 
 # 退出码
 # 0 = 合规
@@ -167,24 +162,14 @@ python3 ai_workflow/validate_skills.py workflow_assets/hermes_skills reports/her
 - name: Validate skills
   run: |
     python3 ai_workflow/validate_skills.py .cursor/skills
-    python3 ai_workflow/validate_skills.py workflow_assets/hermes_skills
 ```
 
-## 7. 与 Superpowers / Hermes 的关系
+## 7. 与 Superpowers 的关系
 
 ### Superpowers
 - 通过 Cursor 插件市场安装（`/add-plugin superpowers`）
 - 它的 skill 是 Cursor 全局的，不在我们的仓库内
 - 我们**借用**它的方法论（brainstorming → writing-plans → TDD）但**不复制**它的 skill 文件
-
-### Hermes
-- 通过 `curl ... | bash` 安装
-- 它的 skill 库在 `~/.hermes/skills/`，是 markdown 文件
-- 我们项目自有的 Hermes skill 放在 `workflow_assets/hermes_skills/`
-- 部署到 Hermes 时执行：
-  ```bash
-  cp -r workflow_assets/hermes_skills/* ~/.hermes/skills/
-  ```
 
 ## 8. 版本管理
 
@@ -195,5 +180,4 @@ python3 ai_workflow/validate_skills.py workflow_assets/hermes_skills reports/her
 
 - agentskills.io 规范：https://agentskills.io/specification
 - Superpowers 仓库：https://github.com/obra/superpowers
-- Hermes Agent 文档：https://hermes-agent.nousresearch.com/
 - 本项目 AIDocxWorkFlow 规则：`.cursor/rules/AIDocxWorkFlow.mdc`

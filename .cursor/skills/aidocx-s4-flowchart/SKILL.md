@@ -39,7 +39,7 @@ metadata:
 | S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story | 必阻断 |
 | S2 backlog.json | 同上目录 `backlog.json` | 存在 + `summary.epic_count ≥ 1` + 每个 Epic 有 ≥ 1 个 Story + `epic.module` 必须从 8 模块中取值 | 必阻断 |
 | S1.5 exit_permission.json | `workflow_assets/<req_name>/「S1 需求评审」/<version>/exit_permission.json` | `can_proceed_to_s2 == true`（防御性核查：避免 S4 跑在 S2 之前） | 警告，不阻断 |
-| S3 prototype.md（**推荐**） | `workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md` | 存在则消费 `PAGE-XXX` 页面 ID 作为 S4 流程节点；不存在则只从 S2 Story 推导 | 警告，不阻断 |
+| S3 prototype.md（**必读**） | `workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md` | 存在则消费 `PAGE-XXX` 页面 ID 作为 S4 流程节点；不存在则只从 S2 Story 推导 | 警告，不阻断 |
 
 **材料缺失时**：生成 `fail_report_S4.md`，停止 S4。
 
@@ -55,6 +55,24 @@ metadata:
 | 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md）| 异常决策树的叶子节点归属模块；防止把 BIZ 异常归成 UI |
 | 3 | S2 backlog | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | Story/OBJ 是流程图生成的核心输入 |
 | 4 | S3 prototype | `workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md` | 页面原型是流程节点的来源；S4 是 S5 EXCEPTION 类型 TP 的核心输入 |
+
+---
+
+## §5 一致性检查（SKILL ↔ Rule 自动对齐）
+
+> **触发时机**：本节读取后、正式执行前。**仅执行一次**（同一次对话中多次触发本阶段，不重复检查）。
+
+**检查类型**：A = 必读材料对齐 / B = 输出路径对齐 / C = 字段名对齐 / D = 模块枚举对齐
+
+```python
+from ai_workflow.consistency_check import run_consistency_check
+
+result = run_consistency_check(stage="s4")
+if not result["passed"]:
+    print(f"[一致性检查] 发现 {len(result['issues'])} 个问题（见日志）")
+```
+
+检查结果不阻断阶段执行，仅输出到日志供人工参考。
 
 ---
 
@@ -317,11 +335,11 @@ report = validate_s4_output(flow_md_path=result["md"], backlog_path=backlog_json
 
 ## 参考文档
 
-## §1.5 决策 push 块(无硬指标版本,见 [PUSH-V2-ITER-3] 标签)
+## §1.5 决策 push 块
 
 > **S4 阶段的关键使命**: 把 S2 跨模块拆的 OBJ 正确反映到 Epic 模块归属 + 异常树叶子归属——**不要让 epic 名误导 S5**。
 
-### §1.5.1 [PUSH-V2-ITER-3] Epic 命名 + 模块归属反例(对应 PROMPT-PUSH-4)
+### §1.5.1 Epic 命名 + 模块归属反例
 
 > S4 看到 epic 名"LINK-PAYMENT"不能想当然归 LINK——S4 必须**主动用 §1.4 反例库对照**每个 OBJ 归属。
 
@@ -333,7 +351,7 @@ report = validate_s4_output(flow_md_path=result["md"], backlog_path=backlog_json
 
 **4 步任一空答→暂停补 Read**。
 
-### §1.5.2 [PUSH-V2-ITER-3] 异常树叶子归属判定 push
+### §1.5.2 异常树叶子归属判定 push
 
 > S4 写异常树叶子节点时,**模块归属必须与 S5 TP 模块一致**——S5 看到 `S4-LINK-PAYMENT-1.1.1` 会按 LINK 处理,S4 不能在异常树里写"游戏币支付余额不足"叶子(那是 BIZ 业务)。
 
@@ -345,7 +363,7 @@ report = validate_s4_output(flow_md_path=result["md"], backlog_path=backlog_json
 
 **判定不对→S5 TP 模块归属必然错**。
 
-### §1.5.3 [PUSH-V2-ITER-3] 风险点 s4_reference 格式
+### §1.5.3 风险点 s4_reference 格式
 
 > 旧规则已要求 `R-NNN` / `R-{EpicID}-NN` 格式——但**没强制 LLM 引用风险点时同时引用异常树叶子**。
 

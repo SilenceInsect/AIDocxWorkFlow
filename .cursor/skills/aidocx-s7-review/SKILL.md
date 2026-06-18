@@ -21,10 +21,10 @@ metadata:
 
 **独立阶段**：可单独调用。上游材料（S6 test_cases.json）审查合格后开始，失败写失败报告。
 
-> ⚠️ **模块定义见 [`.cursor/MODULES.md`](../../MODULES.md)（项目级唯一真相源）。**
+> ⚠️ **模块定义见 [`.cursor/MODULES.md`](../../../MODULES.md)（项目级唯一真相源）。**
 > 本文件不重写模块表。所有"模块"字段取值集合见 `MODULES.md` §1 总表，**`{Module}` 占位符** 实际取值集合 = 8 模块之一（CONFIG / UI / BIZ / AUX / LINK / LOG / SPECIAL / HINT）。
 >
-> HINT vs UI 边界判定（误标高发区）见 [`MODULES.md` §4.11.2](../../MODULES.md)。
+> HINT vs UI 边界判定（误标高发区）见 [`MODULES.md` §4.11.2](../../../MODULES.md)。
 
 ---
 
@@ -32,29 +32,38 @@ metadata:
 
 **触发**：`/aidocx-s7-review` 或粘贴 S6 test_cases.json
 
-**前置材料**：
-- S6 test_cases.json：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.json`
-- S5 test_points.json（用于 S4 覆盖率）：`workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json`
+**前置材料**：S6 test_cases.json + S5 test_points.json + S4 business_flow.md。详见 §1.4。
 
 **材料缺失时**：生成失败报告，停止 S7。
 
 ---
 
-## §1.4 LLM 必读材料（阶段前置）
+## §1.4 必读材料与违规认定
+
+> ⚠️ **违反本节禁令 → 产出不合格，必须补读后重新生成。**
+
+### 违规认定（满足任一 → 产出不合格）
+
+- ❌ 未读取本节材料，直接凭印象生成
+- ❌ 跳过标注"强制"的材料，用其他来源替代
+- ❌ 产出的 module / s4_reference 与材料内容明显不符
+- ❌ 用"业务常识"替代必须读取的材料
+
+### 必读材料清单
 
 **审查前，必须先 Read 以下材料。**
 
 | # | 材料 | 路径 | 必读原因 |
 |---|---|---|---|
-| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表）| 覆盖率按模块统计；审查员 B 的 module_coverage 以 8 模块为分母 |
-| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md）| 判断 TP 模块归属是否正确；HINT vs UI 是最高误标区 |
-| 3 | S6 test_cases | `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.json` | 审查对象 |
-| 4 | S5 test_points | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | S4 风险点覆盖率对比基准 |
-| 5 | S4 business_flow | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | S7 覆盖率指标 = S4 风险点全量覆盖（100%）是硬约束，不是拍脑袋 |
+| ① | 8 模块总表 | `.cursor/MODULES.md`（§1 总表）| 覆盖率按模块统计；审查员 B 的 module_coverage 以 8 模块为分母 |
+| ② | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md）| 判断 TP 模块归属是否正确；HINT vs UI 是最高误标区 |
+| ③ | S6 test_cases（强制） | `workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.json` | 审查对象；未读取 → 无法审查 |
+| ④ | S5 test_points（强制） | `workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json` | S4 风险点覆盖率对比基准 |
+| ⑤ | S4 business_flow（强制） | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | S7 覆盖率指标 = S4 风险点全量覆盖（100%）是硬约束 |
 
 ---
 
-## 双审查员审计
+## §1.5 决策 push 块
 
 ### 审查员 A：结构完整性（脚本做轻量体检，LLM 做语义审查）
 
@@ -63,11 +72,11 @@ metadata:
 | ID 规范化 | 脚本 | 格式 `{Module}-TC-{NNN}`（按 8 模块英文全名前缀）|
 | 字段是否填写 | 脚本 | precondition / steps / expected_result 是否非空 |
 | 模块归一化 | 脚本 | module 字段是否归一为 8 模块全名 |
-| 字段名合规 | LLM | 字段名是否在 §1.5.5 强约束清单中 |
+| 字段名合规 | LLM | 字段名是否在 aidocx-s5-test-points/SKILL.md §1.6.5 强约束清单中 |
 | 跨模块边界 | LLM | TP module 字段是否与 O_boundary.md 一致 |
 | 步骤质量 | LLM | 原子性、无歧义、有具体数值；**禁止通用模板** |
 | 预期可验证性 | LLM | 每步有明确 pass/fail 条件 |
-| 误标案例对照 | LLM | TP 是否与 §1.5.4 反例库冲突 |
+| 误标案例对照 | LLM | TP 是否与 aidocx-s5-test-points/SKILL.md §1.6.4 反例库冲突 |
 | 业务语言 | LLM | 文案是否符合业务术语，无 S4 节点名引用 |
 
 ### 审查员 B：覆盖率（脚本只统计数字，LLM 评判质量）
@@ -135,45 +144,59 @@ review_result = auto_review(test_cases, test_points, s4_risks)
 
 ---
 
-## §1.5 决策 push 块(无硬指标版本,见 [PUSH-V2-ITER-3] 标签)
+## §5 一致性检查（SKILL ↔ Rule 自动对齐）
 
-> **S7 阶段的关键使命**: 不仅审"结构完整性 + 覆盖率",还要审"字段名合规 + 跨模块边界"——这才是 S8 误判分析的源头。
+> **触发时机**：本节读取后、正式执行前。**仅执行一次**（同一次对话中多次触发本阶段，不重复检查）。
 
-### §1.5.1 [PUSH-V2-ITER-3] S7 字段名合规审查(对应 PROMPT-PUSH-5)
+**检查类型**：A = 必读材料对齐 / B = 输出路径对齐 / C = 字段名对齐 / D = 模块枚举对齐
 
-> 旧审查员 A 只审"ID 规范化"——S2.1-TP-010 `test_point_subclass` typo 案例就漏了。
+```python
+from ai_workflow.consistency_check import run_consistency_check
 
-**S7 审查员 A 新增 3 个检查项**:
-- 字段名合规: S5 TP / S6 TC 的字段名是否在 S5 §1.5.5 / S6 §1.5.1 强约束清单中
-- 跨模块边界: S5 TP 的 `module` 字段是否与 S4 异常树叶子归属一致
-- 误标案例对照: S5 TP 是否与 S2 §1.5.4 反例库冲突
+result = run_consistency_check(stage="s7")
+if not result["passed"]:
+    print(f"[一致性检查] 发现 {len(result['issues'])} 个问题（见日志）")
+```
 
-**审查员 A 报告新增**:
-- `field_name_violations`: 字段名拼错 TP/TC 列表
-- `module_misjudgment`: 跨模块误判 TP 列表
-- `misjudgment_pattern_violations`: 与反例冲突的 TP 列表
+检查结果不阻断阶段执行，仅输出到日志供人工参考。
 
-### §1.5.2 [PUSH-V2-ITER-3] S7 覆盖率精确化(对应 PROMPT-PUSH-2)
+---
 
-> 旧规则"S4 风险点覆盖率=100%"——但**漏了字段级反例反查**。
+## §1.6 决策 push 块
 
-**S7 审查员 B 新增 3 个指标**:
-- `is_assumed_field_compliance`: TP `is_assumed` 字段填充率(LLM 自由推理是否标注)
-- `s4_reference_completeness`: TP `s4_reference` 字段填充率(链路追溯完整性)
-- `applies_rule_completeness`: TP `applies_rule` 字段填充率(判定过程可审计)
+> **S7 阶段的关键使命**：不仅审"结构完整性 + 覆盖率"，还要审"字段名合规 + 跨模块边界"——这才是 S8 误判分析的源头。
 
-**3 个新增指标输出** + 旧 100% 风险点覆盖率 + 100% 异常树覆盖率 = 完整审查报告。
+### §1.6.1 审查员 A：字段名合规 + 跨模块边界
 
-### §1.5.3 [PUSH-V2-ITER-3] S7 误判根因反查(对应 PROMPT-PUSH-4)
+S7 审查员 A 新增 3 个检查项（这些在旧版审查中漏过）：
 
-> 旧审查员 B 只算"覆盖率"——但**不告诉 S8 哪个根因**。
+| 检查项 | 内容 |
+|--------|------|
+| 字段名合规 | S5 TP / S6 TC 的字段名是否在强约束清单中（防止 `test_point_subclass` typo 漏过） |
+| 跨模块边界 | S5 TP 的 `module` 字段是否与 S4 异常树叶子归属一致 |
+| 误标案例对照 | S5 TP 是否与反例库冲突 |
 
-**S7 报告新增字段**:
-- `misjudgment_root_cause`: 误判来源阶段(`S2_OBJ` / `S4_EPIC` / `S5_TP` / `S6_TC`)
-- `s2_obj_violations`: S2 拆 OBJ 时违反跨模块拆分的 OBJ 列表
-- `s4_epic_violations`: S4 Epic 命名/归属错误的 epic 列表
+**审查员 A 报告输出字段**：`field_name_violations` / `module_misjudgment` / `misjudgment_pattern_violations`
 
-**S8 拿到这个报告可直接定位根因,不用再回溯**。
+### §1.6.2 审查员 B：覆盖率精确化
+
+在风险点覆盖率 + 异常树覆盖率基础上，新增 3 个指标：
+
+| 指标 | 说明 |
+|------|------|
+| `is_assumed_field_compliance` | TP `is_assumed` 字段填充率（LLM 自由推理是否标注） |
+| `s4_reference_completeness` | TP `s4_reference` 字段填充率（链路追溯完整性） |
+| `applies_rule_completeness` | TP `applies_rule` 字段填充率（判定过程可审计） |
+
+### §1.6.3 误判根因反查
+
+S7 报告输出根因定位字段（供 S8 直接使用）：
+
+| 字段 | 说明 |
+|------|------|
+| `misjudgment_root_cause` | 误判来源阶段（`S2_OBJ` / `S4_EPIC` / `S5_TP` / `S6_TC`） |
+| `s2_obj_violations` | S2 拆 OBJ 时违反跨模块拆分的 OBJ 列表 |
+| `s4_epic_violations` | S4 Epic 命名/归属错误的 epic 列表 |
 
 ---
 

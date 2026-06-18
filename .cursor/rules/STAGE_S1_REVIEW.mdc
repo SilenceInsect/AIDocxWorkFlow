@@ -143,6 +143,11 @@ CONFIG / UI / BIZ / HINT / LINK / SPECIAL / LOG / AUX
 
 ### 判决规则
 
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S1 阶段**评分判决**的细化定义（**非全阶段门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **5 维度评分权重、ACCEPTANCE 标准、判决阈值**（7.0/4.0）的**完整定义**在本节；SSOT §2.3 仅速查。
+> - **执行 S1 前必须**读本节 + SSOT §2.3。
+
 | 总分 | 判决 | 后续动作 |
 |------|------|----------|
 | ≥ 7.0 | **PASS** | 生成终版需求.md → 触发 S1.5 业务澄清 → 等待人工 feedback |
@@ -298,11 +303,12 @@ S1 评审时**必须**意识到：
 ## 代码入口
 
 ```python
-from ai_workflow.requirement_reviewer_auto import auto_review_requirement
+# S1 的 5 维度评分和判决由 LLM 执行（通过 /aidocx-s1-review 或 conversation_skills 协作触发）
+# 材料门禁使用（不产生评分、不影响 quality_level）：
+from ai_workflow.requirement_reviewer_auto import check_material_gate
 
-result = auto_review_requirement(requirement_text)
-# result['verdict'] ∈ {'PASS', 'NEEDS_REVISION', 'REJECT'}
-# result['score_total'] ∈ [0.0, 10.0]
+gate = check_material_gate(requirement_text)
+# gate["gate_passed"]: True = 进入 S1 LLM 评审 / False = 物料门禁失败
 ```
 
 ---

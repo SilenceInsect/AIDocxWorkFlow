@@ -338,10 +338,44 @@ S2 执行前必须读取 `exit_permission.json`，根据其中字段调整拆解
 | `rule` | S2 应补充的保底规则内容 |
 | `source` | `clarification`（来自人工澄清）/ `derivation`（AI推导）/ `default`（默认值） |
 
-**消费方式**：
-- 拆解时若遇到 `trigger` 所指的缺失字段，按 `rule` 内容补充
-- 保底规则生成的需求对象，需在字段中注明「来源：fallback」
-- 拆解完成后，统计本次应用的 fallback_rules 条数
+**消费方式**：当 `quality_level = LOW` 时，对每条 `fallback_rules[]` 执行以下落地操作：
+
+**在 backlog.md 中生成对应 Story**：
+
+```markdown
+### {EpicID}-{N}: [fallback] {来源字段} 补充
+**来源**: fallback_rule — {trigger}
+**说明**: {rule 内容}
+**Source**: fallback
+**Acceptance Criteria**:
+- [开发验收] ...
+- [测试验收] ...
+- [策划数值验收] ...
+```
+
+**在 backlog.json 的对应 Story 中**：
+
+```json
+{
+  "id": "CONFIG-001-002",
+  "title": "[fallback] 礼包档位字段校验补充",
+  "source": "fallback",
+  "fallback_trigger": "终版需求.md 缺礼包档位说明",
+  "fallback_rule": "默认每档位最低1元，最高9999元"
+}
+```
+
+**物量上报**：拆解完成后，在 backlog.json 顶层统计：
+
+```json
+{
+  "fallback_rules_applied": 3,
+  "fallback_rules_total": 3,
+  "fallback_stories_generated": 3
+}
+```
+
+S5 前置材料审查时，检查 `fallback_stories_generated` 与 `fallback_rules_total` 是否一致。
 
 ### 2. quality_level — 拆解深度调整
 
@@ -374,10 +408,17 @@ S2 执行前必须读取 `exit_permission.json`，根据其中字段调整拆解
 
 ## 输入审查（门禁前置条件）
 
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S2 阶段**输入物料门禁 + Epic 拆解精度门禁**的细化定义（**非全阶段门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **配置常量 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §4.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#43-配置常量)（参考 `S2_MIN_ACCURACY`）
+> - **本表是 S2 阶段独有门禁**（exit_permission.json + PURCHASE_STRONG 3段 + Object 9字段），**全阶段门禁表**（速查）见 SSOT §2.3。
+> - 本表不可独立编辑；任何阈值变更**必须**先修改 SSOT，再回写本表。
+
 | 检查项 | 要求 | 缺失时 |
 |--------|------|--------|
 | exit_permission.json 存在 | 必须存在 | 生成失败报告 |
 | can_proceed_to_s2 == true | P0 反馈已填写 | 生成失败报告 |
+| PURCHASE_STRONG 3段补齐 | `exit_permission.json` 中 `purchase_strong_closure.three_section_closure` 全部 true | 若策划验收段缺失，在 backlog 中标注「需策划补充验收方案」|
 | 终版需求.md 存在 | 内容完整 | 生成失败报告 |
 | Epic 数量 | ≥ 1 | 生成失败报告 |
 | 每个 Story 有 ≥ 2 条 AC | 必须满足（区分三类验收） | 补充提示 |
@@ -397,6 +438,7 @@ S2 执行前必须读取 `exit_permission.json`，根据其中字段调整拆解
 | 物量守恒 | `summary.feature_point_count` == `Σ 各 Object FPs` | S2 失败 |
 | 派生链完整 | 每个 Object 在 requirement_objects.md 中显式列出"从哪些字段派生出了哪些 FP" | 补充派生链 |
 | 字段级 FP 覆盖 | Object 5 个核心字段（normal_flow / exception_flow / data_change / output_display / verify_method）每个至少派生 ≥ 1 个 FP | 字段旁标【待补充】+ 原因 |
+| fallback_stories 物量 | backlog.json 顶层 `fallback_stories_generated` == `fallback_rules_total` | 警告（S5 依赖此字段验证 fallback 是否落地）|
 
 ---
 

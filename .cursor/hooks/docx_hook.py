@@ -48,7 +48,7 @@ def read_req(refs: list[str]) -> str | None:
 def auto_flow(req_text: str, version: str) -> dict:
     try:
         sys.path.insert(0, str(_PROJECT_ROOT))
-        from ai_workflow.requirement_reviewer_auto import auto_review_requirement
+        from ai_workflow.requirement_reviewer_auto import check_material_gate
         from ai_workflow.test_case_formatter import (
             _auto_breakdown_requirement,
             compose_test_points_from_structure,
@@ -57,7 +57,9 @@ def auto_flow(req_text: str, version: str) -> dict:
         from ai_workflow.excel.test_case_writer import write_test_cases
         from ai_workflow.config import get_version_dir
 
-        ar = auto_review_requirement(req_text)
+        gate = check_material_gate(req_text)
+        if not gate["gate_passed"]:
+            return {"ok": False, "error": gate["reason"]}
         bd = _auto_breakdown_requirement(req_text, version)
         tp = compose_test_points_from_structure(bd)
         cases, meta = _auto_generate_test_cases(tp, bd, version)
@@ -73,8 +75,6 @@ def auto_flow(req_text: str, version: str) -> dict:
 
         return {
             "ok": True,
-            "verdict": ar.get("verdict", "PASS"),
-            "score": ar.get("score_total"),
             "epics": len(bd.get("epics", [])),
             "stories": sum(len(e.get("stories", [])) for e in bd.get("epics", [])),
             "test_points": len(tp),
@@ -112,9 +112,8 @@ def build_result_prompt(result: dict, version: str) -> str:
     if not result.get("ok"):
         return "\n".join(lines + [f"**状态**: ❌ 执行失败\n**错误**: `{result.get('error','')}`"])
 
-    v = result["verdict"]
     lines += [
-        f"**S1 需求审查**: {'✅' if v=='PASS' else '⚠️'} score={result.get('score','N/A')}/10 → {v}",
+        "**S1 需求审查**: 材料门禁通过（评分由 LLM 按 STAGE_S1_REVIEW.mdc 执行）",
         f"**S2 需求分解**: ✅ {result['epics']} Epic / {result['stories']} Story",
         f"**S4 测试点**: ✅ {result['test_points']} 个",
         f"**S5 测试用例**: ✅ {result['test_cases']} 条",

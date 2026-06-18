@@ -25,16 +25,13 @@ def compose_test_points_from_structure(
     version: str = "v1.0",
 ) -> dict:
     """
-    从 backlog.json 自动生成测试点结构骨架。
+    从 backlog.json 生成测试点结构骨架。
 
-    每个 Story 生成 6 个测试点：
-      2×正向路径（主要功能）
-      2×异常路径（边界/错误）
-      1×等价类
-      1×边界值
-
-    AI 只需要填充 scenario_test_points（简化版字段）。
-    Python 自动填充其他结构化字段。
+    骨架仅保留 Story 原始信息，不预填任何推导字段。
+    `scenario_test_points[]` 完全由 LLM 按 SKILL.md §1.4 推理填入：
+    - 4 类型枚举（POSITIVE/BOUNDARY/NEGATIVE/EXCEPTION）
+    - 8 模块（UI/BIZ/CONFIG/AUX/LINK/LOG/SPECIAL/HINT）
+    - s4_reference、applies_rule、is_assumed 等必填字段
 
     返回:
         dict: {
@@ -46,9 +43,11 @@ def compose_test_points_from_structure(
                     "story_id": "BIZ-PURCHASE-001",
                     "title": "购买确认流程",
                     "module": "BIZ",
-                    "equivalence_classes": [...],   # 自动生成
-                    "boundary_values": [...],        # 自动生成
-                    "scenario_test_points": [],        # AI 填充
+                    "precondition": "...",
+                    "input_data": "...",
+                    "expected_output": "...",
+                    "acceptance_criteria": [...],
+                    "scenario_test_points": [],   # LLM 推理填入
                 }
             ]
         }
@@ -66,26 +65,12 @@ def compose_test_points_from_structure(
         epic_id   = epic["id"]
         epic_mod  = epic.get("module", epic_id.split("-")[0])
         for story in epic.get("stories", []):
-            sid  = story["id"]
-            title = story["title"]
-            acs  = story.get("acceptance_criteria", [])
-            pre  = story.get("precondition", "")
-            inp  = story.get("input_data", "")
-            out  = story.get("expected_output", "")
-
-            # 从 acceptance_criteria 提取等价类关键词
-            keywords = set()
-            for ac in acs:
-                keywords.update(re.findall(r"[\w]{2,}", ac))
-            kw_list = list(keywords)[:10]
-
-            # 从输入数据提取参数
-            params = [p.strip() for p in re.split(r"[，,、/]", inp) if p.strip()] if inp else []
-
-            # 自动生成等价类
-            eq_classes = _derive_equivalence_classes(story)
-            # 自动生成边界值
-            bv = _derive_boundary_values(params)
+            sid    = story["id"]
+            title  = story["title"]
+            acs    = story.get("acceptance_criteria", [])
+            pre    = story.get("precondition", "")
+            inp    = story.get("input_data", "")
+            out    = story.get("expected_output", "")
 
             result["stories"].append({
                 "story_id": sid,
@@ -96,67 +81,12 @@ def compose_test_points_from_structure(
                 "input_data": inp,
                 "expected_output": out,
                 "acceptance_criteria": acs,
-                "equivalence_classes": eq_classes,
-                "boundary_values": bv,
-                "module_coverage": epic_mod,
-                "keywords": kw_list,
-                "scenario_test_points": [],   # AI 填
+                "scenario_test_points": [],   # LLM 按 SKILL.md §1.4 推理填入
             })
 
     return result
 
 
-def _derive_equivalence_classes(story: dict) -> list:
-    """从 Story 自动推导等价类。"""
-    title = story.get("title", "")
-    inp   = story.get("input_data", "")
-    classes = []
-
-    # 数值型参数
-    if re.search(r"\d", inp):
-        classes.extend([
-            {"id": "EC1", "type": "normal", "description": "正常有效值", "example": "有效范围内数值"},
-            {"id": "EC2", "type": "boundary", "description": "边界值（下限）", "example": "最小值"},
-            {"id": "EC3", "type": "boundary", "description": "边界值（上限）", "example": "最大值"},
-            {"id": "EC4", "type": "invalid", "description": "无效值", "example": "负数/0/超出范围"},
-        ])
-
-    # 余额/价格相关
-    if any(kw in title + inp for kw in ["余额", "价格", "金额", "支付"]):
-        classes.extend([
-            {"id": "EC5", "type": "normal", "description": "余额充足", "example": "余额 >= 所需金额"},
-            {"id": "EC6", "type": "invalid", "description": "余额不足", "example": "余额 < 所需金额"},
-        ])
-
-    # VIP/折扣相关
-    if any(kw in title for kw in ["VIP", "折扣", "促销"]):
-        classes.extend([
-            {"id": "EC7", "type": "normal", "description": "VIP有效等级", "example": "VIP1/2/3"},
-            {"id": "EC8", "type": "invalid", "description": "非VIP用户", "example": "普通用户"},
-        ])
-
-    # 如果没有提取到，返回通用类
-    if not classes:
-        classes = [
-            {"id": "EC1", "type": "normal", "description": "正常路径", "example": "满足前置条件"},
-            {"id": "EC2", "type": "error", "description": "异常路径", "example": "不满足前置条件"},
-        ]
-
-    return classes[:6]
-
-
-def _derive_boundary_values(params: list) -> list:
-    """从输入参数推导边界值。"""
-    bv = []
-    for i, p in enumerate(params[:4]):
-        p_clean = re.sub(r"[^\w]", "", p)
-        bv.extend([
-            {"param": p, "param_clean": p_clean, "boundary": "min", "value": 1,  "desc": f"{p}最小值"},
-            {"param": p, "param_clean": p_clean, "boundary": "max", "value": 99,  "desc": f"{p}最大值"},
-            {"param": p, "param_clean": p_clean, "boundary": "zero", "value": 0,  "desc": f"{p}为零"},
-            {"param": p, "param_clean": p_clean, "boundary": "negative", "value": -1, "desc": f"{p}为负数"},
-        ])
-    return bv
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -527,6 +457,35 @@ def migrate_test_points_file(json_path: str | Path, *, in_place: bool = False) -
                     })
                     node[enum_field] = new_enum
 
+        # S5 v3 schema 迁移（v1.0 → v3）
+        # id → tp_id
+        if "id" in node and "tp_id" not in node:
+            migrations.append({
+                "path": f"{path}.id",
+                "from": node["id"],
+                "to": node["id"],
+                "reason": "v3-schema: id → tp_id（字段重命名）",
+            })
+            node["tp_id"] = node.pop("id")
+        # type → test_point_type
+        if "type" in node and "test_point_type" not in node:
+            migrations.append({
+                "path": f"{path}.type",
+                "from": node["type"],
+                "to": node["type"],
+                "reason": "v3-schema: type → test_point_type（字段重命名）",
+            })
+            node["test_point_type"] = node.pop("type")
+        # title → description（仅对 scenario_test_points 条目生效）
+        if "title" in node and "description" not in node:
+            migrations.append({
+                "path": f"{path}.title",
+                "from": node["title"],
+                "to": node["title"],
+                "reason": "v3-schema: title → description（字段重命名）",
+            })
+            node["description"] = node.pop("title")
+
     # 兼容三种结构：
     # 1. test_points.json 顶层 {"stories": [...]}（compose_test_points_from_structure 输出）
     # 2. test_points.json 顶层 [...]（直接列表）
@@ -591,7 +550,12 @@ def migrate_test_points_file(json_path: str | Path, *, in_place: bool = False) -
 
 
 def _cli_migrate_modules(argv: list[str]) -> int:
-    """CLI 入口：`python test_case_formatter.py --migrate-modules <json> [--in-place]`"""
+    """CLI 入口：
+    `python test_case_formatter.py --migrate-modules <json> [--in-place]`
+    迁移内容：
+    1. v1.1→v1.2/v1.7 旧枚举升级（module / test_point_type）
+    2. S5 v3 schema（v1.0→v3）：id→tp_id, type→test_point_type, title→description
+    """
     import argparse
     ap = argparse.ArgumentParser(
         prog="test_case_formatter.py",

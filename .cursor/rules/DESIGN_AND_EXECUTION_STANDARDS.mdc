@@ -1,0 +1,459 @@
+---
+description: 全局执行约束与跨阶段决策逻辑。AIDocxWorkFlow 所有阶段共享，贯穿 S1→S2→S4→S5→S6→S7→S8 全链路。
+alwaysApply: true
+---
+
+# AIDocxWorkFlow 全局执行约束与跨阶段决策
+
+> **适用对象**：所有阶段
+> **模块定义**：[`.cursor/MODULES.md`](./MODULES.md)（项目级唯一真相源）
+> **各阶段规范**：[`.cursor/rules/`](.)STAGE_S*.mdc（阶段完整定义，含必读材料 + push 块 + 质量门禁）
+> **各阶段技能**：[`.cursor/skills/`](.)aidocx-*/SKILL.md（阶段执行入口）
+
+---
+
+## 维护规范
+
+| 职责 | 文件 |
+|------|------|
+| 模块定义/边界/枚举/种子 TP / O_boundary | `.cursor/MODULES.md` + `workflow_assets/module_templates/<MODULE>/` |
+| 阶段规范/必读材料/push 块/质量门禁/产出格式 | `.cursor/rules/STAGE_S*.mdc` |
+| 技能操作/执行入口/必读材料清单/push 块 | `.cursor/skills/aidocx-*/SKILL.md` |
+| 本文件 | 跨阶段判决/跨模块规则/is_assumed/全局违规认定 |
+
+---
+
+## 1. 分模块（Module Boundaries）
+
+### 1.1 模块定义原则
+
+- **单一职责**：每个模块负责一个明确的业务领域
+- **边界清晰**：模块间通过标准化接口交互，不直接依赖内部实现
+- **可组合性**：模块可独立调用，也可串联形成完整流程
+
+### 1.2 标准模块分类
+
+| 模块标识 | 业务领域 | 典型产出 | 依赖模块 |
+|---------|---------|---------|---------|
+| `req` | 需求工程 | 终版需求.md、requirement_objects | — |
+| `backlog` | 迭代管理 | backlog.md、backlog.json | req |
+| `flow` | 业务流程 | business_flow.md、flowchart | backlog |
+| `proto` | 原型设计 | prototype.md、prototype.json | backlog |
+| `tp` | 测试点 | test_points.json | backlog、flow |
+| `tc` | 测试用例 | test_cases.md/json/xlsx | tp |
+| `review` | 质量评审 | review_report.md | tc |
+| `iterate` | 持续改进 | iteration.md、feedback_archive | review |
+
+### 1.3 模块间依赖规则
+
+```
+req → backlog → flow
+                → proto
+                → tp → tc → review → iterate
+```
+
+- 上游模块为下游提供输入，不可逆流
+- 模块可跳过（人工介入），但必须显式记录
+- 跨模块调用必须通过标准化接口文件（JSON/Markdown）
+
+### 1.4 模块版本管理
+
+- 每个模块产出独立版本号：`v1.0`、`v1.1`、`v2.0`
+- 大版本变更：需求范围重大调整
+- 小版本变更：局部修正、补充
+- 版本继承：下游模块需记录所依赖的上游版本
+
+---
+
+## 2. 全阶段行为准则（Stage-wide Behavior）
+
+### 2.1 通用执行流程
+
+```
+输入审查 → 材料提取 → 质量门禁 → 产出生成 → 失败报告（如需）
+```
+
+### 2.2 输入审查规则
+
+| 检查项 | 失败条件 | 处理方式 |
+|-------|---------|---------|
+| 文件存在性 | 依赖文件缺失 | 生成 `fail_report_S*.md`，停止执行 |
+| 格式有效性 | JSON 解析失败、非 UTF-8 编码 | 生成失败报告，停止执行 |
+| 内容完整性 | 必填字段缺失 | 返回人工补全请求 |
+| 语义正确性 | 评分 < 阈值 | 进入澄清流程或生成失败报告 |
+
+### 2.3 质量门禁（Quality Gate）
+
+> **SSOT 声明（Single Source of Truth）**：
+> - **本表是"全阶段门禁速查表"**——全项目唯一权威定义，任何修改**必须先改本节再同步引用方**。
+> - **本表不是规则定义**。判定逻辑、阈值常量、缺漏处理、跨阶段约束等**完整定义**见 `STAGE_S*.mdc` 对应节 + §4.3 配置常量。
+> - **强制阅读指令**：任何阶段执行时（LLM/脚本/人）**必须先读本表确认当前阶段的门禁类型与判定规则**，再读取 `STAGE_S<当前阶段>*.mdc` 对应细化定义。
+
+| 阶段 | 门禁类型 | 判定规则（速查） |
+|-----|---------|---------|
+| S1 | 评分门禁 | ≥ 7.0/10.0 → 进入澄清；< 7.0 → 失败报告 |
+| S1.5 | 字段门禁 | P0 项 100% 填写 → 通过；否则阻塞 |
+| S2 | 精度门禁 | Epic 拆解精度 ≥ 90% |
+| S5 | 指导建议 | ≥ 6 测试点/Story（指导值，按业务风险灵活调整） |
+| S6 | 完整性门禁 | 必填字段 100% 填写 |
+| S7 | 覆盖率门禁 | 风险覆盖率 ≥ 85%，结构完整性 ≥ 90% |
+
+### 2.4 失败报告规范
+
+所有阶段必须遵循以下失败报告模板：
+
+```markdown
+# S* 阶段失败报告
+
+## 基本信息
+- **需求名称**：[req_name]
+- **阶段**：S* [阶段名称]
+- **执行时间**：[timestamp]
+- **失败原因**：[enum: INPUT_MISSING | FORMAT_INVALID | QUALITY_FAILED | PROCESS_ERROR]
+
+## 失败详情
+[具体错误描述]
+
+## 修复建议
+1. [具体操作步骤]
+2. [...]
+
+## 原始输入摘要
+[文件路径、大小、关键字段]
+```
+
+### 2.5 版本号规则
+
+- **初始版本**：`v1.0`
+- **修正版本**：`v1.1`、`v1.2`（格式修正、内容补充）
+- **大版本**：`v2.0`（需求范围变更、重新执行全流程）
+- **版本记录**：每个输出目录包含 `version_history.md`
+
+### 2.6 目录结构规范
+
+```
+workflow_assets/
+ <req_name>/                              ← 需求名称（如 "游戏道具商城系统"）
+ 「S1 需求评审」/                        ← 阶段名（中文书名号）
+ <version>/                              ← 版本号（如 v1.0 / v2.1）
+ raw/                                    ← 原始物料（用户上传的 .docx/.doc 原文件，保留不改）
+ extracted/                              ← 提取加工后的物料（Markdown + OCR + 重命名图片）
+ review_report.md                        ← S1 评审报告
+ review_report.json
+ clarification_checklist.md              ← 待确认问题清单（人工填写）
+ 终版需求.md                              ← S1 草稿 + S1.5 完善后的最终需求
+ requirement_objects.md/json              ← 需求对象结构化表示
+ 「S2 需求拆解」/
+ ...
+```
+
+---
+
+## 3. 设计准则（Design Guidelines）
+
+### 3.1 代码结构原则
+
+| 原则 | 说明 | 违反处理 |
+|-----|------|---------|
+| **DRY** | Don't Repeat Yourself | 重复代码 > 3 处 → 重构为共享函数 |
+| **KISS** | Keep It Simple, Stupid | 超过 50 行函数 → 拆分 |
+| **YAGNI** | You Aren't Gonna Need It | 预留功能无调用 → 删除 |
+| **单一出口** | 函数只在一个点返回 | 多返回点需评审 |
+
+### 3.2 命名规范
+
+| 类型 | 规范 | 示例 |
+|-----|------|------|
+| 文件名 | `snake_case` | `test_points_generator.py` |
+| 类名 | `PascalCase` | `TestPointGenerator` |
+| 函数名 | `snake_case` | `generate_test_points()` |
+| 常量 | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT = 3` |
+| 配置项 | `snake_case` | `output_dir` |
+| JSON 键 | `snake_case` | `"test_point_id"` |
+| Markdown 标题 | `# Title Case` | `# 需求评审报告` |
+
+### 3.3 错误处理规范
+
+```python
+# 标准错误处理模式
+try:
+    result = execute_operation()
+except ValidationError as e:
+    log_error(f"Validation failed: {e}")
+    raise StageExecutionError(stage="S*", reason="validation_failed")
+except FileNotFoundError as e:
+    log_error(f"Required file missing: {e}")
+    raise InputMissingError(file=str(e))
+except Exception as e:
+    log_error(f"Unexpected error: {e}")
+    raise
+```
+
+### 3.4 日志规范（Pipeline 代码执行日志）
+
+> **适用范围**：本节是**代码执行层面**的日志标准，供 `ai_workflow/` 各阶段的 Python Pipeline 脚本使用。
+> **与 LOG 模块的区别**：
+> - **本节（Pipeline Logging）**：记录 AI Pipeline 代码的执行路径、输入输出、异常追踪
+> - **MODULES.md 中的 LOG（日志/审计）**：业务层面的日志需求（如"操作日志记录哪些字段"），用于 S5 生成测试点
+> 两者不在同一层次，不会产生混淆。
+
+| 级别 | 使用场景 | 格式 |
+|-----|---------|------|
+| `DEBUG` | 详细执行路径、变量值 | `DEBUG: Processing item {id}, value={value}` |
+| `INFO` | 阶段开始/结束、关键决策点 | `INFO: S5 started, input={file}` |
+| `WARNING` | 可恢复错误、降级处理 | `WARN: Missing optional field {field}, using default` |
+| `ERROR` | 操作失败、需要人工介入 | `ERROR: Failed to parse JSON at line {n}` |
+
+### 3.5 配置管理
+
+- 所有可配置项集中于 `config.py` 或环境变量
+- 硬编码阈值 → 配置常量
+- 路径使用 `Path` 对象而非字符串拼接
+- 敏感信息（API Key）使用环境变量，不写入代码
+
+### 3.6 测试规范
+
+| 组件类型 | 测试要求 |
+|---------|---------|
+| 工具函数 | 单元测试，覆盖边界条件 |
+| 解析器 | 格式容错测试（空文件、畸形输入） |
+| 生成器 | 集成测试，输入标准样本，验证输出格式 |
+| 阶段入口 | 端到端测试，验证完整流程 |
+
+---
+
+## 4. 全局定义（Global Definitions）
+
+### 4.1 枚举定义
+
+#### 4.1.1 阶段状态（StageStatus）
+
+```python
+class StageStatus(Enum):
+    PENDING = "pending"          # 等待执行
+    RUNNING = "running"         # 执行中
+    PASSED = "passed"           # 通过
+    FAILED = "failed"           # 失败
+    SKIPPED = "skipped"         # 跳过（人工介入）
+    BLOCKED = "blocked"         # 阻塞（等待前置条件）
+```
+
+#### 4.1.2 失败原因（FailureReason）
+
+```python
+class FailureReason(Enum):
+    INPUT_MISSING = "input_missing"      # 输入文件缺失
+    FORMAT_INVALID = "format_invalid"      # 格式无效
+    QUALITY_FAILED = "quality_failed"      # 质量不达标
+    PARSE_ERROR = "parse_error"            # 解析错误
+    PROCESS_ERROR = "process_error"        # 处理过程错误
+    TIMEOUT = "timeout"                   # 执行超时
+```
+
+#### 4.1.3 优先级（Priority）
+
+```python
+class Priority(Enum):
+    P0 = "p0"   # 阻塞性问题，必须修复
+    P1 = "p1"   # 重要缺陷，建议修复
+    P2 = "p2"   # 一般问题，可选修复
+    P3 = "p3"   # 轻微问题，忽略即可
+```
+
+#### 4.1.4 建议类型（SuggestionType）
+
+```python
+class SuggestionType(Enum):
+    MUST_FIX = "must_fix"       # 必修（影响功能）
+    SHOULD_FIX = "should_fix"   # 应改（影响体验）
+    COULD_FIX = "could_fix"     # 可改（优化建议）
+```
+
+### 4.2 数据结构定义
+
+#### 4.2.1 通用元数据（CommonMeta）
+
+> **版本规则（增量迭代）**：
+> - `version` 标识**同一需求文档**的迭代版本，**初始版本为 `v1.0`**
+> - 后续同一需求文档可创建新版本（如 `v2.0`/`v2.1`），表示"商城优化2.1"等增量变更
+> - **版本语义**：
+>   - `vN.0`：需求范围大幅调整（如新增模块、重构核心流程）→ **全量重生成**
+>   - `vN.M (M≥1)`：增量优化/补丁 → **仅生成变更点**（改动点拆解 + 增量 TP/TC）
+> - **流转规则**：
+>   - S1 评审时需识别"自上一版本（vN.M-1）以来的**改动点**（diff）"，写入 `requirement_objects.json#changelog`
+>   - S2 拆解：复用历史版本的 Story，新增"vN.M 改动 Story"挂到对应 Epic
+>   - S3-S7：基于 `changelog` 过滤，只对**新增/变更的 Story** 产生 TP/TC
+>   - S8：跨版本对比，识别新增缺陷模式
+> - **目录结构**：`workflow_assets/<req_name>/「S2 需求拆解」/<version>/...`（不同版本独立目录）
+
+```json
+{
+  "meta": {
+    "req_name": "需求名称",
+    "stage": "S5",
+    "stage_name": "测试点生成",
+    "version": "v1.0",
+    "created_at": "2026-06-15T18:00:00+08:00",
+    "created_by": "AIDocxWorkFlow",
+    "dependencies": {
+      "S2": "v1.0",
+      "S4": "v1.0"
+    }
+  }
+}
+```
+
+#### 4.2.2 执行上下文（ExecutionContext）
+
+```python
+@dataclass
+class ExecutionContext:
+    req_name: str
+    stage: StageStatus
+    version: str
+    input_dir: Path
+    output_dir: Path
+    config: Dict[str, Any]
+    logger: Logger
+    metadata: CommonMeta
+```
+
+### 4.3 质量阈值常量
+
+| 常量 | 值 | 说明 | 统计公式 |
+|------|------|------|----------|
+| `S1_MIN_SCORE` | 7.0 | S1 通过最低评分 | `总分 = Σ(维度权重 × 维度得分)` <br> 完整性(25%) + 清晰度(25%) + 一致性(20%) + 可测试性(20%) + 可行性(10%) |
+| `S2_MIN_ACCURACY` | 0.90 | S2 Epic 拆解最低精度 | `精度 = (Epic 正确拆解数) / (Epic 总数)` |
+| `S4_ANOMALY_COVERAGE` | **1.0** | S4 异常路径覆盖率（**必须 100%**，未覆盖部分需显式标注原因） | `覆盖率 = (S5 TP 引用叶子数) / (S4 产出叶子总数)` |
+| `S5_MIN_TP_PER_STORY` | ≥ 6（指导值） | S5 每 Story 测试点数量建议值（实际按业务风险灵活调整） | `每 Story TP 数 = Σ(Story_i 的 TP 总数) / Story 总数` |
+| `S7_COVERAGE_THRESHOLD` | 0.85 | S7 最低覆盖率 | `覆盖率 = (S5 TP 覆盖的风险点数) / (S4 风险点总数)` |
+| `S7_STRUCTURE_THRESHOLD` | 0.90 | S7 最低结构完整性 | `完整性 = (格式正确的用例数) / (用例总数)` |
+| `S8_MIN_SUGGESTIONS` | 3 | S8 最少可执行建议数 | `可执行建议数 = 审查报告中有明确执行路径的建议条数` |
+
+### 4.3.1 异常路径覆盖率统计公式
+
+> ⚠️ **风险警示**：未覆盖的异常路径可能在生产环境造成更高成本的风险（如资金损失、合规问题、用户体验崩坏）。因此覆盖率目标为 **1.0（100%）**，未覆盖部分必须显式记录原因，由业务方决策是否接受风险。
+
+**统计流程**：
+
+```
+S4 产出异常树叶子节点（格式：S4-{EpicID}-X.Y.Z）
+        ↓
+S5 生成 TP 时引用 s4_reference / exception_leaf
+        ↓
+S7 审查员 B 校验覆盖率
+```
+
+**计算公式**：
+
+```
+异常路径覆盖率 = S5 TP 引用的异常树叶子节点数 / S4 产出的异常树叶子节点总数
+```
+
+**示例**：
+
+| 指标 | 值 |
+|-----|---|
+| S4 产出叶子节点 | 20 个 |
+| S5 引用叶子节点 | 18 个 |
+| 未覆盖叶子节点 | 2 个（需显式标注原因） |
+| 异常路径覆盖率 | 18/20 = 0.90 |
+| 阈值要求 | 1.0（100%） |
+| 判定结果 | 未达标，需补充或记录原因 |
+
+**未覆盖节点处理规则**：
+
+1. **显式标注**：在 S5 test_points.json 中，未覆盖的叶子节点标记为 `covered: false` + `skip_reason`
+2. **原因分类**：
+   - `deprecated`：该路径已被废弃
+   - `out_of_scope`：明确不在本期需求范围
+   - `low_risk`：业务评估为低风险，选择性跳过
+   - `manual_test`：仅人工测试，不纳入 TP
+   - `unknown`：S5 阶段无法理解该异常，需回溯 S4 澄清
+3. **S7 审查**：审查员 B 验证未覆盖节点是否均有合理的 `skip_reason`
+
+### 4.4 文件命名规范
+
+| 文件类型 | 命名模式 | 示例 |
+|---------|---------|------|
+| 原始需求 | `<req_name>_raw.<ext>` | `商城系统_raw.docx` |
+| 提取文本 | `extracted_text.md` | — |
+| 评审报告 | `review_report.md/json` | — |
+| 澄清清单 | `clarification_checklist.md` | — |
+| 终版需求 | `终版需求.md` | — |
+| 准出许可 | `exit_permission.json` | — |
+| Backlog | `backlog.md/json` | — |
+| 流程图 | `business_flow.md/json` | — |
+| 原型 | `prototype.md/json` | — |
+| 测试点 | `test_points.json` | — |
+| 测试用例 | `test_cases.md/json/xlsx` | — |
+| 失败报告 | `fail_report_S*.md` | `fail_report_S5.md` |
+| 版本历史 | `version_history.md` | — |
+
+### 4.5 目录层级常量
+
+```python
+ROOT_DIR = Path("workflow_assets")
+STAGE_PATTERNS = {
+    "S1": "「S1 需求评审」",
+    "S1.5": "「S1.5 业务澄清」",
+    "S2": "「S2 需求拆解」",
+    "S2.5": "「S2.5 迭代规划」",
+    "S3": "「S3 原型导出」",
+    "S4": "「S4 流程图导出」",
+    "S5": "「S5 测试点生成」",
+    "S6": "「S6 测试用例生成」",
+    "S7": "「S7 用例审查」",
+    "S8": "「S8 自迭代」",
+}
+```
+
+### 4.6 标准化字段映射
+
+| 业务字段 | JSON 键 | Markdown 锚点 |
+|---------|---------|--------------|
+| 测试点 ID | `test_point_id` | `# TP-{ID}` |
+| 用例 ID | `test_case_id` | `# TC-{ID}` |
+| Story ID | `story_id` | `## Story-{ID}` |
+| Epic ID | `epic_id` | `# Epic-{ID}` |
+| 模块标识 | `module` | `### [模块]` |
+| 优先级 | `priority` | `> 优先级: P0` |
+
+---
+
+## 5. 跨阶段判决规则（Cross-Stage Decisions）
+
+### 5.1 阶段跳转规则
+
+```
+S1 PASS (≥7.0) → S1.5 澄清流程
+S1 FAIL (<7.0) → fail_report_S1 → 等待人工介入
+S1.5 P0 全部填写 → exit_permission.can_proceed = true → S2
+S2 执行 → S3/S4/S5 并行可选
+S5 → S6 → S7
+S7 overall_pass = true → 流程结束
+S7 overall_pass = false → S8 自迭代
+```
+
+### 5.2 is_assumed 标记规则
+
+当上游材料缺失关键信息时：
+
+1. 标记 `is_assumed: true`
+2. 记录假设内容到 `assumption_log.md`
+3. 在下游产出中明确标注
+4. S7 审查时重点验证假设合理性
+
+### 5.3 全局违规认定
+
+以下行为视为全局违规：
+
+| 违规类型 | 描述 | 处理方式 |
+|---------|------|---------|
+| 硬编码阈值 | 阈值未集中管理 | 需重构到 `config.py` |
+| 跨模块直接调用 | 未通过标准化接口 | 需重构解耦 |
+| 忽略失败报告 | 未生成 `fail_report_*` | 需补全 |
+| 版本号混乱 | 未遵循版本规范 | 需规范化 |
+| 路径硬编码 | 未使用 `Path` 对象 | 需重构 |
+
+---

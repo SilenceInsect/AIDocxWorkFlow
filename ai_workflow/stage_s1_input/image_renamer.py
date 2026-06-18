@@ -103,29 +103,100 @@ class ImageRenamer:
         text_lower = text.lower()
         matched: list[tuple[str, float, list[str]]] = []
 
+        # ── 1. Keyword 匹配（优先使用）───────────────────────────────────
+        # 改进：计算 weighted score，每个 tag 的命中权重不同
+        tag_weights = {
+            "ui_prototype": 1.0,
+            "flow_chart":   1.2,   # 流程图关键词更精准，适当加权
+            "data_schema":  1.3,   # 字段/表结构等词高度特异
+            "sequence_diagram": 1.1,
+            "architecture": 1.2,
+            "table":        1.3,   # 表格关键词高度特异
+            "screenshot":   0.7,   # 截图关键词较泛用，降低权重
+            "diagram":      0.5,   # 图/示意图最泛用，最低权重
+        }
         for tag, keywords in SEMANTIC_TAGS.items():
             score = 0.0
             hits: list[str] = []
             for kw in keywords:
                 if kw.lower() in text_lower:
-                    score += 1.0
+                    score += 1.0 * tag_weights.get(tag, 1.0)
                     hits.append(kw)
-
             if score > 0:
+                # 归一化：按关键词总数比例 + 最低置信 0.5
                 confidence = min(score / max(len(keywords) * 0.3, 1), 1.0)
+                confidence = max(confidence, 0.5)
                 matched.append((tag, confidence, hits))
 
         if matched:
             matched.sort(key=lambda x: x[1], reverse=True)
+            top_tag, top_conf, top_hits = matched[0]
+            # 关键词命中高置信 → 直接返回
+            if top_conf >= 0.65:
+                return top_tag, top_conf, top_hits
+            # 中等置信 + 宽高比验证 → 双重确认
+            w, h = img.size
+            aspect = w / h if h > 0 else 1.0
+            # 宽高比与 tag 不符 → 降权
+            if top_tag == "flow_chart" and aspect < 1.3:
+                return (matched[0][0], matched[0][1] * 0.8, matched[0][2]) if len(matched) > 1 else ("ui_prototype", 0.4, [])
+            if top_tag == "ui_prototype" and aspect > 2.5:
+                return (matched[0][0], matched[0][1] * 0.8, matched[0][2]) if len(matched) > 1 else ("flow_chart", 0.4, [])
             return matched[0]
 
+        # ── 2. 无关键词命中 → 宽高比 heuristics ─────────────────────────
         w, h = img.size
-        if w > h * 1.5:
-            return "flow_chart", 0.4, []
-        elif h > w * 1.5:
-            return "ui_prototype", 0.4, []
+        aspect = w / h if h > 0 else 1.0
 
-        return "diagram", 0.3, []
+        # 宽高比更极端 → 更确信是 UI 原型（手机截图竖长；平板横长）
+        if aspect < 0.5:      # 极端竖图（h > 2w）→ 手机 UI 截图
+            return "ui_prototype", 0.55, []
+        if aspect > 3.0:      # 极端横图 → 可能是长流程图或网页 UI
+            return "flow_chart", 0.5, []
+
+        # 中等宽高比（0.5~3.0）→ 尝试颜色分析
+        color_confidence, is_ui_like = self._color_analysis(img)
+        if is_ui_like:
+            # 颜色分布均匀 → UI 原型可能性更高
+            return "ui_prototype", 0.5 + color_confidence * 0.1, []
+
+        # ── 3. 极端横图 → 流程图 ────────────────────────────────────────
+        if aspect > 1.5:
+            return "flow_chart", 0.45, []
+        # 极端竖图 → UI 原型
+        if aspect < 0.67:
+            return "ui_prototype", 0.45, []
+
+        # ── 4. 完全模糊兜底 ──────────────────────────────────────────────
+        # 游戏 PRD 中 UI 原型占比最高，默认给 ui_prototype
+        return "ui_prototype", 0.3, []
+
+    def _color_analysis(self, img: Image.Image) -> tuple[float, bool]:
+        """分析图片颜色分布，判断是否像 UI 原型。
+
+        UI 原型特点：
+        - 颜色数量适中（10~100种），不像照片那样复杂
+        - 有明显色块边界（矩形区域多）
+        - 不像自然照片那样有细腻渐变
+
+        Returns:
+            (confidence, is_ui_like) — confidence ∈ [0, 1]
+        """
+        try:
+            img_small = img.convert("RGB").resize((64, 64))
+            pixels = list(img_small.getdata())
+            unique_colors = len(set(pixels))
+
+            # UI 原型通常颜色种类在 50~5000 之间（过于单调或过于复杂都不是 UI 原型）
+            if 30 <= unique_colors <= 5000:
+                # 适中颜色数 → UI 原型特征更强
+                normalized = unique_colors / 5000
+                confidence = min(normalized * 1.5, 1.0) if unique_colors < 5000 else 0.4
+                return confidence, True
+
+            return 0.0, False
+        except Exception:
+            return 0.0, False
 
     def rename_in_batch(
         self,

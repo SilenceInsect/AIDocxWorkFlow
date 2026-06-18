@@ -53,23 +53,32 @@ Release（版本基线，元数据归集容器，不进 ID 段）
 
 ---
 
-## §1.4 LLM 必读材料（阶段前置）
+## §1.4 必读材料与违规认定
+
+> ⚠️ **违反本节禁令 → 产出不合格，必须补读后重新生成。**
+
+### 违规认定（满足任一 → 产出不合格）
+
+- ❌ 未读取本节材料，直接凭印象生成
+- ❌ 跳过标注"强制"的材料，用其他来源替代
+- ❌ 产出的 module 与材料内容明显不符
+- ❌ 用"业务常识"替代必须读取的材料
+
+### 必读材料清单
 
 **生成任何产出前，必须先 Read 以下材料。禁止凭印象直接生成。**
 
 | # | 材料 | 路径 | 必读原因 |
 |---|---|---|---|
-| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表）| Epic/Story/OBJ 必须有模块前缀；模块分类是 §1.4 边界判定的基准 |
-| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md）| 8 模块边界是拆解的核心约束；尤其是 BIZ vs CONFIG、UI vs HINT、LINK vs AUX |
-| 3 | S1.5 准出许可 | `workflow_assets/<req_name>/「S1 需求评审」/<version>/exit_permission.json` | quality_level / fallback_rules / can_proceed_to_s2 决定拆解深度 |
-| 4 | 终版需求（完善版）| `workflow_assets/<req_name>/「S1 需求评审」/<version>/终版需求.md` | 所有 Epic/Story 的业务来源 |
-| 5 | 模块子模板 | `workflow_assets/module_templates/`（按命中模块）| OBJ 层功能点需按模块子模板判定测试类型和数量 |
+| ① | 8 模块总表 | `.cursor/MODULES.md`（§1 总表）| Epic/Story/OBJ 必须有模块前缀；模块分类是 §1.4 边界判定的基准 |
+| ② | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md）| 8 模块边界是拆解的核心约束；尤其是 BIZ vs CONFIG、UI vs HINT、LINK vs AUX |
+| ③ | S1.5 准出许可（强制） | `workflow_assets/<req_name>/「S1 需求评审」/<version>/exit_permission.json` | quality_level / fallback_rules / can_proceed_to_s2 决定拆解深度；未读取 → 无法执行 |
+| ④ | 终版需求（完善版）| `workflow_assets/<req_name>/「S1 需求评审」/<version>/终版需求.md` | 所有 Epic/Story 的业务来源 |
+| ⑤ | 命中模块子模板 | `workflow_assets/module_templates/<Module>/<Module>.md`（按命中模块）| OBJ 层功能点需按模块子模板判定测试类型和数量 |
 
 ---
 
-## 第一层：Release（版本基线，归集容器）
-
-**定义**：一次完整发布包 / 热更包，作为所有需求的顶层归集容器。
+## 第二层：Release（版本基线，归集容器）
 
 **粒度（指导档位，禁止硬性卡死）**：
 - 完整大版本：4-12 周完整客户端包
@@ -93,6 +102,90 @@ Release（版本基线，元数据归集容器，不进 ID 段）
 ```
 
 **核心作用**：所有 Epic 必须归属唯一 Release，区分迭代基线，避免跨版本需求混杂。
+
+---
+
+## §5 一致性检查（SKILL ↔ Rule 自动对齐）
+
+> **触发时机**：本节读取后、正式执行前。**仅执行一次**（同一次对话中多次触发本阶段，不重复检查）。
+
+**检查类型**：A = 必读材料对齐 / B = 输出路径对齐 / C = 字段名对齐 / D = 模块枚举对齐
+
+```python
+from ai_workflow.consistency_check import run_consistency_check
+
+result = run_consistency_check(stage="s2")
+if not result["passed"]:
+    print(f"[一致性检查] 发现 {len(result['issues'])} 个问题（见日志）")
+```
+
+检查结果不阻断阶段执行，仅输出到日志供人工参考。
+
+---
+
+## §1.5 决策 push 块
+
+> **S2 阶段的关键使命**：跨模块拆 OBJ，否则下游 S5 无法做正确的跨模块 TP。
+
+### §1.5.1 Story `scope_module` 强制填
+
+**决策 push 3 问**（S2 写 Story 时必走）：
+
+- Q1. 这个 Story 的"业务流"涉及哪些模块？（CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT，全 8 选多）
+- Q2. 业务流的"数据/状态变化"会触发哪些 UI/HINT/LOG/SPECIAL 反馈？
+- Q3. 业务流是否涉及第三方/缓存/合规风控？
+
+**3 问任一为"是" → scope_module 必填对应模块**。
+
+### §1.5.2 OBJ 跨模块拆分强制检查
+
+**S2 写 OBJ 必走 4 步**（任一空答 → 暂停补 Read）：
+
+| # | 操作 |
+|---|------|
+| Push 1 | 读 Story.scope_module 字段（由 §1.5.1 推得）|
+| Push 2 | 读命中模块的 `<MODULE>.md`，找该模块涉及的功能点 |
+| Push 3 | 读 MODULES.md §3.5，找跨模块边界对照表 |
+| Push 4 | scope_module 有 N 个模块 → OBJ 必须覆盖 ≥ N 个模块归属 |
+
+### §1.5.3 FP 模糊语义标注
+
+- `is_assumed: true` + `assumption_reason`（说明来源）
+- `ambiguity`（选填，标记未明确区分的业务流，如"邮件通知"未区分类型）
+
+### §1.5.4 OBJ 误标反例强制对照
+
+写 OBJ 前必须扫反例库（BIZ 误判 1-10 / UI 误判 1-5 / HINT 误判 1-8）：
+
+- 与某反例同 pattern → 改 module 或删除
+- 与反例无冲突 → 记录"已对照反例 N，无冲突"
+
+### §1.5.5 OBJ 字段名强约束
+
+| 字段 | 要求 |
+|------|------|
+| `obj_id` | 必填，格式 `{StoryID}-OBJ-{NNN}` |
+| `belong_module` | 必填，Enum: CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT |
+| `obj_name` | 必填 |
+| `scene` | 必填 |
+| `normal_flow` | 必填 |
+| `exception_flow` | 必填 |
+| `data_change` | 必填 |
+| `output_display` | 必填 |
+| `verify_method` | 必填 |
+| `ambiguity` | 选填 |
+
+### §1.5.6 OBJ 5 问质量 push
+
+每个 OBJ 必须能回答 5 问（任一空答 → 不合格，删除或重写）：
+
+| # | 问题 |
+|---|------|
+| Q1 | 这个 OBJ 的业务载体是什么？ |
+| Q2 | 归属哪个模块？（8 选 1）|
+| Q3 | 涉及哪些上下游模块？（scope_module 字段）|
+| Q4 | 异常流程有哪些？（SPECIAL/风控/弱网/…）|
+| Q5 | 对应 S5 TP 必填哪些字段？（module/test_type/s4_reference）|
 
 ---
 
@@ -469,84 +562,6 @@ Release（版本基线，元数据归集容器，不进 ID 段）
 from ai_workflow.conversation_skills import save_stage2_output
 save_stage2_output(version, req_text, raw_output, parsed, req_name)
 ```
-
----
-
-## §1.5 决策 push 块(无硬指标版本,见 [PUSH-V2-ITER-3] 标签)
-
-> **本节是 S2 阶段的决策 push 引导**——S2 阶段的关键使命是"跨模块拆 OBJ",否则下游 S5 无法做正确跨模块 TP。
-
-### §1.5.1 [PUSH-V2-ITER-3] Story `scope_module` 强制填(对应 PROMPT-PUSH-1)
-
-> S2 拆 Story 时,**必须填写 `scope_module` 字段**(Story 涉及的 8 模块子集)。
-> 这是 S2 输出的"跨模块拆 OBJ"源头——后续 OBJ 拆分根据 scope_module 决定数量。
-
-**决策 push 3 问**(S2 写 Story 时必走):
-- Q1. 这个 Story 的"业务流"涉及哪些模块?(CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT 全 8 选多)
-- Q2. 业务流的"数据/状态变化"会触发哪些 UI/HINT/LOG/SPECIAL 反馈?
-- Q3. 业务流是否涉及第三方/缓存/合规风控?
-
-**3 问任一为"是"→ scope_module 必填对应模块**。
-
-### §1.5.2 [PUSH-V2-ITER-3] OBJ 跨模块拆分强制检查(对应 PROMPT-PUSH-2)
-
-> 旧规则已有"归属顶层 8 大模块不同必须拆"——但**没有强制 LLM 主动对照**。
-
-**S2 写 OBJ 必走 4 步**:
-- Push 1: 读 Story.scope_module 字段(由 §1.5.1 推得)
-- Push 2: 读 Story 命中模块的 `<MODULE>.md` 找该模块涉及的 OBJ
-- Push 3: 读 MODULES.md §3.5 找跨模块边界对照表
-- Push 4: **强制对照**——scope_module 有 N 个模块 → OBJ 必须覆盖 ≥ N 个模块归属(允许合并相邻模块)
-
-**4 步任一空答→暂停补 Read**。
-
-### §1.5.3 [PUSH-V2-ITER-3] FP 模糊语义标注(对应 PROMPT-PUSH-3)
-
-> S2 写 FP 时,业务语义模糊的 FP 需标注 `ambiguity` 字段(如"系统邮件通知"业务流没说"游戏内邮件"还是"IM 邮件")。
-
-**FP 字段新增**:
-- `is_assumed`: boolean,默认 false。涉及业务常识假设(如"30 天订单列表")标 true
-- `assumption_reason`: String,说明来源(S2 backlog / 业务常识)
-- `ambiguity`: 选填,标记 S2 拆解时未明确区分的业务流(如"邮件通知"未区分类型)
-
-### §1.5.4 [PUSH-V2-ITER-3] OBJ 误标反例库(对应 PROMPT-PUSH-4)
-
-> 旧版有"实战示例"——但没有"反例对照"。
-
-**S2 写 OBJ 必扫一次反例**:
-- ❌ 误例 1: 把"游戏币支付+人民币支付+回调"3 个 FP 都归 LINK 业务——S2 必须把"游戏币支付"(单系统 BIZ)单独拆 OBJ
-- ❌ 误例 2: 把"缓存数据损坏"归 BIZ——S2 必须看到"缓存"字样就触发 AUX vs BIZ 边界判定
-- ❌ 误例 3: 把"业务审计日志"全归 LOG——S2 必须看到"审计"字样就触发 LOG vs BIZ 边界判定(BIZ-I 业务侧落点 + LOG-B 链路对账 两侧都拆)
-- ❌ 误例 4: 把"系统邮件通知"模糊处理——S2 必须区分"游戏内邮件列表"(HINT 提示反馈)vs"邮件发送流程"(BIZ 业务)vs"IM 邮件"(LINK 第三方)
-
-**LLM 必须在 OBJ 描述中声明"已对照反例 1-4"**。
-
-### §1.5.5 [PUSH-V2-ITER-3] OBJ 字段名强约束(对应 PROMPT-PUSH-5)
-
-**OBJ 必填字段清单**:
-- `obj_id` (String, 必填)
-- `belong_module` (Enum: CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT, 必填)
-- `obj_name` (String, 必填)
-- `scene` (String, 必填)
-- `normal_flow` (String, 必填)
-- `exception_flow` (String, 必填)
-- `data_change` (Enum: 配置/内存/DB/缓存/第三方, 必填)
-- `output_display` (Multi-enum, 必填)
-- `verify_method` (Multi-enum, 必填)
-- `ambiguity` (String, 选填,标记未明确区分的业务流)
-
-**任何字段名拼写错误 → 写错**。
-
-### §1.5.6 [PUSH-V2-ITER-3] OBJ 5 问质量 push(对应 PROMPT-PUSH-6)
-
-**S2 写 OBJ 不要追求数量,先追求质量**。每个 OBJ 必答 5 问:
-1. 这个 OBJ 的业务载体是什么?(配置表/页面/服务/第三方/...)
-2. 归属哪个模块?(8 选 1)
-3. 涉及哪些上下游模块?(scope_module 字段)
-4. 异常流程有哪些?(SPECIAL/风控/弱网/...)
-5. 对应 S5 TP 必填哪些字段?(module/test_type/test_type_subclass/s4_reference)
-
-**5 问任一空答→OBJ 不合格,删除或重写**。
 
 ---
 

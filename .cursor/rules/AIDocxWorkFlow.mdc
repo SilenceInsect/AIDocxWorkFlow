@@ -72,18 +72,12 @@ S2 需求拆解
 
 ## Quality Gate Thresholds
 
-| Stage | Gate | Threshold |
-|-------|------|-----------|
-| S1 | 评审评分（判断是否进入澄清流程） | ≥ 7.0/10.0 |
-| S1.5 | P0 项全部填写 | P0 项 100% 填写 |
-| S2 | Epic 拆解精度 | ≥ 90% |
-| S2.5 | 排期与资源规划 | ≥ 80% |
-| S3 | 原型覆盖度 | 100% UI入口 |
-| S4 | 异常路径覆盖率 | > 80% |
-| S5 | 测试点数量 | ≥ 6/story (2+2+1+1) |
-| S6 | 用例格式完整性 | 100% 必填字段 |
-| S7 | 覆盖率 + 结构完整性 | ≥ 85% + ≥ 90% |
-| S8 | 建议可执行性 | ≥ 3 条可执行建议 |
+> **🚨 强制阅读指令（MANDATORY）**：本节是**快捷参考**（quick reference），**非规则定义**。
+> - **规则定义唯一真相源（SSOT）**：[`.cursor/rules/DESIGN_AND_EXECUTION_STANDARDS.mdc`](./DESIGN_AND_EXECUTION_STANDARDS.mdc) §2.3 质量门禁 + §4.3 配置常量
+> - **本表不可独立编辑**。任何阈值变更**必须**先修改 SSOT，再回写本表同步。
+> - **阶段执行前必须**先读 SSOT §2.3，再读对应 `STAGE_S*.mdc` 的细化定义。
+
+> 详见 [`.cursor/rules/DESIGN_AND_EXECUTION_STANDARDS.mdc`](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate) §2.3。
 
 ---
 
@@ -145,7 +139,6 @@ result = run_s1_pipeline(docx_path, req_name="游戏道具商城系统")
 
 ```
 workflow_assets/
-  review_reports/                                ← S1 报告 + 失败报告（根级公共）
   <req_name>/
     「S1 需求评审」/
       <version>/
@@ -160,6 +153,9 @@ workflow_assets/
             img_002_flow_chart.json
         review_report.md                         ← S1 产出
         review_report.json
+        requirement_objects.md                   ← S1 产出（S1.5 完善）
+        requirement_objects.json
+        role_definitions.md                      ← S1 产出（角色定义）
         clarification_checklist.md               ← S1 产出（人工填写处理方案）
         终版需求.md                              ← S1 产出草稿，S1.5 完善
         exit_permission.json                     ← S1.5 产出（准出许可）
@@ -181,10 +177,12 @@ workflow_assets/
     「S3 原型导出」/
       <version>/
         prototype.md                              ← S3 产出
+        prototype.json
         fail_report_S3.md                        ← S3 失败报告
     「S4 流程图导出」/
       <version>/
         business_flow.md                          ← S4 产出
+        business_flow.json
         fail_report_S4.md                        ← S4 失败报告
     「S5 测试点生成」/
       <version>/
@@ -195,8 +193,8 @@ workflow_assets/
         test_cases.md                             ← S6 产出
         test_cases.json
         test_cases.xlsx
-        review_report.md                          ← S7 产出（随 S6 目录）
-        review_report.json
+        review_snapshot.md                        ← S7 产出（随 S6 目录）
+        review_snapshot.json
         fail_report_S6.md                        ← S6 失败报告
         fail_report_S7.md                        ← S7 失败报告
     「S8 自迭代」/
@@ -204,12 +202,10 @@ workflow_assets/
         iteration.md                              ← S8 产出
         iteration.json
         fail_report_S8.md                        ← S8 失败报告
-  feedback_logs/                                 ← 执行反馈
-  feedback_archive/                              ← AI 经验知识库
-  test_case_library/                             ← 8 模块通用用例库（按模块前缀分目录，定义见 `.cursor/MODULES.md`）
+  feedback_logs/                                   ← 执行反馈
+  feedback_archive/                               ← AI 经验知识库
   test_point_library/                            ← 测试点库
-  example_test_points/                           ← 示例参考
-  example_test_cases/                            ← 示例参考
+  example_test_points/                            ← 示例参考
 ```
 
 ---

@@ -75,6 +75,11 @@ S1.5 执行前**逐项验证** S1 物料：
 
 ## 轻量跑通 vs 完整跑通
 
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S1.5 阶段**验收深度**的细化定义（**非全阶段门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **本表是 S1.5 阶段独有门禁**（其他阶段无此项），**P0 100% 填写**是唯一硬性约束；**轻量/标准/完整**三档仅影响 S2 拆解深度，**不构成阻断**。
+> - **执行 S1.5 前必须**读本节 + SSOT §2.3。
+
 > **轻量跑通** = **非正式验收流程下**，S1.5 仍能产出 `exit_permission.json`、S2 可执行。**简单流程跑通测试专用**。
 
 | 验收深度 | P0 填写 | P1 填写 | P2 填写 | quality_level | can_proceed_to_s2 | S2 行为 |
@@ -137,7 +142,17 @@ S1.5 执行前**逐项验证** S1 物料：
       "p1": 3,
       "p2": 2
     },
-    "strong_purchase_p0_resolved": true | false
+    "strong_purchase_p0_resolved": true | false,
+    "purchase_strong_closure": {
+      "p0_count": 2,
+      "p0_resolved": 2,
+      "three_section_closure": {
+        "程序自测点": true | false,
+        "测试覆盖": true | false,
+        "策划验收": true | false
+      },
+      "missing_sections": ["策划验收"]
+    }
   },
   "fallback_rules": [
     {
@@ -162,7 +177,9 @@ S1.5 执行前**逐项验证** S1 物料：
 }
 ```
 
-> 新增字段 `strong_purchase_p0_resolved`：`SPECIAL_FLAG = PURCHASE_STRONG` 的 P0 **必须**全部答完才能 `true`，否则 P0 漏填 = `false` = BLOCKED。
+> `purchase_strong_closure` 字段追踪 PURCHASE_STRONG P0 的"强付费项质量闭环 3 段"补齐状态。
+> 3 段（程序自测点 / 测试覆盖 / 策划验收）**全部 true** 时，`strong_purchase_p0_resolved` 才为 true。
+> 策划验收段缺失时，在 `missing_sections` 中记录，S2 阶段在 backlog 中标注「需策划补充验收方案」。
 
 ### 产出3：更新 `clarification_checklist.md` 状态
 
@@ -222,7 +239,7 @@ permission = read_exit_permission(req_name="游戏道具商城系统", version="
 
 详见：
 - `.cursor/rules/STAGE_S1_REVIEW.mdc`（"审查产物"节 + "强付费项质量闭环"节）
-- `.cursor/skills/aidocx-s1-review/SKILL.md`（业务属性标签 + 强付费项 3 段）
+- `.cursor/MODULES.md`（8 模块定义 + 业务属性标签）
 
 ---
 

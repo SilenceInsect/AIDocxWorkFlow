@@ -49,6 +49,24 @@ metadata:
 
 ---
 
+## §5 一致性检查（SKILL ↔ Rule 自动对齐）
+
+> **触发时机**：本节读取后、正式执行前。**仅执行一次**（同一次对话中多次触发本阶段，不重复检查）。
+
+**检查类型**：A = 必读材料对齐 / B = 输出路径对齐 / C = 字段名对齐 / D = 模块枚举对齐
+
+```python
+from ai_workflow.consistency_check import run_consistency_check
+
+result = run_consistency_check(stage="s1_5")
+if not result["passed"]:
+    print(f"[一致性检查] 发现 {len(result['issues'])} 个问题（见日志）")
+```
+
+检查结果不阻断阶段执行，仅输出到日志供人工参考。
+
+---
+
 ## 核心职责
 
 1. **完善终版需求.md**：基于人工填写的处理方案，补充缺失的业务规则、修正歧义、更新待确认项

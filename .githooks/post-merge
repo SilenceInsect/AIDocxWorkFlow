@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# git post-merge hook: codegraph 增量同步
+# 触发时机: git pull / git merge 完成后
+
+set -e
+
+CODEGRAPH_BIN="${CODEGRAPH_BIN:-/Users/gleon/.local/bin/codegraph}"
+
+if [ ! -x "$CODEGRAPH_BIN" ]; then
+  exit 0
+fi
+
+"$CODEGRAPH_BIN" sync -q . 2>/dev/null || true
+
+exit 0

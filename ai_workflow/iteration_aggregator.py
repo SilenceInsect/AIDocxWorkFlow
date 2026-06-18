@@ -15,7 +15,7 @@ from pathlib import Path
 
 @dataclass
 class DefectPattern:
-    pattern: str
+    raw_group_key: str                    # 仅保留分组依据，语义命名交给 LLM
     count: int
     severity_counter: dict   # {"CRITICAL": N, "MAJOR": N, ...}
     epic_ids: list
@@ -142,7 +142,7 @@ def _analyze_defects(entries: list) -> list[DefectPattern]:
         )
         cids = [e.get("case_id", e.get("用例ID", "")) for e in cases[:5]]
         patterns.append(DefectPattern(
-            pattern=f"模块 {module} 缺陷集中",
+            raw_group_key=module,                 # 分组键透明暴露，不附语义
             count=len(cases),
             severity_counter=dict(severities),
             epic_ids=[module],
@@ -175,7 +175,7 @@ def _build_ai_summary(entries: list, patterns: list[DefectPattern],
     pass_rate = f"{(total - failed) / total * 100:.0f}%" if total else "N/A"
 
     top_defects = ", ".join(
-        f"{p.pattern}({p.count}例)" for p in patterns[:3]
+        f"模块{p.raw_group_key}({p.count}例)" for p in patterns[:3]
     ) or "无"
 
     return (

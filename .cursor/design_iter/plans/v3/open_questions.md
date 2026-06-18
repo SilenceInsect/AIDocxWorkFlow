@@ -142,4 +142,7 @@
   - B. 加 L3 hook 检测"单次响应 > 3 文件改动"
   - C. 加 L3 hook + 走软记录（不 block）
 - **当前默认**：[ A ] 不加（v3.0 §0.4 教训 + Agent 自承诺足够）
-- **决策状态**：⏳ 待 v4 评估
+- **决策状态**：✅ **v3.1 实施翻案**（用户 02:10 拍板）——见 commit 4da9193 `dna_decision_density_check.py`
+  - 翻案理由：决策密度是"可数"型（> 3 = 违规）→ hook 能防；区别于"误读"型
+  - 实现：sessionEnd 事件 + 单次响应 Write/Edit 计数 ≥ 3 → 临界点 block（exit 1）
+  - 默认阈值：3（可由 `DNA_DECISION_DENSITY_THRESHOLD` 环境变量覆盖）

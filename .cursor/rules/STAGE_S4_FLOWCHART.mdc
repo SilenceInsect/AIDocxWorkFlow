@@ -23,74 +23,52 @@ alwaysApply: false
 | S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story | 写 `fail_report_S4.md` 停止 |
 | S2 backlog.json | 同上目录 | `summary.epic_count ≥ 1` + 每 Epic ≥ 1 Story + `epic.module` 从 8 模块取值 | 写 `fail_report_S4.md` 停止 |
 | S1.5 exit_permission.json | `workflow_assets/<req_name>/「S1 需求评审」/<version>/exit_permission.json` | `can_proceed_to_s2 == true`（防御性核查） | 警告，不阻断 |
-| S3 prototype.md（推荐） | `workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md` | 存在则消费 `PAGE-XXX` 节点 | 警告，不阻断 |
+| S3 prototype.md（**必须读取**） | `workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md` | 存在则消费 `PAGE-XXX` 节点 | 警告，不阻断 |
 
 **材料缺失时**：生成失败报告，停止 S4。
 
 ---
 
-## 核心任务（4 类产出）
+## §1.4 LLM 必读材料（阶段前置）
 
-为每个 Epic 生成：
+**生成流程图前，必须先读取以下全部材料。禁止凭印象直接生成。**
 
-1. **Mermaid 业务流程图**（Flowchart）
-2. **Mermaid 时序图**（Sequence Diagram）
-3. **异常/错误决策树**（含可机检叶子节点 ID）
-4. **风险点清单**（带 s4_reference 唯一 ID + 7 类典型清单归类）
+| # | 材料 | 路径 | 读取原因 |
+|---|---|---|---|
+| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | Epic 的模块前缀决定该 Epic 的主测试域 |
+| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md） | 异常决策树的叶子节点归属模块；防止把 BIZ 异常归成 UI |
+| 3 | S2 backlog | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | Story/OBJ 是流程图生成的核心输入 |
+| 4 | S3 prototype | `workflow_assets/<req_name>/「S3 原型导出」/<version>/prototype.md` | 页面原型是流程节点的来源；S4 是 S5 EXCEPTION 类型 TP 的核心输入 |
+
+---
+
+## 核心任务（4 类产出，缺一不可）
+
+为**每个 Epic** 生成：
+
+1. **Mermaid 业务流程图**（Flowchart）— 主流程
+2. **Mermaid 时序图**（Sequence Diagram）— 关键系统调用链路
+3. **异常/错误决策树**（Flowchart / 文本）— 异常路径 + 回滚
+4. **风险点清单**（表格 + s4_reference 唯一 ID）— S7 100% 覆盖率硬约束来源
 
 ### 4 类可机检 ID（v1.1+ 关键约束）
 
-> **S7 审查员 B 100% 覆盖率硬约束**：风险点 + 异常树叶子必须可机检。
+> **S7 审查员 B 强依赖 S4 的可机检 ID**——风险点 100% 覆盖率、异常树叶子节点覆盖率。
 
-| ID 格式 | 含义 | 命名规范 | 示例 |
+| 编号格式 | 含义 | 命名规范 | 示例 |
 |---------|------|----------|------|
-| `R-NNN` | 风险点全局 ID | 3 位 0 填充 | `R-001` / `R-018` |
-| `R-{EpicID}-NN` | 风险点按 Epic 局部 ID | Epic ID + 2 位 0 填充 | `R-BIZ-PURCHASE-01` |
-| `S4-{EpicID}-X.Y.Z` | 异常树叶子节点 ID | Epic ID + 异常分支顺序 | `S4-BIZ-PURCHASE-1.3.2` |
-| `S4-{EpicID}-FNN` | 流程图分支节点 ID | Epic ID + 流程节点顺序 | `S4-BIZ-PURCHASE-F03` |
+| `R-{NNN}` | 风险点 ID（全局顺序） | 3 位 0 填充，按 Epic 顺序 + 风险发现顺序 | `R-001` / `R-018` |
+| `R-{EpicID}-{NN}` | 风险点按 Epic 局部 ID | Epic ID + 2 位 0 填充 | `R-BIZ-PURCHASE-01` |
+| `S4-{EpicID}-{seq}.{N}` | 异常树叶子节点 | Epic ID + 异常分支顺序 | `S4-BIZ-PURCHASE-1.3.2` |
+| `S4-{EpicID}-F{N}` | 流程图分支节点 | Epic ID + 流程节点顺序 | `S4-BIZ-PURCHASE-F03` |
 
-**两个风险点 ID 等价**：`R-NNN`（机器友好）= `R-{EpicID}-NN`（人类可读）。
-S5 TP `s4_reference` 字段**推荐 `R-{EpicID}-NN` 格式**（与 `epic.id` 对齐）。
-
----
-
-## 流程图类型
-
-```mermaid
-flowchart TD
-    S4-BIZ-PURCHASE-F01["玩家进入商城"] --> S4-BIZ-PURCHASE-F02["浏览道具"]
-    S4-BIZ-PURCHASE-F02 --> S4-BIZ-PURCHASE-F03{"检查余额"}
-    S4-BIZ-PURCHASE-F03 -->|"不足"| S4-BIZ-PURCHASE-F04["提示余额不足\n购买按钮禁用"]
-    S4-BIZ-PURCHASE-F03 -->|"充足"| S4-BIZ-PURCHASE-F05["选择支付方式"]
-    S4-BIZ-PURCHASE-F05 --> S4-BIZ-PURCHASE-F06["扣款 + 道具到账"]
-    S4-BIZ-PURCHASE-F04 --> End1["结束"]
-    S4-BIZ-PURCHASE-F06 --> End2["购买成功"]
-```
-
-```mermaid
-sequenceDiagram
-    participant P as 玩家
-    participant UI as 前端商城
-    participant SV as 后端服务
-    participant ACC as 账户系统
-    participant DB as 数据库
-    P->>UI: 点击购买
-    UI->>SV: POST /order/create
-    SV->>DB: 查询余额
-    DB-->>SV: 返回余额
-    SV->>ACC: 冻结余额
-    ACC-->>SV: 冻结成功
-    SV->>ACC: 扣减
-    ACC-->>SV: 扣减成功
-    SV->>DB: 创建订单
-    DB-->>SV: 订单成功
-    SV-->>UI: 购买成功
-    UI-->>P: 道具到账 + 弹窗
-```
+**两个 ID 等价**：`R-NNN` 与 `R-{EpicID}-NN` 指向同一风险点（前者机器友好，后者人类可读）。S5 TP `s4_reference` 字段**推荐使用 `R-{EpicID}-NN` 格式**（与 S2 backlog 的 `epic.id` 对齐）。
 
 ---
 
-## 风险点 7 类典型清单（必覆盖最小集）
+## 风险点 7 类典型清单（S4 必须覆盖的最小集）
+
+> 任何 S4 风险点必须能归到下表 7 类之一。
 
 | 序号 | 风险类型 | 典型场景 | 关键判据 |
 |------|---------|---------|----------|
@@ -102,10 +80,67 @@ sequenceDiagram
 | 6 | **资源/容量** | 背包满、邮件容量满 | 涉及上限 / 满载 |
 | 7 | **安全/合规** | 客户端篡改、防沉迷拦截 | 涉及鉴权 / 合规风控 |
 
-> **不允许出现的风险类型**（违反即重写）：
-> - ❌ "功能未实现"——这不是流程图风险，是 S1/S2 任务
-> - ❌ "性能瓶颈"——除非具体到 10w QPS 这种硬指标，否则归 S2.5 资源规划
-> - ❌ "文案错误"——这是 S1 review 任务
+**不允许出现的风险类型**（违反即重写）：
+- ❌ "功能未实现"——这不是流程图风险，是 S1/S2 任务
+- ❌ "性能瓶颈"——除非具体到 10w QPS 这种硬指标，否则归 S2.5 资源规划
+- ❌ "文案错误"——这是 S1 review 任务
+
+---
+
+## §1.5 决策 push 块
+
+> **S4 阶段的关键使命**：把 S2 跨模块拆的 OBJ 正确反映到 Epic 模块归属 + 异常树叶子归属——**不要让 epic 名误导 S5**。
+
+### §1.5.1 Epic 命名 + 模块归属反例
+
+**S4 看到 epic 名"LINK-PAYMENT"不能想当然归 LINK——S4 必须主动用反例库对照每个 OBJ 归属。**
+
+**S4 写 Epic 元信息必走 4 步（任一步空答 → 暂停补 Read）**：
+
+| # | 步骤 | 操作 |
+|---|------|------|
+| Push 1 | 读 S2 backlog 的 `epics[].scope_module` 字段 | 获取 Story 涉及的所有模块 |
+| Push 2 | 读 S2 OBJ 的 `belong_module` 字段 | 获取每个 OBJ 的模块归属 |
+| Push 3 | 主动对照反例 1-4（见下表） | 检查是否有模块归属错误 |
+| Push 4 | 确定 Epic 主模块 | 主模块 = scope_module 中"业务核心模块"而非"含第三方字样的模块" |
+
+**反例库（S2 §1.5.4 对应）**：
+
+| ID | 错误归属 | 正确归属 | 判定依据 |
+|----|----------|----------|----------|
+| S4-BIZ-1 | 把"游戏币支付"归 LINK | BIZ | 单系统业务，不是第三方交互 |
+| S4-BIZ-2 | 把"DB 事务"归 AUX | BIZ | 业务数据流，不是底层缓存 |
+| S4-BIZ-3 | 把"业务审计日志"全归 LOG | BIZ+LOG 拆分 | BIZ-I 业务侧落点 + LOG-B 链路对账 |
+| S4-BIZ-4 | 把"系统邮件通知"模糊处理 | BIZ+HINT 拆分 | 邮件发送流程(BIZ)+邮件列表展示(HINT) |
+| S4-AUX-1 | 把"缓存数据损坏"归 BIZ | AUX | 底层缓存，不是业务逻辑 |
+
+### §1.5.2 异常树叶子归属判定
+
+**S4 写异常树叶子节点时，模块归属必须与 S5 TP 模块一致——S5 看到 `S4-LINK-PAYMENT-1.1.1` 会按 LINK 处理，S4 不能在异常树里写"游戏币支付余额不足"叶子（那是 BIZ 业务）。**
+
+**S4 写异常树叶子必走判定（选择 1 个）**：
+
+| 判定条件 | 叶子归属 |
+|----------|----------|
+| 该叶子描述的异常是"第三方回调异常"？ | LINK |
+| 该叶子描述的异常是"单系统业务异常（如余额不足）"？ | BIZ |
+| 该叶子描述的异常是"缓存/网络底层异常"？ | AUX |
+| 该叶子描述的异常是"安全/风控/弱网/合规"？ | SPECIAL |
+| 该叶子描述的是"UI 层交互异常"？ | UI |
+| 该叶子描述的是"配置校验失败"？ | CONFIG |
+
+**判定不对 → S5 TP 模块归属必然错。**
+
+### §1.5.3 风险点 s4_reference 格式
+
+**S4 风险点必填 2 字段**：
+
+| 字段 | 要求 | 示例 |
+|------|------|------|
+| `s4_reference` | 风险点 ID（`R-NNN` / `R-{EpicID}-NN`） | `R-001` / `R-BIZ-PURCHASE-01` |
+| `exception_leaf` | 对应的异常树叶子节点 ID | `S4-BIZ-PURCHASE-1.1.1` |
+
+**两个字段同时填 → S5 TP 可直接引用风险点 + 异常树叶子。**
 
 ---
 
@@ -117,7 +152,7 @@ sequenceDiagram
 | backlog.json 存在 | 必须 | 写 `fail_report_S4.md` |
 | `summary.epic_count ≥ 1` | 必须 | 写 `fail_report_S4.md` |
 | 每个 Epic 至少 1 个 Story | 必须 | 写 `fail_report_S4.md` |
-| 每个 Epic `module` 字段从 8 模块取值 | 必须 | 写 `fail_report_S4.md` 标 `module_invalid` |
+| 每个 Epic `module` 字段从 8 模块取值 | 必须（防御性，避免 S4 跑在 S2 失败产物上） | 写 `fail_report_S4.md` 标 `module_invalid` |
 | 至少 1 个 Epic 含 Story | 必须 | 写 `fail_report_S4.md` |
 | 风险点数量 | ≥ 3 | 警告（提示补充风险场景） |
 | 异常树叶子节点 | 每个 Epic ≥ 3 个 | 警告 |
@@ -130,7 +165,7 @@ sequenceDiagram
 
 **主文件**：`workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md`
 
-**主文件必备章节**（顺序不可乱）：
+**主文件必备章节（顺序不可乱）**：
 
 ```markdown
 # {需求名称} — 业务流程图
@@ -147,7 +182,6 @@ sequenceDiagram
 | Epic ID | 模块（8模块） | 名称 | Story 数 | 风险点数 | 异常树叶子节点数 |
 |---------|--------------|------|----------|---------|-----------------|
 | {Epic1.ID} | {Epic1.module} | ... | X | N | M |
-| ... | | | | | |
 
 ---
 
@@ -157,14 +191,26 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    S4-{Epic1ID}-F01["... 入口"] --> ...
+    S4-{Epic1ID}-F01["... 入口"] --> S4-{Epic1ID}-F02{"分支判定"}
+    S4-{Epic1ID}-F02 -->|"是"| S4-{Epic1ID}-F03["..."]
+    S4-{Epic1ID}-F02 -->|"否"| S4-{Epic1ID}-F04["..."]
+    S4-{Epic1ID}-F03 --> End["结束"]
 ```
 
 ### 1.2 时序图（Sequence）
 
 ```mermaid
 sequenceDiagram
-    ...
+    participant P as 玩家
+    participant UI as 前端
+    participant SV as 后端服务
+    participant DB as 数据库
+    P->>UI: ...
+    UI->>SV: POST /api/...
+    SV->>DB: ...
+    DB-->>SV: ...
+    SV-->>UI: ...
+    UI-->>P: ...
 ```
 
 ### 1.3 异常/错误决策树
@@ -176,16 +222,19 @@ S4-{Epic1ID}-1.0  {Epic1.title} 异常决策树
 │   ├── S4-{Epic1ID}-1.1.1  子场景A1（前端拦截）
 │   └── S4-{Epic1ID}-1.1.2  子场景A2（后端拒绝）
 ├── S4-{Epic1ID}-1.2  场景B（如：支付失败）
-└── ...
+│   ├── S4-{Epic1ID}-1.2.1  子场景B1
+│   └── S4-{Epic1ID}-1.2.2  子场景B2
+└── S4-{Epic1ID}-1.3  场景C
+    └── S4-{Epic1ID}-1.3.1  子场景C1
 ```
 
 > **叶子节点 = 测试可触达的最细粒度**——每个叶子节点必须有对应 TP。
 
 ### 1.4 风险点
 
-| 风险 ID（机器友好） | 风险 ID（人类可读） | 风险描述 | s4_reference | 解决方案 |
-|--------------------|--------------------|----------|--------------|----------|
-| R-001 | R-{Epic1ID}-01 | {描述} | R-001 | {方案} |
+| 风险 ID（机器友好） | 风险 ID（人类可读） | 风险描述 | s4_reference | 异常树叶子 | 解决方案 |
+|--------------------|--------------------|----------|--------------|-----------|----------|
+| R-001 | R-{Epic1ID}-01 | {描述} | R-001 | S4-{Epic1ID}-1.1.1 | {方案} |
 
 ---
 
@@ -199,6 +248,8 @@ S4-{Epic1ID}-1.0  {Epic1.title} 异常决策树
 ---
 
 *由 AIDocxWorkFlow S4 流程图导出生成*
+*4 类产出：Flowchart + Sequence + 异常决策树 + 风险点清单*
+*风险点 ID 格式：R-NNN（机器） / R-{EpicID}-NN（人类可读） / 异常树叶子 S4-{EpicID}-X.Y.Z*
 ```
 
 ### 失败报告（S4 流程图失败）
@@ -236,16 +287,16 @@ S4-{Epic1ID}-1.0  {Epic1.title} 异常决策树
 | 阶段 | 关系 | S4 消费 |
 |------|------|---------|
 | S1.5 | 间接 | 通过 S2 `priority_epics` / `risk_points` 优先处理高风险 Epic |
-| **S2** | **直接强依赖** | **必读 `backlog.json` 的 `epics[].stories[].acceptance_criteria` 推导异常路径** |
+| **S2** | **直接强依赖** | **必须读取 `backlog.json` 的 `epics[].stories[].acceptance_criteria` 推导异常路径** |
 | S3 | 直接弱依赖 | 推荐读取 `prototype.md` 的 `PAGE-XXX` 节点作为 S4 流程图节点命名参考 |
 
 ### 下游
 
 | 阶段 | 关系 | S4 输出作用 |
 |------|------|------------|
-| **S5 测试点生成** | **直接强依赖** | **异常树叶子节点 + 风险点清单 = S5 EXCEPTION 类型 TP 的核心来源**（见 `.cursor/skills/aidocx-s5-test-points/SKILL.md`） |
-| S6 测试用例生成 | 间接参考 | S6 可参考 S4 流程图理解业务，**但禁止照抄节点名/异常树编号/风险点 ID 到用例字段**（见 `.cursor/skills/aidocx-s6-test-cases/SKILL.md` §"S4 参考规则"） |
-| **S7 用例审查** | **P0 硬约束** | **S7 审查员 B 100% S4 风险点覆盖率 + 100% 异常树叶子覆盖率**（见 `.cursor/skills/aidocx-s7-review/SKILL.md`） |
+| **S5 测试点生成** | **直接强依赖** | **异常树叶子节点 + 风险点清单 = S5 EXCEPTION 类型 TP 的核心来源** |
+| S6 测试用例生成 | 间接参考 | S6 可参考 S4 流程图理解业务，**但禁止照抄节点名/异常树编号/风险点 ID 到用例字段** |
+| **S7 用例审查** | **P0 硬约束** | **S7 审查员 B 100% S4 风险点覆盖率 + 100% 异常树叶子覆盖率** |
 | S8 自迭代 | 间接 | S4 风险点是 S8 缺陷分析的"已知风险"基线 |
 
 ---
@@ -266,6 +317,12 @@ CONFIG / UI / BIZ / AUX / LINK / LOG / SPECIAL / HINT
 ---
 
 ## 质量门禁（S4 自身）
+
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S4 阶段**S4 自身门禁**的细化定义（**非全阶段门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **配置常量 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §4.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#43-配置常量)（参考 `S4_ANOMALY_COVERAGE`）
+> - 本表是 S4 阶段独有门禁（其他阶段无此项），**全阶段门禁表**（速查）见 SSOT §2.3。
+> - 本表不可独立编辑；任何阈值变更**必须**先修改 SSOT，再回写本表。
 
 | 检查项 | 阈值 | 缺失时 |
 |--------|------|--------|

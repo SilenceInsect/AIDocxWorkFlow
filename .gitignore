@@ -78,3 +78,5 @@ secrets.json
 # Logs
 *.log
 logs/
+feedback_logs/
+*.jsonl

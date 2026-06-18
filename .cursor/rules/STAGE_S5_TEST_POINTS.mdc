@@ -17,33 +17,146 @@ alwaysApply: false
 
 | 材料 | 来源 | 审查要求 |
 |------|------|----------|
-| S2 backlog.md | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story |
+| S2 backlog.md（**必须读取**） | `workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.md` | 存在且含 Epic/Story |
+| S4 business_flow.md（**必须读取**） | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | 包含异常/错误决策树和风险点清单，用于补充 EXCEPTION 类型测试点 |
 
-**材料缺失时**：生成失败报告，停止 S5。
+**前置材料缺失时**：生成失败报告，停止 S5。
 
 ---
 
-## 核心任务
+## §1.4 LLM 必读材料（阶段前置）
 
-为每个 Story 生成测试点，覆盖 **8 模块系统**。
+**生成任何 TP 前，必须先读取以下全部材料。禁止凭印象/常识/历史产物直接生成。**
 
-> ⚠️ 模块定义见 [`.cursor/MODULES.md`](../MODULES.md)（项目级唯一真相源）。
-> 本文件不重写模块表。如模块定义调整，只改 MODULES.md。
+| # | 材料 | 路径 | 读取原因 |
+|---|---|---|---|
+| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | 所有 Epic/Story 必须有模块前缀；模块分类决定后续所有判断 |
+| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md） | 8 模块边界容易混淆（如 HINT vs UI、BIZ vs CONFIG），判定前必须读取 |
+| 3 | 命中模块的 `<MODULE>.md` | `workflow_assets/module_templates/<Module>/<Module>.md` | 该模块的子类枚举和测试方法决定 TP 类型与数量 |
+| 4 | 命中模块的边界文件 | `workflow_assets/module_templates/<Module>/O_boundary.md` | 反例库对照，防止模块归属错误 |
+| 5 | S4 business_flow（**必须读取**） | `workflow_assets/<req_name>/「S4 流程图导出」/<version>/business_flow.md` | 异常决策树和风险点清单是 EXCEPTION 类型 TP 的核心来源 |
 
-本阶段涉及的模块：`CONFIG` / `UI` / `BIZ` / `AUX` / `LINK` / `SPECIAL` / `LOG` / `HINT`
-（`HINT` 是独立模块，专指"红点/飘字/弹窗/Toast"等提示反馈类测试点）
-完整测试类型矩阵见 [`.cursor/MODULES.md` §4](../MODULES.md)。
+**8 模块必读文件路径**：
 
-### 每个 Story 必须生成
+| 模块 | 模块文件 | 边界文件 |
+|------|---------|----------|
+| CONFIG | `workflow_assets/module_templates/CONFIG.md` | `workflow_assets/module_templates/CONFIG/J_boundary.md` |
+| UI | `workflow_assets/module_templates/UI.md` | `workflow_assets/module_templates/UI/I_boundary.md` |
+| BIZ | `workflow_assets/module_templates/BIZ.md` | `workflow_assets/module_templates/BIZ/O_boundary.md` |
+| AUX | `workflow_assets/module_templates/AUX.md` | `workflow_assets/module_templates/AUX/O_boundary.md` |
+| LINK | `workflow_assets/module_templates/LINK.md` | `workflow_assets/module_templates/LINK/O_boundary.md` |
+| LOG | `workflow_assets/module_templates/LOG.md` | `workflow_assets/module_templates/LOG/O_boundary.md` |
+| SPECIAL | `workflow_assets/module_templates/SPECIAL.md` | `workflow_assets/module_templates/SPECIAL/O_boundary.md` |
+| HINT | `workflow_assets/module_templates/HINT.md` | `workflow_assets/module_templates/HINT/O_boundary.md` |
 
-| 类型 | 数量 | 说明 |
-|------|------|------|
-| POSITIVE（正向） | ≥ 2 | 正常流程测试 |
-| BOUNDARY（边界值） | ≥ 2 | 边界条件测试 |
-| NEGATIVE（负向） | ≥ 1 | 异常输入测试 |
-| EXCEPTION（异常） | ≥ 1 | 系统异常处理测试 |
+---
 
-### ID 格式
+## 核心原则
+
+> **S5 的核心使命**：为每个 Story 生成高质量测试点，覆盖 8 模块系统。模块归属正确性是 S5 的第一质量标准。
+
+**禁止出现的行为**：
+- ❌ 凭印象/常识/历史产物直接生成 TP
+- ❌ 在没有读取 §1.4 材料的情况下生成 TP
+- ❌ 跳过 §1.5 决策 push 块直接生成 TP
+- ❌ 跳过 §1.5.4 反例库对照直接生成 TP
+- ❌ 为同一功能点的同一模块生成重复 TP
+
+---
+
+## 测试类型枚举
+
+> 完整定义见 [`.cursor/MODULES.md` §4 测试类型矩阵](./MODULES.md)。
+
+---
+
+## 模块 × 类型双维度强制判定
+
+> 完整边界规则见 [`.cursor/MODULES.md` §4.11.2 HINT vs UI 边界](./MODULES.md) + [`workflow_assets/module_templates/HINT/O_boundary.md`](../../../workflow_assets/module_templates/HINT/O_boundary.md)。
+
+---
+
+## §1.5 决策 push 块（6 个强制检查，必须全部执行）
+
+> **哲学**：不告诉 LLM 多少算合格，告诉 LLM 怎么思考产出质量。
+
+### §1.5.1 跨模块拆分 push
+
+**写 TP 前先问自己 3 问**：
+- **Q1**：这个 Story 的"业务流"是单系统还是涉及上下游/第三方？（如购买涉及支付/订单/邮件）
+- **Q2**："业务流"的数据/状态变化会触发哪些 UI/HINT/LOG 反馈？
+- **Q3**：这个 Story 是否会暴露配置/缓存/异常/合规风险？
+
+**3 问任一为"是" → 必须为该模块单独生成 TP，不偷懒合并。**
+
+### §1.5.2 4 步判定 push
+
+**每个 TP 写之前必走 4 步（任一空答 → 暂停，先补 Read）**：
+
+| # | 步骤 | 操作 |
+|---|------|------|
+| Push 1 | 读 §3.5 找命中模块 | 从 8 模块中匹配 1 个 |
+| Push 2 | 读该模块 `<MODULE>.md` 找命中子类 | 从模块子类枚举中匹配 1 个 |
+| Push 3 | 读该模块 `O_boundary.md` 边界对照表 | 确认不与相邻模块冲突 |
+| Push 4 | 读 S4 业务流找对应 F-XX 节点/异常树叶子/R-XX 风险点 | 在 TP 中填写 s4_reference |
+
+**4 步全部回答后，再开始写 TP。**
+
+### is_assumed 标记
+
+> 定义见 [`.cursor/MODULES.md`](./MODULES.md)（全局强制）。
+
+| 字段 | 强制要求 |
+|------|----------|
+| `is_assumed` | 必须填 `true`，默认 `false` |
+| `assumption_reason` | 必须说明来源（S2 backlog / S4 / 业务常识） |
+| `requires_human_review` | 若来源于业务常识，必须填 `true` |
+
+### 反例对照 push
+
+> 完整反例库见 [`.cursor/MODULES.md`](./MODULES.md) 各模块 O_boundary.md。
+
+对照结果必须声明（写入 `applies_rule` 字段）：与某反例同 pattern → 改 module 或删除；不与任何反例撞 → 记录"与反例库无冲突"。
+
+### JSON Schema 字段名强约束
+
+> 定义见各阶段 SKILL.md。
+
+### §1.5.6 5 问质量 push
+
+**每个 TP 必须能回答 5 问。5 问任一空答 → TP 不合格，删除或重写**。
+
+| # | 问题 | 判定标准 |
+|---|------|----------|
+| Q1 | 测什么（明确场景）？ | 场景描述清晰，无歧义 |
+| Q2 | 命中哪个模块 + 哪个子类（精确不模糊）？ | 8 模块选 1，模块子类选 1 |
+| Q3 | 边界值/异常输入是什么（具体不抽象）？ | 0/1/100/9999/超时30s 等具体数值 |
+| Q4 | 预期结果可验证吗（pass/fail 明确）？ | 每步有明确判定条件 |
+| Q5 | 对应 S4 哪个节点（链路可追溯）？ | s4_reference 填写 R-NNN / F-XX / 异常树叶子 |
+
+---
+
+## §1.6 强制输出字段清单
+
+**S5 v3 产物（test_points.json）必须包含以下全部字段。缺一视为 TP 不完整，不合格。**
+
+| 字段名 | 说明 |
+|--------|------|
+| `tp_id` | TP 唯一 ID |
+| `module` | 8 模块之一 |
+| `test_point_type` | 4 类型之一 |
+| `test_type_subclass` | 细分枚举（如 `BIZ.H_payment`） |
+| `description` | TP 描述 |
+| `s4_reference` | 必须填写，引用 S4 R-NNN / F-XX / 异常树叶子 |
+| `boundary` | 具体边界值或"无" |
+| `is_assumed` | boolean |
+| `applies_rule` | 说明 4 步判定 + 反例对照结果 |
+| `is_assumed: true` 时加 `assumption_reason` | 来源：S2 backlog / S4 / 业务常识 |
+| `is_assumed: true` + 来源为业务常识时加 `requires_human_review: true` | — |
+
+---
+
+## ID 格式
 
 `{StoryID}-TP-{3位序号}`，如 `UI-001-001-TP-001`
 
@@ -51,12 +164,21 @@ alwaysApply: false
 
 ## 输入审查（门禁前置条件）
 
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S5 阶段**输入物料门禁**的细化定义（**非全阶段质量门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **配置常量 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §4.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#43-配置常量)（参考 `S5_MIN_TP_PER_STORY`）
+> - 本表不可独立编辑；任何阈值变更**必须**先修改 SSOT，再回写本表。
+
 | 检查项 | 要求 | 缺失时 |
 |--------|------|--------|
 | backlog.md 存在 | 必须 | 失败报告 |
 | Story 数量 ≥ 1 | 必须 | 失败报告 |
 | 每个 Story 有 acceptance_criteria | 建议有 | 自动填充默认 AC |
 | 每个 Story 有模块前缀 | 必须 | 纠正分配 |
+| TP 含 module 字段 | 必须 | S5 失败报告阻断 |
+| TP 含 test_point_type 字段 | 必须 | S5 失败报告阻断 |
+| TP 含 s4_reference 字段 | 必须 | 警告，提示补充 |
+| TP 含 applies_rule 字段 | 必须 | 警告，提示补充 |
 
 ---
 
@@ -74,19 +196,29 @@ alwaysApply: false
       "CONFIG": {"covered": false, "points": []},
       "UI": {"covered": true, "points": []},
       "BIZ": {"covered": false, "points": []},
-      ...
+      "AUX": {"covered": false, "points": []},
+      "LINK": {"covered": false, "points": []},
+      "LOG": {"covered": false, "points": []},
+      "SPECIAL": {"covered": false, "points": []},
+      "HINT": {"covered": false, "points": []}
     },
     "scenario_test_points": [
       {
-        "id": "UI-001-001-TP-001",
+        "tp_id": "UI-001-001-TP-001",
         "module": "UI",
-        "type": "POSITIVE",
-        "title": "商城首页分类导航 — 正向流程",
+        "test_point_type": "POSITIVE",
+        "test_type_subclass": "UI.A_interaction",
+        "description": "商城首页分类导航 — 正向流程",
         "precondition": "玩家已登录系统，进入商城",
         "test_input": "...",
         "expected_result": "...",
         "priority": "P1",
-        "regression": true
+        "regression": true,
+        "s4_reference": "R-001",
+        "boundary": "无",
+        "is_assumed": false,
+        "applies_rule": "Push1: 匹配 UI 模块 | Push2: 匹配 UI.A_interaction 子类 | Push3: 确认与 HINT 无冲突（不是事件触发） | Push4: 引用 S4 R-001 风险点 | 反例对照：与 HINT-1/2/3 无冲突",
+        "module_judgment_basis": "页面常驻展示，非事件触发，归 UI"
       }
     ],
     "total_points": 6
@@ -129,13 +261,14 @@ S5 产出（test_points.json）作为 S6 的输入。
 
 ```python
 # 自动骨架生成（Python）
-from ai_workflow.test_case_formatter import compose_test_points_from_structure, _build_fallback_scenarios
+from ai_workflow.test_case_formatter import compose_test_points_from_structure
 breakdown = {'epics': [...], '_version': 'v1.0'}
 skeleton = compose_test_points_from_structure(breakdown)
-# skeleton 中每个 Story 有 module + 真实测试点内容
+# skeleton 中每个 Story 仅含原始字段（story_id / title / module 等）
+# scenario_test_points: [] — LLM 按 §1.5 推理填入
 
 # AI 补充（对话模式）
-# 根据骨架生成 scenario_test_points
+# 根据骨架生成 scenario_test_points，§1.5 决策 push 全部执行
 
 # 保存
 from ai_workflow.conversation_skills import save_stage5_output
