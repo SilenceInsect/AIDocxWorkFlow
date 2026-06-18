@@ -1,0 +1,94 @@
+{
+  "version": "v3",
+  "title": "DNA 软约束失效 → 硬机制（3 问自检物化）",
+  "status": "待 D-301/D-302/D-303 点头",
+  "created_at": "2026-06-19",
+  "based_on": "v2",
+  "author": "AI",
+  "trigger_event": "v2 改造期间（2026-06-19 凌晨）Agent 多次违反 AGENTS.md 铁律",
+  "decisions": {
+    "D-301": {
+      "title": "Q-301: 3 问自检物化分层",
+      "decided": true,
+      "value": "L1知识 + L2约束 + L3机制（三层组合）",
+      "decided_at": "2026-06-19",
+      "rationale": "纯 L1 = 软约束（现状失败）；纯 L3 = 硬阻断（误判风险高）；三层组合 = 知识给为什么、约束给做什么、机制给自动防呆",
+      "question_id": "Q-301",
+      "default_value": "三层组合",
+      "pending_user_approval": false,
+      "impact_if_changed": "改单层会降低强制力或增加副作用"
+    },
+    "D-302": {
+      "title": "Q-302: AGENTS.md 是否加 3 问速查表",
+      "decided": true,
+      "value": "B（独立 DNA_3Q_CHECK.mdc alwaysApply，AGENTS.md 不动）",
+      "decided_at": "2026-06-19",
+      "rationale": "AGENTS.md 写明 ≤60 行红线；按约束 vs 知识分离原则，3 问是具体操作约束，应独立到 .mdc",
+      "question_id": "Q-302",
+      "default_value": "B",
+      "pending_user_approval": false,
+      "impact_if_changed": "A（加 AGENTS.md）会破 ≤60 行；C（升 75 行）显式调高"
+    },
+    "D-303": {
+      "title": "Q-303: hook A 设计（软记录 + 临界点 block）",
+      "decided": true,
+      "value": "混合：软记录 + 连续 3 次违规才 block",
+      "decided_at": "2026-06-19",
+      "rationale": "硬阻断会让 Agent 写不出东西；纯软记录无强制力；临界点 3 次 = 既不误判，又能在连续违规时强制自省",
+      "question_id": "Q-303",
+      "default_value": "混合（3 次阈值）",
+      "pending_user_approval": false,
+      "impact_if_changed": "纯软记录 = 无强制；纯硬阻断 = 误判高；阈值 3 是初始值，后续可配"
+    },
+    "D-304": {
+      "title": "Q-310: 决策密度标准（v3.1 新增）",
+      "decided": true,
+      "value": "A2 行为承诺 + DNA_3Q_CHECK.mdc §7（阈值 3 文件/响应）",
+      "decided_at": "2026-06-19",
+      "rationale": "v2 实施期单次改 8 文件 = ≥ 20 决策点 = 审查成本高；决策密度 = 决策点数/改动数，直接对应审查成本；走 L1+L2 层（DNA + .mdc），不写新 hook（v3.0 §0.4 教训）",
+      "question_id": "Q-310",
+      "default_value": "A2 行为承诺 + 阈值 3",
+      "pending_user_approval": false,
+      "impact_if_changed": "不立 = Agent 改 8 文件 0 强制力；立 = 每次动手前先 ask 决策点"
+    }
+  },
+  "open_questions": [
+    "Q-301（已决）",
+    "Q-302（已决）",
+    "Q-303（已决）",
+    "Q-310（已决 → D-304）"
+  ],
+  "open_questions_note": "v3 启动前 3 个核心问题已决（D-301~D-303 decided=true）。v3.1 新增 D-304（决策密度）。v3.0 实施期 6 个开放问题（Q-304~Q-309）待 v3.1/v4 评估；v3.1 新增 3 个（Q-311~Q-313）。",
+  "resolved_questions": [
+    "Q-301", "Q-302", "Q-303", "Q-310"
+  ],
+  "files": [
+    "PLAN.md",
+    "open_questions.md",
+    "resolved_questions.md",
+    "decisions.json",
+    "changes/diff_v2_to_v3.md"
+  ],
+  "v3_completion_checklist": [
+    "DNA_3Q_CHECK.mdc 创建 + frontmatter alwaysApply=true",
+    "dna_violation_check.py 创建 + --self-test 通过",
+    "hooks.json beforeSubmitPrompt 事件注册",
+    "install.sh 跑通 + 日志含 [3Q-CHECK] loaded",
+    "CHANGELOG [v3.0] 段落",
+    "v2/open_questions.md 加 v3 转移标记"
+  ],
+  "v2_inheritance": {
+    "inherited_decisions": ["D-101~D-105 (v2 5 决策)", "D-201~D-205 (v2 实施期决策)"],
+    "inherited_files": ["AGENTS.md (L1 知识)", "STAGE_S*.mdc (12 份)", "SKILL_STANDARDS.md", "DESIGN_AND_EXECUTION_STANDARDS.mdc"],
+    "v3_modifies": ["AGENTS.md（不动）", "DNA_3Q_CHECK.mdc（新增）", "dna_violation_check.py（新增）", "hooks.json（增量）"]
+  },
+  "v3_1_addition": {
+    "added_at": "2026-06-19",
+    "trigger": "v3.0 实施期单次改 8 文件 ≥ 20 决策点；用户反馈'小狗先执行有偏差，人工审查成本高'",
+    "added_decision": "D-304（决策密度标准）",
+    "added_files": ["DNA_3Q_CHECK.mdc §7（v3.1 增量）", "v3/PLAN.md §6.5"],
+    "added_open_questions": ["Q-311", "Q-312", "Q-313"],
+    "non_goals": "v3.1 不写新 hook（v3.0 §0.4 教训：hook 防不住'误读'型违规）",
+    "see_also": "v3/PLAN.md §6.5 + v3/changes/diff_v2_to_v3.md §7"
+  }
+}
