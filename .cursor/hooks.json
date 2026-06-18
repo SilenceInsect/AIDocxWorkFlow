@@ -10,12 +10,21 @@
         "type": "command",
         "command": ".cursor/hooks/scan_module_definitions.py --quiet",
         "timeout": 15
+      },
+      {
+        "type": "command",
+        "command": ".cursor/hooks/project_dna_inject.py",
+        "timeout": 5
       }
     ],
     "afterFileEdit": [
       {
         "command": ".cursor/hooks/sync_modules_table.py",
         "timeout": 10
+      },
+      {
+        "command": ".cursor/hooks/codegraph_sync.py",
+        "timeout": 35
       }
     ],
     "beforeSubmitPrompt": [
@@ -27,11 +36,25 @@
       {
         "command": ".cursor/hooks/aidocx_feedback_logger_hook.py",
         "timeout": 10
+      },
+      {
+        "command": ".cursor/hooks/before_prompt_dna_check.py",
+        "timeout": 5
       }
     ],
     "sessionEnd": [
       {
         "command": ".cursor/hooks/aidocx_feedback_logger_hook.py",
+        "type": "command",
+        "timeout": 10
+      },
+      {
+        "command": ".cursor/hooks/dna_violation_check.py",
+        "type": "command",
+        "timeout": 10
+      },
+      {
+        "command": ".cursor/hooks/dna_decision_density_check.py",
         "type": "command",
         "timeout": 10
       }
