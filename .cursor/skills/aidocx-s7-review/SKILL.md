@@ -63,6 +63,50 @@ metadata:
 
 ---
 
+## §1.6 强制脚本调用（不可跳过）
+
+S7 执行时，**必须先调用 `auto_reviewer.snapshot()` 获取事实数字，再由 LLM 做语义审查**。跳过脚本直接写报告 → 该报告不合格。
+
+### 步骤 1：调用 auto_reviewer（必须先执行）
+
+```python
+from ai_workflow.auto_reviewer import snapshot, save_review_report
+from pathlib import Path
+
+req_dir = Path("workflow_assets/<req_name>")
+snap = snapshot(
+    test_cases_path=req_dir / "「S6 测试用例生成」/<version>/test_cases.json",
+    backlog_path=req_dir / "「S2 需求拆解」/<version>/backlog.json",
+    test_points_path=req_dir / "「S5 测试点生成」/<version>/test_points.json",
+)
+
+# 输出事实数字供 LLM 使用（禁止跳过此步骤）
+print(snap.ai_input_summary)
+print(f"[S7] TC 填写率: {snap.structure.fill_rate:.1%}")
+print(f"[S7] S5 TP 填写率: {snap.s5_structure.fill_rate:.1%}" if snap.s5_structure else "")
+```
+
+### 步骤 2：LLM 读取 snap 输出（事实数字）
+
+- **禁止**在未读取 `snap.structure.fill_rate` 的情况下直接写报告
+- **禁止**在未读取 `snap.s5_structure` 的情况下写 S5 覆盖率数据
+- **禁止**使用 `overall_pass` 字段（v2.0 已废弃）
+- **禁止**将脚本统计数字当作 PASS/FAIL 硬判决
+
+### 步骤 3：生成 review_report.json（5 个顶层字段）
+
+| 字段 | 来源 |
+|------|------|
+| `reviewer_a` | 来自 `snap.structure`（事实统计） |
+| `reviewer_b` | 来自 `snap.s5_structure`（覆盖率事实） |
+| `llm_review_a_semantic` | LLM 填写（语义审查结论） |
+| `llm_review_b_semantic` | LLM 填写（覆盖率语义评判） |
+| `recommendations` | LLM 填写（必修/应改/可改） |
+
+> **旧格式 `overall_pass: true/false` 禁止出现**——v2.0 已废弃。S7 不再输出 PASS/FAIL 硬判决。
+
+---
+
 ## §1.5 决策 push 块
 
 ### 审查员 A：结构完整性（脚本做轻量体检，LLM 做语义审查）

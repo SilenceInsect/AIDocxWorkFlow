@@ -38,6 +38,130 @@ metadata:
 
 ---
 
+## 【第 0 步】优化识别（S1.8 子阶段）⚠️ 新增
+
+> 当用户上传的文档为**优化文档**（非全新需求）时，先执行本步识别。
+> 识别后呈现多选项，用户选择后再执行增量或全量 S1 评审。
+
+### Step 0.1 提取文档结构
+
+扫描所有标题和关键词，识别优化内容：
+
+```
+优化识别关键词（启发式）：
+  【优化 / 【变更 / 【新增 / 【修改   →  方括号标记块
+  ## 优化 / ## 新增 / ## 变更        →  章节标题块
+  > **变更 / > **新增                  →  引用块高亮
+  文档名含"优化/升级/v2/v3"           →  全量替换文档
+```
+
+### Step 0.2 分类优化类型
+
+| 类型 | 判断规则 | AI 动作 |
+|------|----------|---------|
+| **形式 A（混杂）** | 优化内容穿插在长文中，新的用颜色/标记，旧的可能划线/置灰 | 识别优化块，呈现多选项 |
+| **形式 B（独立新增）** | 文档中有明确"## 优化项N"或"## 新增功能"章节 | 识别优化块，呈现多选项 |
+| **形式 C（全量替换）** | 文档名含"XX优化/重构"，全文都是新内容 | 直接执行标准 S1（全量评审）|
+| **非优化文档** | 无上述任何标记 | 直接执行标准 S1 |
+
+### Step 0.3 调用优化识别脚本
+
+```python
+from ai_workflow.requirement_reviewer_auto import (
+    detect_optimization_blocks,
+    build_incremental_context,
+    generate_regression_guidance,
+)
+
+manifest = detect_optimization_blocks(extracted_text)
+# manifest.is_optimization = True  → 增量文档
+# manifest.optimization_type:
+#   "none"       → 非优化，直接走标准 S1
+#   "full_doc"   → 全量替换，直接走标准 S1
+#   "incremental"→ 增量文档，呈现多选项
+```
+
+### Step 0.4 生成多选项（仅增量文档触发）
+
+当 `manifest.optimization_type == "incremental"` 时，输出以下多选项供用户选择：
+
+```
+【S1.8 优化识别结果】
+
+检测到 N 个优化块，请选择审查范围：
+
+| 选项 ID | 优化块名称 | 影响模块 | 摘要 |
+|---------|-----------|---------|------|
+| 基础文档 | 原始需求基线（vX.XX） | 全模块 | ... |
+| OPT-001 | [优化块名称] | BIZ/SPECIAL | [摘要] |
+| OPT-002 | [优化块名称] | CONFIG/UI | [摘要] |
+| 全部优化 | 全部 N 个优化块 | ... | ... |
+| 全文档 | 基础文档 + 全部优化块 | 全模块 | 执行全量 S1 评审 |
+
+请从上方选项中选择一个或多个（可多选）。
+```
+
+### Step 0.5 用户选择后，构建增量上下文
+
+```python
+# 用户选择了 [OPT-001, OPT-002] 后
+context = build_incremental_context(
+    manifest,
+    selected_block_ids=["OPT-001", "OPT-002"],
+    old_backlog_path="workflow_assets/<req_name>/「S2 需求拆解」/vX.XX/backlog.json",
+)
+# context["is_incremental"] = True
+# context["affected_modules"] = ["BIZ", "SPECIAL"]
+# context["regression_required"] = True
+
+regression = generate_regression_guidance(
+    manifest,
+    selected_block_ids=["OPT-001", "OPT-002"],
+    old_backlog_path="workflow_assets/<req_name>/「S2 需求拆解」/vX.XX/backlog.json",
+)
+# regression["regression_epics"] = [...]
+# regression["guidance_text"] → 供 S5/S6 使用
+```
+
+### Step 0.6 增量 S1 评审（用户选择后执行）
+
+**对选中块执行增量 S1（不重复评审基础文档）**：
+
+1. 读取基础文档（旧版 `终版需求.md`）
+2. 读取旧 backlog（若存在）
+3. **仅对选中优化块进行 S1 评审**（5 维度评分 + 需求对象拆解）
+4. 识别新引入的风险点和关联模块
+5. 产出增量 `review_report.md`（标注：增量内容 vs 旧内容）
+6. 生成回归测试建议（写入 `review_report.md` 的"回归建议"小节）
+7. 版本号：`base_version + 0.01`（如 v3.01 → v3.02）
+
+**增量评审重点**：
+- 不重复评审基础文档已有内容（只评审 OPT-XXX 块内的新内容）
+- 识别优化引入的新风险（如：原来 VIP 折扣不叠加，现在改为叠加 → SPECIAL 模块新风险）
+- 识别关联模块变化（CONFIG 字段变更 → 影响 BIZ 逻辑 → 回归 Epic）
+
+### Step 0.7 全流程传递增量上下文
+
+在 `review_report.json` 的 meta 中携带增量上下文：
+
+```json
+{
+  "meta": {
+    "is_incremental": true,
+    "selected_blocks": ["OPT-001", "OPT-002"],
+    "base_version": "v3.01",
+    "affected_modules": ["BIZ", "SPECIAL"],
+    "regression_required": true,
+    "regression_epics": ["BIZ-PURCHASE-01", "CONFIG-VIP-01"],
+    "incremental_epics": ["OPT-001-001", "OPT-002-001"]
+  }
+}
+```
+
+该 `meta` 字段在 S1.5 → S2 → S4 → S5 → S6 → S7 → S8 的每阶段**必须读取**，以确定增量审查范围。
+
+---
+
 ## §1.4 必读材料与违规认定
 
 > ⚠️ **违反本节禁令 → 产出不合格，必须补读后重新生成。**

@@ -416,11 +416,11 @@ S5 前置材料审查时，检查 `fallback_stories_generated` 与 `fallback_rul
 
 | 检查项 | 要求 | 缺失时 |
 |--------|------|--------|
-| exit_permission.json 存在 | 必须存在 | 生成失败报告 |
-| can_proceed_to_s2 == true | P0 反馈已填写 | 生成失败报告 |
+| exit_permission.json 存在 | 必须存在 | 生成失败报告 → 触发三步自问（见下方例外条款） |
+| can_proceed_to_s2 == true | P0 反馈已填写 | 生成失败报告 → 触发三步自问（见下方例外条款） |
 | PURCHASE_STRONG 3段补齐 | `exit_permission.json` 中 `purchase_strong_closure.three_section_closure` 全部 true | 若策划验收段缺失，在 backlog 中标注「需策划补充验收方案」|
 | 终版需求.md 存在 | 内容完整 | 生成失败报告 |
-| Epic 数量 | ≥ 1 | 生成失败报告 |
+| Epic 数量 | ≥ 1 | 生成失败报告 → 触发三步自问（见下方例外条款） |
 | 每个 Story 有 ≥ 2 条 AC | 必须满足（区分三类验收） | 补充提示 |
 | 每个 Object 有完整的 9 字段（新范式） | obj_name / belong_module / scene / input / normal_flow / exception_flow / data_change / output_display / verify_method | 标注缺失项 |
 | Object 字段命名符合新范式 | 禁止使用旧字段（`object_states` / `interaction_forms` / `business_logic` 等） | 字段重命名 |
@@ -435,10 +435,26 @@ S5 前置材料审查时，检查 `fallback_stories_generated` 与 `fallback_rul
 | 模块归属模糊 | 标注 `[待确认-模块归属]` + 24h 评审 | 走评审流程 |
 | 模块前缀有效 | 来自 8 模块系统 | 纠正分配 |
 | 无循环依赖 | Story 依赖关系无环 | 标记风险 |
-| 物量守恒 | `summary.feature_point_count` == `Σ 各 Object FPs` | S2 失败 |
+| 物量守恒 | `summary.feature_point_count` == `Σ 各 Object FPs` | 触发三步自问（见下方例外条款） |
 | 派生链完整 | 每个 Object 在 requirement_objects.md 中显式列出"从哪些字段派生出了哪些 FP" | 补充派生链 |
 | 字段级 FP 覆盖 | Object 5 个核心字段（normal_flow / exception_flow / data_change / output_display / verify_method）每个至少派生 ≥ 1 个 FP | 字段旁标【待补充】+ 原因 |
 | fallback_stories 物量 | backlog.json 顶层 `fallback_stories_generated` == `fallback_rules_total` | 警告（S5 依赖此字段验证 fallback 是否落地）|
+
+> **三步自问例外条款（exit_permission / Epic数量 / 物量守恒 未达标时触发）**：
+> ```
+> gate 未达标
+>  ↓
+>  Q1：该指标在本业务场景下是否实际存在可评估的内容？
+>    → 存在 → 必须补充，回 LLM/S2 迭代
+>    → 不存在 → 进入 Q2
+>  Q2：S5 TP / S6 TC 的后续阶段是否依赖此指标的结果？
+>    → 依赖 → 必须补充
+>    → 不依赖 → 进入 Q3
+>  Q3：该指标缺失是否影响下游阶段的可执行性？
+>    → 影响 → 必须补充
+>    → 不影响 → 允许放行，在 `bypass_log.json` 记录
+> ```
+> 备案路径：`workflow_assets/<req_name>/「S2 需求拆解」/<version>/bypass_log.json`
 
 ---
 

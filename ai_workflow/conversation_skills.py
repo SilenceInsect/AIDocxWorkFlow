@@ -21,7 +21,7 @@ def _req_dir(req_name: str) -> Path:
     return WF / req_name
 
 
-def _stage_dir(req_name: str, stage: str) -> Path:
+def _stage_dir(req_name: str, stage: str, version: str = "v1.0") -> Path:
     mapping = {
         "S1":   "「S1 需求评审」",
         "S2":   "「S2 需求拆解」",
@@ -33,7 +33,7 @@ def _stage_dir(req_name: str, stage: str) -> Path:
         "S7":   "「S7 用例审查」",
         "S8":   "「S8 自迭代」",
     }
-    return _req_dir(req_name) / mapping.get(stage, stage) / "v1.0"
+    return _req_dir(req_name) / mapping.get(stage, stage) / version
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ def make_stage2_5_skill(req_name: str = "游戏道具商城系统", version: str
         project_config: 项目配置字典，字段见下方 schema
     """
     # 读取 backlog
-    bd_path = _stage_dir(req_name, "S2") / "backlog.json"
+    bd_path = _stage_dir(req_name, "S2", version) / "backlog.json"
     backlog_data = {}
     if bd_path.exists():
         with bd_path.open(encoding="utf-8") as f:
@@ -267,7 +267,7 @@ def make_stage2_5_skill(req_name: str = "游戏道具商城系统", version: str
 
 输出格式：先给 Markdown 计划，再给 JSON（纯 JSON，不含 markdown 代码块）。
 请将结果保存到 _STAGE_DIR_。
-""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S2.5"))),
+""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S2.5", version))),
     }
 
 
@@ -275,7 +275,7 @@ def save_iteration_plan(req_name: str, plan_md: str, plan_json: dict | str,
                          version: str = "v1.0",
                          project_config: dict | None = None) -> dict:
     """保存 S2.5 迭代规划结果。"""
-    d = _stage_dir(req_name, "S2.5")
+    d = _stage_dir(req_name, "S2.5", version)
     d.mkdir(parents=True, exist_ok=True)
 
     md_path = d / "iteration_plan.md"
@@ -315,8 +315,22 @@ def save_iteration_plan(req_name: str, plan_md: str, plan_json: dict | str,
 # S3 — 原型导出
 # ─────────────────────────────────────────────────────────────────────────────
 
-def make_stage3_skill(req_name: str = "游戏道具商城系统", version: str = "v1.0") -> dict:
+def make_stage3_skill(
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    incremental_context: dict | None = None,
+) -> dict:
     """生成 S3 页面原型导出的 AI 协作技能。"""
+    # 读取 S1 review_report.json 获取增量上下文
+    rr_path = _stage_dir(req_name, "S1", version) / "review_report.json"
+    inc_ctx = incremental_context or {}
+    if not inc_ctx and rr_path.exists():
+        try:
+            rr_data = json.loads(rr_path.read_text(encoding="utf-8"))
+            inc_ctx = rr_data.get("meta", {}).get("incremental_context", {})
+        except Exception:
+            pass
+    is_incremental = inc_ctx.get("is_incremental", False)
     system_prompt = """你是一个专业的 UI/UX 原型设计师，擅长将需求转化为高保真页面原型描述和 Mermaid 页面流图。
 
 ## 工作规范
@@ -422,15 +436,15 @@ flowchart TD
 ```
 
 请将 `prototype.md` 和 `prototype.json` 保存到 _STAGE_DIR_。
-""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S3"))) \
-         .replace("_STAGE_DIR_REF_", str(_stage_dir(req_name, "S4"))),
+""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S3", version))) \
+         .replace("_STAGE_DIR_REF_", str(_stage_dir(req_name, "S4", version))),
     }
 
 
 def save_stage3_output(req_name: str, prototype_md: str, prototype_json: dict | str,
                         version: str = "v1.0") -> dict:
     """保存 S3 原型导出结果。"""
-    d = _stage_dir(req_name, "S3")
+    d = _stage_dir(req_name, "S3", version)
     d.mkdir(parents=True, exist_ok=True)
 
     md_path = d / "prototype.md"
@@ -457,10 +471,24 @@ def save_stage3_output(req_name: str, prototype_md: str, prototype_json: dict | 
 # S2 — 需求拆解（make only，save 由 AI 调用）
 # ─────────────────────────────────────────────────────────────────────────────
 
-def make_stage2_skill(req_name: str = "游戏道具商城系统", version: str = "v1.0") -> dict:
-    """生成 S2 需求拆解的 AI 协作技能。"""
-    ep_path = _stage_dir(req_name, "S1") / "exit_permission.json"
-    req_path = _stage_dir(req_name, "S1") / "终版需求.md"
+def make_stage2_skill(
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    incremental_context: dict | None = None,
+) -> dict:
+    """生成 S2 需求拆解的 AI 协作技能。
+
+    Args:
+        req_name: 需求名称
+        version: 版本标识
+        incremental_context: S1.8 增量上下文（来自 review_report.json meta.is_incremental）
+                           - 若 is_incremental=True：读取旧版 backlog + 产出增量 Epic
+                           - 若 is_incremental=False / None：标准 S2
+    """
+    ep_path = _stage_dir(req_name, "S1", version) / "exit_permission.json"
+    req_path = _stage_dir(req_name, "S1", version) / "终版需求.md"
+    # 读取 review_report.json 获取增量上下文
+    rr_path = _stage_dir(req_name, "S1", version) / "review_report.json"
 
     ep_data = {}
     if ep_path.exists():
@@ -471,6 +499,39 @@ def make_stage2_skill(req_name: str = "游戏道具商城系统", version: str =
     if req_path.exists():
         with req_path.open(encoding="utf-8") as f:
             req_text = f.read()[:3000]
+
+    # ── 读取 S1 review_report.json 获取增量上下文 ────────────────────
+    inc_ctx = incremental_context or {}
+    if not inc_ctx and rr_path.exists():
+        try:
+            rr_data = json.loads(rr_path.read_text(encoding="utf-8"))
+            inc_ctx = rr_data.get("meta", {}).get("incremental_context", {})
+        except Exception:
+            pass
+
+    is_incremental = inc_ctx.get("is_incremental", False)
+    old_backlog_ref = inc_ctx.get("old_backlog_ref") or ""
+
+    # ── 读取旧版 backlog（增量时）────────────────────────────────────
+    old_backlog_text = ""
+    if is_incremental and old_backlog_ref:
+        try:
+            old_backlog_text = Path(old_backlog_ref).read_text(encoding="utf-8")[:2000]
+        except Exception:
+            pass
+
+    # ── 构建回归 Epic 引导（增量时）──────────────────────────────────
+    regression_note = ""
+    if is_incremental:
+        reg_blocks = inc_ctx.get("block_details", [])
+        affected = inc_ctx.get("affected_modules", [])
+        reg_epics = inc_ctx.get("regression_epics", [])
+        regression_note = f"""增量审查上下文（S1.8）：
+- 选中优化块：{', '.join(b['block_id'] + ':' + b['block_name'] for b in reg_blocks) if reg_blocks else '无'}
+- 影响模块：{', '.join(affected)}
+- 需回归 Epic：{', '.join(reg_epics) if reg_epics else '（基于旧 backlog 推断）'}
+- 回归要求：选中块涉及 BIZ/LINK/SPECIAL 模块，需产出回归测试用例覆盖旧流程变更点
+"""
 
     system_prompt = """你是一个专业的游戏需求分析师，负责将需求文档拆解为 Epic/Story/需求对象/功能点层级。
 
@@ -488,16 +549,28 @@ def make_stage2_skill(req_name: str = "游戏道具商城系统", version: str =
 - 优先级标注（priority: true/false）
 - 对应 backlog.json 的格式
 """
+    # 增量上下文预渲染（避免在 f-string 中混用 JSON 引号）
+    _inc_ctx_json = (
+        '  "incremental_context": ' + json.dumps(inc_ctx, ensure_ascii=False) + ",\n"
+        if is_incremental else ""
+    )
+    _inc_epic_fields = (
+        '      "incremental_block_id": "OPT-XXX",\n      "regression": False,\n'
+        if is_incremental else ""
+    )
     user_template = f"""## 游戏道具商城系统 — 需求拆解（S2）
+{regression_note}
 
 需求材料：
 - 终版需求（{req_path}）：{req_text[:500]}...
 - 准出许可：{ep_data.get('exit_permission', {})}
 
+{"### 旧版 backlog（增量参考）\n" + old_backlog_text[:1000] + "\n" if old_backlog_text else ""}
 请执行 S2 需求拆解，输出：
 1. `backlog.md`（Epic/Story 列表，Markdown 格式）
 2. `backlog.json`（机器可读格式）
 
+{"## 增量评审特殊要求（S1.8）\n- 仅对 OPT-XXX 块产出新 Epic/Story，不重复评审基础文档已有内容\n- 在 backlog.json 中为每个增量 Epic 标注 `incremental_block_id: OPT-XXX`\n- 推断可能受影响的旧 Epic，标注 `regression: true`\n- 回归 Epic 列表填入顶层 `regression_epics[]`\n" if is_incremental else ""}
 JSON 格式参考：
 ```json
 {{
@@ -506,7 +579,8 @@ JSON 格式参考：
   "stage": "S2",
   "req_name": "{req_name}",
   "quality_level": "{ep_data.get('exit_permission', {}).get('quality_level', 'MEDIUM')}",
-  "summary": {{"epic_count": N, "story_count": N, "requirement_object_count": N, "feature_point_count": N}},
+{_inc_ctx_json if is_incremental else ""}  "summary": {{"epic_count": N, "story_count": N, "requirement_object_count": N, "feature_point_count": N}},
+  "regression_epics": {inc_ctx.get("regression_epics", []) if is_incremental else []},
   "priority_epics": ["EPIC-ID-1", "EPIC-ID-2"],
   "epics": [
     {{
@@ -515,7 +589,7 @@ JSON 格式参考：
       "title": "Epic标题",
       "estimated_weeks": N,
       "priority": true,
-      "stories": [
+{_inc_epic_fields if is_incremental else ""}      "stories": [
         {{
           "id": "EPIC-ID-001",
           "title": "Story标题",
@@ -523,7 +597,7 @@ JSON 格式参考：
           "precondition": "前提条件",
           "input_data": "输入数据",
           "expected_output": "预期输出",
-          "source": "original|clarification|fallback"
+          "source": "original|clarification|fallback|incremental"
         }}
       ]
     }}
@@ -532,13 +606,13 @@ JSON 格式参考：
 ```
 
 请将结果保存到 _STAGE_DIR_。
-""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S2")))
+""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S2", version)))
     return {"system_prompt": system_prompt, "user_template": user_template}
 
 
 def save_stage2_output(req_name: str, backlog_md: str, backlog_json: dict | str,
                         version: str = "v1.0") -> dict:
-    d = _stage_dir(req_name, "S2")
+    d = _stage_dir(req_name, "S2", version)
     d.mkdir(parents=True, exist_ok=True)
 
     md_path = d / "backlog.md"
@@ -565,12 +639,37 @@ def save_stage2_output(req_name: str, backlog_md: str, backlog_json: dict | str,
 # S4 — 流程图导出
 # ─────────────────────────────────────────────────────────────────────────────
 
-def make_stage4_skill(req_name: str = "游戏道具商城系统", version: str = "v1.0") -> dict:
+def make_stage4_skill(
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    incremental_context: dict | None = None,
+) -> dict:
     """生成 S4 流程图导出的 AI 协作技能。
 
     v1.1+ 关键约束：4 类可机检 ID（风险点 + 异常树叶子） + 7 类风险点典型清单。
     S5/S6/S7 强依赖这些 ID——S7 100% 覆盖率审计的 SSoT。
     """
+    # 读取 S1 review_report.json 获取增量上下文
+    rr_path = _stage_dir(req_name, "S1", version) / "review_report.json"
+    inc_ctx = incremental_context or {}
+    if not inc_ctx and rr_path.exists():
+        try:
+            rr_data = json.loads(rr_path.read_text(encoding="utf-8"))
+            inc_ctx = rr_data.get("meta", {}).get("incremental_context", {})
+        except Exception:
+            pass
+    is_incremental = inc_ctx.get("is_incremental", False)
+    reg_epics = inc_ctx.get("regression_epics", [])
+
+    incremental_note = ""
+    if is_incremental:
+        incremental_note = f"""## 增量审查要求（S1.8）
+- 增量 Epic：{', '.join(inc_ctx.get('incremental_epics', ['OPT-XXX-001']))}
+- 回归 Epic：{', '.join(reg_epics) if reg_epics else '（从旧 backlog 推断）'}
+- 增量 Epic 需产出完整 4 类（S4 流程图 / 时序图 / 异常树 / 风险点）
+- 回归 Epic 只需产出变更点的增量异常路径，不需要重新产出完整流程图
+- 异常树叶子 ID 跨 Epic 全局唯一（不能与回归 Epic 的叶子 ID 冲突）
+"""
     system_prompt = """你是一个专业的业务流程设计师，负责将 S2 backlog 拆解为**可机检的 4 类产出**：
 1. Mermaid 业务流程图（Flowchart）— 节点带 `S4-{EpicID}-FNN` ID
 2. Mermaid 时序图（Sequence Diagram）
@@ -631,13 +730,13 @@ def make_stage4_skill(req_name: str = "游戏道具商城系统", version: str =
 - Mermaid 语法合法
 """
     return {
-        "system_prompt": system_prompt,
+        "system_prompt": system_prompt + ("\n" + incremental_note if incremental_note else ""),
         "user_template": f"""## 游戏道具商城系统 — 流程图导出（S4）
-
+{incremental_note if incremental_note else ""}
 基于 backlog.json 中的 Story 设计业务流程图（**v1.1+ 必须按可机检 ID 规范产出**）。
 
 ### 输入材料
-1. **S2 backlog.json**（必填）— `epics[].module` + `acceptance_criteria`
+1. **S2 backlog.json**（必填）— `epics[].module` + `acceptance_criteria` + `incremental_block_id`
 2. **S3 prototype.md**（推荐）— `PAGE-XXX` 节点命名参考
 
 请输出 `business_flow.md`，**4 类产出按顺序**：
@@ -664,7 +763,7 @@ def make_stage4_skill(req_name: str = "游戏道具商城系统", version: str =
 - ❌ 不要用模块中文别名
 
 请将结果保存到 _STAGE_DIR_。
-""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S4"))),
+""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S4", version))),
     }
 
 
@@ -675,7 +774,7 @@ def save_stage4_output(req_name: str, flow_md: str, version: str = "v1.0") -> di
       - flow_md: business_flow.md 全文
     """
     import re
-    d = _stage_dir(req_name, "S4")
+    d = _stage_dir(req_name, "S4", version)
     d.mkdir(parents=True, exist_ok=True)
 
     md_path = d / "business_flow.md"
@@ -761,7 +860,7 @@ def execute_full_flow(req_name: str = "游戏道具商城系统",
     results = {}
 
     for s in stages:
-        d = _stage_dir(req_name, s)
+        d = _stage_dir(req_name, s, version)
         stage_files = list(d.glob("*")) if d.exists() else []
         results[s] = {
             "done": d.exists() and len(stage_files) > 0,
@@ -804,7 +903,7 @@ def save_stage5_output(
     """
     import json, re, textwrap
 
-    d = _stage_dir(req_name, "S5")
+    d = _stage_dir(req_name, "S5", version)
     d.mkdir(parents=True, exist_ok=True)
 
     # ── 1. 解析输入 ──────────────────────────────────────────────────────
@@ -823,7 +922,7 @@ def save_stage5_output(
     stories = data.get("stories") or (data if isinstance(data, list) else data.get("test_points", []))
 
     # ── 2. 从 S4 business_flow.json 提取风险点映射（s4_reference 格式参考）──
-    s4_json_path = _stage_dir(req_name, "S4") / "business_flow.json"
+    s4_json_path = _stage_dir(req_name, "S4", version) / "business_flow.json"
     s4_risks: dict[str, list[str]] = {}  # epic_id -> [risk_id_human, ...]
     if s4_json_path.exists():
         with s4_json_path.open(encoding="utf-8") as f:

@@ -220,6 +220,25 @@ workflow_assets/
 
 ---
 
+## Resource Directory Structure
+
+> `resource/` 目录用于存放传入的原始需求文档和迭代变更要求，**不纳入 git 版本控制**。各阶段执行时优先从 `resource/` 读取最新版本。
+
+```
+resource/
+  <req_name>/
+    <version>_raw.<ext>          ← 原始需求文档（.docx / .md）
+    <version>_change.md           ← 迭代变更说明（与上一版本的差异描述）
+    ...
+```
+
+- 每个需求单独一个子目录，目录名 = `req_name`
+- 每版需求含两项：`raw` 文档 + `change` 变更说明
+- `resource/` 整体 `.gitignore`，不提交 git
+- `workflow_assets/` 是流水线产出，`resource/` 是输入材料备份，职责分离
+
+---
+
 ## CodeGraph
 
 使用 Cursor 内置 CodeGraph 进行代码结构查询。详见 `.cursor/rules/CODEGRAPH_SYNC.mdc`。

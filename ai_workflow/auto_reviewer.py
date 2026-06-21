@@ -55,35 +55,55 @@ class ReviewSnapshot:
     date: str = ""
 
 
+def _get_tc_field(case: dict, *keys) -> str:
+    """从 case dict 中按优先级查找第一个存在的字段值。
+
+    兼容两套字段名体系：
+    - SKILL.md 中文体系：用例描述 / 功能描述 / 操作步骤 / 预期结果
+    - S6 对话直接生成体系：scenario / expected_result / test_steps / story_id / case_status
+    - 历史 S6 体系：steps / expected
+
+    无匹配时返回空字符串。
+    """
+    for key in keys:
+        val = case.get(key)
+        if val is None:
+            continue
+        if isinstance(val, list):
+            return "\n".join(str(v) for v in val)
+        return str(val)
+    return ""
+
+
 # ── S6 TC 字段检查（10列）────────────────────────────────────────────────
 
 def _check_structure(cases: list) -> StructureSnapshot:
     """检查 S6 TC 必填字段（10列：用例描述/功能描述/前置/步骤/预期/优先级/状态）。
 
-    v2.0 修复（2026-06-15）：
-    - 旧 4 字段（用例描述/前置/步骤/预期）→ S6 10 列
-    - 字段名支持中英双语（用例描述=title / 功能描述=功能描述 等）
+    v3.0 修复（2026-06-21）：
+    - 字段名与 S6 对话生成的 JSON schema 对齐（scenario / test_steps / expected_result）
+    - 同时兼容 SKILL.md 中文体系，实现两套字段名体系的 fallback
     """
     REQUIRED_TC_FIELDS = [
-        ("用例描述",  "title"),
-        ("功能描述",  "功能描述"),
-        ("前置条件", "precondition"),
-        ("操作步骤", "steps"),
-        ("预期结果", "expected"),
-        ("优先级",   "优先级"),
-        ("用例状态", "用例状态"),
+        ("用例描述",   "title",       "story_id"),         # story_id 作为纯标题兜底
+        ("功能描述",   "scenario",    "description"),
+        ("前置条件",   "precondition"),
+        ("操作步骤",   "test_steps",  "steps"),
+        ("预期结果",   "expected_result", "expected"),
+        ("优先级",     "priority"),
+        ("用例状态",   "case_status", "用例状态"),
     ]
     total_fields = len(cases) * len(REQUIRED_TC_FIELDS)
     filled = 0
     missing = []
 
     for case in cases:
-        for zh, en in REQUIRED_TC_FIELDS:
-            val = case.get(zh) or case.get(en)
-            if val and str(val).strip():
+        for zh, *alternates in REQUIRED_TC_FIELDS:
+            val = _get_tc_field(case, zh, *alternates)
+            if val and val.strip():
                 filled += 1
             else:
-                missing.append({"case_id": case.get("case_id", "?"), "field": en})
+                missing.append({"case_id": _get_tc_field(case, "case_id") or "?", "field": alternates[-1] if alternates else zh})
 
     fill_rate = filled / total_fields if total_fields else 0.0
     return StructureSnapshot(
@@ -121,7 +141,10 @@ def _check_s5_tp_structure(test_points: list) -> StructureSnapshot:
 
     # 预处理：迁移旧字段名（in-place）
     for tp in test_points:
-        if "id" in tp and "tp_id" not in tp:
+        # id → tp_id
+        if "test_point_id" in tp and "tp_id" not in tp:
+            tp["tp_id"] = tp["test_point_id"]
+        elif "id" in tp and "tp_id" not in tp:
             tp["tp_id"] = tp.pop("id")
         if "type" in tp and "test_point_type" not in tp:
             tp["test_point_type"] = tp.pop("type")
@@ -133,7 +156,7 @@ def _check_s5_tp_structure(test_points: list) -> StructureSnapshot:
     missing = []
 
     for tp in test_points:
-        tp_id = tp.get("tp_id", "?")
+        tp_id = tp.get("test_point_id") or tp.get("tp_id", "?")
         for fld, desc in S5_REQUIRED_FIELDS:
             val = tp.get(fld)
             if val is not None and str(val).strip():
@@ -177,7 +200,7 @@ def _check_coverage(cases: list, backlog: dict) -> dict:
 
 def _module_stats(cases: list) -> dict:
     """按归一化模块统计（机械 Counter）。"""
-    from test_case_formatter import normalize_module_name
+    from ai_workflow.test_case_formatter import normalize_module_name
     counter = {}
     for c in cases:
         raw = c.get("module", "") or c.get("模块", "")
@@ -187,10 +210,13 @@ def _module_stats(cases: list) -> dict:
 
 
 def _type_stats(cases: list) -> dict:
-    """按 test_type 统计（机械 Counter）。"""
+    """按 test_point_type 统计（机械 Counter）。
+
+    v3.0 修复：JSON 使用 test_point_type（从 S5 继承），而非 test_type。
+    """
     counter = {}
     for c in cases:
-        t = c.get("test_type", "")
+        t = c.get("test_point_type", "") or c.get("test_type", "")
         counter[t] = counter.get(t, 0) + 1
     return counter
 
@@ -273,13 +299,25 @@ def snapshot(
         tp_path = Path(test_points_path)
         with tp_path.open(encoding="utf-8") as f:
             tp_data = json.load(f)
-        # 兼容 3 种 JSON 结构
+        # 兼容 4 种 JSON 结构：
+        # 1. 顶层 list [...]（老格式）
+        # 2. {"stories": [{"scenario_test_points": [...]}, ...]}（v1.x 嵌套格式）
+        # 3. {"test_points": [...]}（v2.x/v3.x 扁平格式，兼容 test_points_by_story）
+        # 4. {"test_points_by_story": [{scenario_test_points: [...]}]}（v2.x 中间格式）
         if isinstance(tp_data, list):
             tp_list = tp_data
         elif isinstance(tp_data, dict):
-            tp_list = []
-            for story in tp_data.get("stories", []):
-                tp_list.extend(story.get("scenario_test_points", []))
+            tp_list = tp_data.get("test_points", [])
+            if not tp_list:
+                tp_list = tp_data.get("test_points_by_story", [])
+                if tp_list and isinstance(tp_list[0], dict) and "scenario_test_points" in tp_list[0]:
+                    flat = []
+                    for story in tp_list:
+                        flat.extend(story.get("scenario_test_points", []))
+                    tp_list = flat
+            if not tp_list:
+                for story in tp_data.get("stories", []):
+                    tp_list.extend(story.get("scenario_test_points", []))
         else:
             tp_list = []
         s5_structure = _check_s5_tp_structure(tp_list)
@@ -304,6 +342,63 @@ def snapshot(
         ai_input_summary=ai_summary,
         date=datetime.now().strftime("%Y-%m-%d"),
     )
+
+
+# ── 备案保存 ─────────────────────────────────────────────────────────────────
+
+def save_bypass_log(
+    bypass_entry: dict,
+    output_dir: str | Path,
+    req_name: str = "unknown",
+    stage: str = "S6",
+    version: str = "v1.0",
+) -> str:
+    """将三步自问放行理由备案到 bypass_log.json。
+
+    调用时机：LLM 经三步自问论证后，对某个硬性门禁带理由放行时。
+
+    Args:
+        bypass_entry: 单一放行条目，格式见 DESIGN_AND_EXECUTION_STANDARDS.mdc §2.4.1
+        output_dir: 阶段产出目录
+        req_name: 需求名称
+        stage: 阶段标识（S1/S1.5/S2/S4/S5/S6/S7）
+        version: 版本号
+
+    Returns:
+        写入的 bypass_log.json 文件路径
+    """
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    log_path = output_dir / "bypass_log.json"
+
+    from datetime import datetime as _dt
+
+    meta = {
+        "req_name": req_name,
+        "stage": stage,
+        "version": version,
+        "logged_at": _dt.now().isoformat(),
+    }
+
+    # 读取已有 log，追加新条目
+    if log_path.exists():
+        try:
+            existing = json.loads(log_path.read_text(encoding="utf-8"))
+        except Exception:
+            existing = {"meta": meta, "bypassed_gates": []}
+    else:
+        existing = {"meta": meta, "bypassed_gates": []}
+
+    existing["meta"] = meta
+    existing["bypassed_gates"] = existing.get("bypassed_gates", [])
+    existing["bypassed_gates"].append(bypass_entry)
+    existing["meta"]["bypass_count"] = len(existing["bypassed_gates"])
+
+    with log_path.open("w", encoding="utf-8") as f:
+        json.dump(existing, f, ensure_ascii=False, indent=2)
+
+    print(f"[BYPASS LOG] → {log_path}  (累计 bypass_count={existing['meta']['bypass_count']})")
+    return str(log_path)
 
 
 # ── 兼容旧调用方（auto_review） ─────────────────────────────────────────────

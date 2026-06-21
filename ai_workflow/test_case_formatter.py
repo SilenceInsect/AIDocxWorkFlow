@@ -602,14 +602,14 @@ def _save_md(cases: list, output_dir: Path) -> Path:
     ]
     for c in cases:
         lines.append(
-            f"| {c.get('case_id','')} | {c.get('模块', c.get('module',''))} | "
-            f"{c.get('用例描述','')} | {c.get('功能描述','')} | "
-            f"{c.get('前置条件', c.get('precondition',''))} | "
-            f"{c.get('操作步骤', c.get('steps',''))} | "
-            f"{c.get('预期结果', c.get('expected',''))} | "
-            f"{c.get('优先级', c.get('priority','P1'))} | "
-            f"{c.get('用例状态','Draft')} | "
-            f"{c.get('备注','')} |\n"
+            f"| {_get_field(c, 'case_id')} | {_get_field(c, '模块', 'module')} | "
+            f"{_get_field(c, '用例描述', 'scenario')} | {_get_field(c, '功能描述', 'description')} | "
+            f"{_get_field(c, '前置条件', 'precondition')} | "
+            f"{_get_field(c, '操作步骤', 'test_steps', 'steps')} | "
+            f"{_get_field(c, '预期结果', 'expected_result', 'expected')} | "
+            f"{_get_field(c, '优先级', 'priority', _default='P2')} | "
+            f"{_get_field(c, '用例状态', 'case_status', _default='Draft')} | "
+            f"{_get_field(c, '备注', 'story_id')} |\n"
         )
 
     md_path = output_dir / "test_cases.md"
@@ -618,20 +618,39 @@ def _save_md(cases: list, output_dir: Path) -> Path:
     return md_path
 
 
-# v3.0 修复：xlsx 表头统一为 10 列（与 SKILL.md 严格一致）
-# - 旧 8 列（缺「功能描述」「用例状态」「备注」，多出「用例类型」）→ 10 列
 _XLSX_HEADERS_V3 = [
     "用例ID",     # case_id
     "模块",       # 模块 / module
     "用例描述",   # 用例描述（纯 Story 标题）
-    "功能描述",   # 功能描述（验证 X 在 Y 条件下表现 Z）
+    "功能描述",   # 功能描述（scenario）
     "前置条件",   # 前置条件 / precondition
-    "操作步骤",   # 操作步骤（具体 UI 元素/数值）
-    "预期结果",   # 预期结果（纯业务结果）
+    "操作步骤",   # 操作步骤（test_steps / steps）
+    "预期结果",   # 预期结果（expected_result / expected）
     "优先级",     # 优先级 P0/P1/P2
     "用例状态",   # 用例状态 Draft/Review/Approved
-    "备注",       # 备注 story/tp_id/method 元数据
+    "备注",       # 备注 story_id/tp_id/method 元数据
 ]
+
+
+def _get_field(case: dict, *keys, _default: str = "") -> str:
+    """从 case dict 中按优先级查找第一个存在的字段值。
+
+    兼容两套字段名体系：
+    - SKILL.md 中文体系：用例描述 / 功能描述 / 操作步骤 / 预期结果
+    - S6 对话直接生成体系：scenario / expected_result / test_steps / story_id
+    - 历史 S6 体系：steps / expected
+
+    无匹配时返回空字符串；外部可通过 default= 参数覆盖。
+    """
+    for key in keys:
+        val = case.get(key)
+        if val is None:
+            continue
+        # test_steps / steps 是 list，转 "\n" 分行字符串
+        if isinstance(val, list):
+            return "\n".join(str(v) for v in val)
+        return str(val)
+    return _default
 
 
 def _save_xlsx(cases: list, output_dir: Path) -> Path:
@@ -640,6 +659,8 @@ def _save_xlsx(cases: list, output_dir: Path) -> Path:
     v3.0 修复（2026-06-15）：旧 8 列错位被 s6_xlsx_enhance 二次覆盖。
     本函数作为 s6_generate.py 主路径兜底使用——表头已对齐 s6_xlsx_enhance。
     """
+    if isinstance(output_dir, str):
+        output_dir = Path(output_dir)
     xlsx_path = output_dir / "test_cases.xlsx"
     try:
         import openpyxl
@@ -649,16 +670,16 @@ def _save_xlsx(cases: list, output_dir: Path) -> Path:
         ws.append(_XLSX_HEADERS_V3)
         for c in cases:
             ws.append([
-                c.get("case_id", ""),
-                c.get("模块", c.get("module", "")),
-                c.get("用例描述", ""),
-                c.get("功能描述", ""),
-                c.get("前置条件", c.get("precondition", "")),
-                c.get("操作步骤", c.get("steps", "")),
-                c.get("预期结果", c.get("expected", "")),
-                c.get("优先级", c.get("priority", "P1")),
-                c.get("用例状态", "Draft"),
-                c.get("备注", ""),
+                _get_field(c, "case_id"),
+                _get_field(c, "模块", "module"),
+                _get_field(c, "用例描述", "scenario"),
+                _get_field(c, "功能描述", "description"),
+                _get_field(c, "前置条件", "precondition"),
+                _get_field(c, "操作步骤", "test_steps", "steps"),
+                _get_field(c, "预期结果", "expected_result", "expected"),
+                _get_field(c, "优先级", "priority", _default="P2"),
+                _get_field(c, "用例状态", "case_status", _default="Draft"),
+                _get_field(c, "备注", "story_id"),
             ])
         for col in ws.columns:
             max_len = 0

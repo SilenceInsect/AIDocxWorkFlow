@@ -17,7 +17,7 @@ metadata:
 
 # AIDocxWorkFlow S6 — 测试用例生成
 
-> **设计哲学（v2.0 重构 — 2026-06-15）**：
+> **设计哲学（2026-06-15）**：
 > - **LLM 负责推理**：从 S5 TP 派生出几个 TC、用什么方法、步骤怎么写——全是 LLM 推理决定
 > - **脚本只负责整理**：ID 分配 / 字段归一化 / 写文件
 > - **不设硬指标**：1:1 也行、1:5 也行、1:20 也行——业务复杂度自然决定
@@ -70,6 +70,73 @@ if not result["passed"]:
 
 ---
 
+## §1.6 评审门禁触发（强制，不可跳过）
+
+S6 执行时，**每个产物生成后必须立即触发对应门禁检查**。跳过任一检查即提交 → 该产物不合格。
+
+### 产物 → 门禁检查 → 失败动作
+
+| 产物 | 门禁检查 | 失败时动作 |
+|------|---------|-----------|
+| `test_cases.json` | 运行 `auto_reviewer.snapshot()` 并检查 `fill_rate ≥ 90%` | 触发三步自问；若依然无法提升，允许带理由放行（见下文例外条款）|
+| `test_cases.md` | 对比 md 中 TC 数量与 json 一致 | 回 LLM 迭代 md |
+| `test_cases.xlsx` | 运行 `_save_xlsx` 后检查 10 列全部非空 | 重生成 xlsx（不修改 json）|
+
+### fill_rate < 90% 的例外条款：三步自问
+
+> 脚本统计的是"字段是否填写"，但业务上有些字段确实无值可填（如无前置条件、无边界值）。
+> 因此允许 LLM 经"三步自问"论证后带理由放行。
+
+当 `fill_rate < 0.9` 时，进入以下决策树：
+
+```
+fill_rate < 90%
+ ↓
+[三步自问]
+ Q1：该字段在本业务场景下是否实际存在？
+   → 存在 → 必须填，回 LLM 补充
+   → 不存在 → 进入 Q2
+ Q2：S5 TP 是否提供了该字段的来源信息？
+   → 有 → 必须填，回 LLM 补充
+   → 无 → 进入 Q3
+ Q3：该字段缺失是否影响测试用例的可执行性？
+   → 影响 → 必须填，回 LLM 补充
+   → 不影响 → 允许放行，记录 skip_reason
+```
+
+- **Q1/Q2 回答"存在"或"有"** → 回 LLM 迭代 json，禁止生成 xlsx
+- **Q1/Q2 回答"不存在"且 Q3 回答"不影响"** → 允许放行，备案到 `bypass_log.json`（路径：`workflow_assets/<req_name>/「S6 测试用例生成」/<version>/bypass_log.json`）
+
+### 脚本入口（必须在 LLM 生成产物后立即执行）
+
+```python
+from ai_workflow.auto_reviewer import snapshot
+from pathlib import Path
+
+tc_path = Path("workflow_assets/<req_name>/「S6 测试用例生成」/<version>/test_cases.json")
+bd_path = Path("workflow_assets/<req_name>/「S2 需求拆解」/<version>/backlog.json")
+tp_path = Path("workflow_assets/<req_name>/「S5 测试点生成」/<version>/test_points.json")
+
+snap = snapshot(tc_path, bd_path, tp_path)
+
+# 读取事实数字（禁止跳过此步骤直接写报告）
+print(snap.ai_input_summary)
+print(f"[S6 GATE] TC 填写率: {snap.structure.fill_rate:.1%}")
+if snap.structure.fill_rate < 0.9:
+    print(f"[S6 GATE] 填写率 {snap.structure.fill_rate:.1%} < 90%")
+    print("[S6 GATE] 触发三步自问（见 §1.6 例外条款）")
+    # → 进入三步自问决策树，LLM 判断是否可放行
+```
+
+### 禁止行为
+
+- ❌ 跳过 `snapshot()` 直接输出产物
+- ❌ 跳过门禁检查直接生成 xlsx
+- ❌ 在未经三步自问的情况下直接放行
+- ❌ 三步自问 Q1/Q2 回答"存在"或"有"时仍放行
+
+---
+
 ## §1.5 决策 push 块
 
 > **哲学**：不告诉 LLM 多少算合格，告诉 LLM 怎么思考产出质量。
@@ -91,10 +158,10 @@ if not result["passed"]:
 
 | 字段 | 定义 | 内容要求 |
 |------|------|----------|
-| **用例描述** | 用例标题 | **纯 Story 名称**（S2 backlog 的 Story.title），禁止加后缀、禁止加括号、禁止任何分隔符 |
-| **功能描述** | 该用例验证的具体功能点 | **LLM 自然语言创作**，描述"验证什么"，禁止复制 S4/S5 的节点名称 |
-| **前置条件** | 进入用例前系统所处的初始状态 | 具体数值（余额=xxx、道具备注=xxx），禁止模糊描述 |
-| **操作步骤** | 玩家或策划的具体行动 | **每步包含具体 UI 元素名或具体数值**；禁止模板语言 |
+| **用例描述** | 用例标题 | **需求对象名称**（来自 S2 requirement_object.title），禁止加后缀、禁止加括号、禁止任何分隔符 |
+| **功能描述** | 该用例验证的需求对象的功能点 | **LLM 自然语言创作**，描述"这个需求对象做了什么/起了什么作用"，禁止复制 S4/S5 的节点名称 |
+| **前置条件** | 进入用例前系统所处的初始状态 | 具体数值（余额=xxx、道具备注=xxx），**禁止"无"占位**（除非业务确实无前置条件） |
+| **操作步骤** | 玩家或策划的具体行动 | **每步包含具体 UI 元素名或具体数值**；禁止 `执行测试场景`/`验证预期结果`/`执行操作` 等模板语言 |
 | **预期结果** | 操作后系统应产生的行为 | **纯业务结果**；禁止引用 S4 编号，禁止括号说明 |
 | **test_method** | （可选）LLM 标注的测试方法 | 自由字符串，例如"等价类划分" / "异常流容错"——**不强制必须填** |
 | **test_scenario** | （可选）方法下的具体场景 | 自由字符串，例如"空值" / "边界+1" / "超时30s"——**不强制必须填** |
@@ -112,8 +179,9 @@ if not result["passed"]:
 
 ❌ 用例描述: 购买确认弹窗 — 正常展示道具信息   （加了后缀，分隔符）
 ❌ 功能描述: 余额不足时购买按钮禁用（引用S4-R01）  （加了括号引用）
-❌ 操作步骤: 执行操作：验证结果                     （模板语言）
+❌ 操作步骤: 执行操作：验证结果 / 执行测试场景 / 验证预期结果 （模板语言）
 ❌ 预期结果: 余额不足提示（引用S4-1.3异常树）      （括号引用）
+❌ 前置条件: 无                                     （占位文本，业务有实际前置条件时禁止）
 ```
 
 ---
@@ -165,14 +233,93 @@ if not result["passed"]:
 
 ## 自检清单（LLM 生成后、提交前必走）
 
-- [ ] 用例描述是否只含纯 Story 标题（无 `—`、无括号）？
-- [ ] 功能描述是否自然语言（无 S4/S5 节点名、无括号说明）？
-- [ ] 操作步骤是否无任何模板语言（无「执行操作：」「执行：」）？
-- [ ] 预期结果是否无任何括号引用（无 `（引用S4-xxx）`）？
-- [ ] **全文搜索"引用"应为 0 处**
+> **评审驱动（v2.08+）**：按产物分阶段自检——**前一阶段不通过，禁止进入下一阶段**。
+
+### json 评审门禁（5 项，写完 test_cases.json 后立即执行）
+
+- [ ] **ID 唯一性 100%**：`{Module}-TC-{NNN}` 无重复
+- [ ] **10 字段完整 100%**：case_id/module/用例描述/功能描述/前置条件/操作步骤/预期结果/优先级/用例状态/备注
+- [ ] **前置条件不为准"无"**：必须包含具体初始状态（余额/道具数量/玩家等级等），"无" 仅在业务确实无前置条件时使用
+- [ ] **操作步骤不为模板语言**：禁止 `执行测试场景`/`验证预期结果`/`执行操作` 等占位文本，每步必须有具体 UI 元素名或具体数值
+- [ ] **5 项业务自检**：用例描述为需求对象名称 / 功能描述为需求对象功能点自然语言 / 操作步骤无模板语言 / 预期结果无括号引用 / 全文搜索"引用"为 0 处
+- [ ] **优先级分布合理**：P0 ≥ 60%（关键路径优先）
+- [ ] **8 模块覆盖**：CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT 至少 1 个用例
+- [ ] **🚨 不通过禁止生成 xlsx**——回 LLM 迭代 json
+
+### md 评审门禁（写完 test_cases.md 后立即执行）
+
+- [ ] md 中 TC 简表与 json 一致（数量/用例ID/优先级）
+- [ ] md 总览统计数字与 json 一致（模块分布/优先级分布）
+- [ ] md 分组（Epic）正确——按 S2 backlog 4 Epic 分
+
+### xlsx 评审门禁（生成 test_cases.xlsx 后立即执行）
+
+- [ ] **🚨 3 个文件全部生成**：test_cases.md + test_cases.json + **test_cases.xlsx**
+- [ ] **xlsx 3 Sheet 全部存在**：Sheet1 用例详情 + Sheet2 模块统计 + Sheet3 类型统计
+- [ ] **Sheet 1 行数 = json TC 数**
+- [ ] **Sheet 2 模块数 = json 实际模块数**
+- [ ] **Sheet 1 含 10 列字段**
+- [ ] **xlsx 可被 openpyxl 重新打开**（round-trip 校验）
 
 > **不强制 test_method / test_scenario 字段**——LLM 视业务需要自由标注。
 > **不强制 1:N 拓宽**——LLM 根据业务复杂度自然决定 1:1 / 1:3 / 1:18。
+
+### xlsx 生成强制规范（v2.08+ 关键约束）
+
+**xlsx 是 S6 核心产物，缺它 = 阶段失败。**
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| Sheet 1（用例详情）存在 | 必须 | fail_report_S6.md |
+| Sheet 2（模块统计）存在 | 必须 | fail_report_S6.md |
+| Sheet 3（类型统计）存在 | 必须 | fail_report_S6.md |
+| Sheet 1 用例数 = JSON 用例数 | 100% | fail_report_S6.md |
+| Sheet 1 含 10 列字段 | 100% | fail_report_S6.md |
+| xlsx 可被 openpyxl 重新打开 | 100% | fail_report_S6.md |
+
+**生成命令**：
+```python
+import json
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from collections import Counter
+
+with open("test_cases.json") as f:
+    cases = json.load(f)
+
+wb = Workbook()
+wb.remove(wb.active)
+
+# Sheet 1: 用例详情
+ws1 = wb.create_sheet("测试用例详情")
+headers = ["用例ID", "模块", "用例描述", "功能描述", "前置条件",
+           "操作步骤", "预期结果", "优先级", "用例状态", "备注"]
+ws1.append(headers)
+for c in cases:
+    ws1.append([c["case_id"], c["module"], c["用例描述"], c["功能描述"],
+                c["前置条件"], c["操作步骤"], c["预期结果"],
+                c["优先级"], c["用例状态"], c["备注"]])
+
+# Sheet 2: 模块统计
+ws2 = wb.create_sheet("模块统计")
+ws2.append(["模块", "用例数", "占比", "P0", "P1", "P2"])
+mc = Counter(c["module"] for c in cases)
+total = len(cases)
+for m, cnt in sorted(mc.items()):
+    p = Counter(c["优先级"] for c in cases if c["module"] == m)
+    ws2.append([m, cnt, f"{cnt/total*100:.1f}%",
+                p.get("P0",0), p.get("P1",0), p.get("P2",0)])
+
+# Sheet 3: 类型统计
+ws3 = wb.create_sheet("类型统计")
+ws3.append(["优先级", "用例数", "占比"])
+pc = Counter(c["优先级"] for c in cases)
+for p in ["P0", "P1", "P2"]:
+    cnt = pc.get(p, 0)
+    ws3.append([p, cnt, f"{cnt/total*100:.1f}%"])
+
+wb.save("test_cases.xlsx")
+```
 
 ---
 

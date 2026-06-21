@@ -171,14 +171,30 @@ alwaysApply: false
 
 | 检查项 | 要求 | 缺失时 |
 |--------|------|--------|
-| backlog.md 存在 | 必须 | 失败报告 |
-| Story 数量 ≥ 1 | 必须 | 失败报告 |
+| backlog.md 存在 | 必须 | 失败报告 → 触发三步自问（见下方例外条款） |
+| Story 数量 ≥ 1 | 必须 | 失败报告 → 触发三步自问（见下方例外条款） |
 | 每个 Story 有 acceptance_criteria | 建议有 | 自动填充默认 AC |
 | 每个 Story 有模块前缀 | 必须 | 纠正分配 |
-| TP 含 module 字段 | 必须 | S5 失败报告阻断 |
-| TP 含 test_point_type 字段 | 必须 | S5 失败报告阻断 |
+| TP 含 module 字段 | 必须 | 触发三步自问（见下方例外条款） |
+| TP 含 test_point_type 字段 | 必须 | 触发三步自问（见下方例外条款） |
 | TP 含 s4_reference 字段 | 必须 | 警告，提示补充 |
 | TP 含 applies_rule 字段 | 必须 | 警告，提示补充 |
+
+> **三步自问例外条款（backlog存在 / Story数量 / module字段 / test_point_type字段 未达标时触发）**：
+> ```
+> gate 未达标
+>  ↓
+>  Q1：该字段/物料在本业务场景下是否实际存在可填内容？
+>    → 存在 → 必须补充，回 LLM 迭代
+>    → 不存在 → 进入 Q2
+>  Q2：S6 TC 的后续阶段是否依赖此字段/物料的结果？
+>    → 依赖 → 必须补充
+>    → 不依赖 → 进入 Q3
+>  Q3：该缺失是否影响 S6 测试用例的可执行性？
+>    → 影响 → 必须补充
+>    → 不影响 → 允许放行，在 `bypass_log.json` 记录
+> ```
+> 备案路径：`workflow_assets/<req_name>/「S5 测试点生成」/<version>/bypass_log.json`
 
 ---
 

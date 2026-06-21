@@ -107,3 +107,23 @@ def ocr_result_filename(image_ref: str) -> str:
     """
     base = Path(image_ref).stem
     return f"{base}.json"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S1.8 — 优化识别常量（供 detect_optimization_blocks() 使用）
+# 也可直接从 requirement_reviewer_auto 导入
+# ─────────────────────────────────────────────────────────────────────────────
+
+# 优化识别关键词（启发式快速预判）
+OPTIMIZATION_KEYWORDS: list[str] = [
+    "优化", "变更", "新增", "修改", "重构", "调整",
+    "V2", "V3", "v2.", "v3.", "upgrade", "enhancement",
+    "2.0", "3.0", "迭代", "版本更新",
+    "【优化", "【变更", "【新增", "【修改",
+    "## 优化", "## 新增", "## 变更", "## 修改",
+]
+
+# 三种优化形式
+OPT_FORM_MIXED: str = "mixed"      # 混杂：优化穿插在长文中
+OPT_FORM_SECTION: str = "section"  # 独立新增：文档中新增一块写优化
+OPT_FORM_FULLDOC: str = "full_doc"  # 全量替换：文档名直接是"XX 优化"
