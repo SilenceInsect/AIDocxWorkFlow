@@ -1,1 +1,0 @@
-../../.cursor/design_iter/plans/v1/PLAN.md
