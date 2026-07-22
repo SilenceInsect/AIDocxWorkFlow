@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "goal_id": "09cdc9e7-fc91-4a88-a391-51af56767806",
+    "title": "Goal日志库初始化模板",
+    "raw_user_goal": "Goal日志库初始化模板（.goal-log-db/ + 5文件模板 + session-index.jsonl）替换现有 workflow_assets/goals/ 实现",
+    "status": "active",
+    "created_at": "2026-07-18T09:23:28.865213+00:00",
+    "round_started_at": "2026-07-18T17:27:00+08:00"
+  },
+  "accept_criteria": [
+    "AC-1: .goal-log-db/ 目录结构创建成功",
+    "AC-2: thread_goals.json + session-index.jsonl 索引API可用",
+    "AC-3: 5文件模板（01~05）全部生成到 .goal-log-db/active/{goal_id}/",
+    "AC-4: goal_snapshot.py + goal_loop_runner.py 迁移到新路径",
+    "AC-5: 现有goal快照迁移到新路径",
+    "AC-6: py_compile全通过",
+    "AC-7: self_test 9/9 PASS（含新路径迁移测试）",
+    "AC-8: CHANGELOG.md记录v19变更"
+  ],
+  "task_queue": [],
+  "loop_round": 0,
+  "token_budget": {
+    "used": 0,
+    "limit": 200000,
+    "updated_at": "2026-07-18T09:23:28.865213+00:00"
+  }
+}

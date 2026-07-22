@@ -1,0 +1,548 @@
+---
+description: AIDocxWorkFlow Stage 7 — 用例审查（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S7 — 用例审查
+
+> **独立阶段**：可以单独调用。上游材料（S6 test_cases.json + coverage/omission 账本）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s7-review` 或粘贴 S6 test_cases.json
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S6 test_cases.json | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/test_cases.json` | 存在且用例数量 > 0 |
+| S5 test_points.json（**必须读取**） | `workflow_assets/<req_name>/<version>/「S5 测试点生成」/test_points.json` | 存在则用于覆盖率计算 |
+| S4 business_flow.md（**必须读取**） | `workflow_assets/<req_name>/<version>/「S4 流程图导出」/business_flow.md` | 用于 S4 风险点覆盖率计算 |
+| coverage_ledger.json | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/coverage_ledger.json` | 覆盖缺口事实源 |
+| omission_ledger.json | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/omission_ledger.json` | 豁免/人工复核事实源 |
+
+**前置材料缺失时**：生成失败报告，停止 S7。
+
+---
+
+## §1.4 LLM 必读材料（阶段前置）
+
+**审查前，必须先读取以下全部材料。禁止凭印象直接生成审查报告。**
+
+| # | 材料 | 路径 | 读取原因 |
+|---|---|---|---|
+| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | 覆盖率按模块统计；审查员 B 的 module_coverage 以 8 模块为分母 |
+| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md） | 判断 TP 模块归属是否正确；HINT vs UI 是最高误标区 |
+| 3 | S6 test_cases | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/test_cases.json` | 审查对象 |
+| 4 | S5 test_points（**必须读取**） | `workflow_assets/<req_name>/<version>/「S5 测试点生成」/test_points.json` | S4 风险点覆盖率对比基准 |
+| 5 | S4 business_flow（**必须读取**） | `workflow_assets/<req_name>/<version>/「S4 流程图导出」/business_flow.md` | S4 风险点全量覆盖（100%）是硬约束，不是拍脑袋 |
+
+---
+
+## 核心原则
+
+> **🚨 强制阅读指令（MANDATORY）**：S7 阶段采用**账本驱动模式**——脚本只输出事实数字，LLM 按业务实际写建议。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)（**仅作全阶段速查**，S7 当前实际门禁见本节）
+> - **执行 S7 前必须**读本节 + `aidocx-s7-review/SKILL.md` §3（审查员分工）。
+> - **变更历史**见 [`CHANGELOG.md`](../../CHANGELOG.md)。
+
+### S7 质量门禁：无硬阈值
+
+> **S7 阶段不设硬指标**（不强制"覆盖率=100% = PASS"），但必须消费 coverage/omission 账本。
+> 脚本只输出事实数字，LLM 按业务实际写建议。
+> 真实业务有取舍，**LLM 审查员按业务实际给出判断**。
+
+**禁止出现的行为**：
+- ❌ 用脚本覆盖率数字直接判定 PASS / FAIL
+- ❌ 设置"覆盖率 ≥85% = 通过"之类的硬阈值
+- ❌ 用覆盖率数字替代 LLM 的语义审查
+- ❌ 在报告结构中保留"整体判决：PASS / FAIL"行
+
+- ❌ RCA clause 填自定义代码而非 RCA 映射表中的标准化代码（`governance/design_iter/current/rca_three_level_classification.md` §1.3）
+- ❌ 在对话窗口输出审查结论后询问"是否要落文件"——审查报告必须写入文件，对话窗口是工作过程，文件才是真实产出
+
+### 用例状态职责边界
+
+- S7 审查引擎只产出 `review_report`，不得直接修改 `test_cases.json` 的 `用例状态`。
+- S6 状态转换表以 `STAGE_S6_TEST_CASES.mdc` 的"用例状态转换规则"为准：L1 通过写 `Ready`，L1 失败写 `Draft`。
+- 审查报告写入完成后，由独立的 `s7_status_writer.py` 读取 `recommendations.must_fix[]`。
+- 当 `must_fix[]` 任一项的 `severity == MUST_FIX` 时，只允许 `Ready → Rejected`；否则所有状态保持不变。
+- Rejected 判定不得读取或依赖已废除的 `overall` / `overall_pass` 字段。
+
+**强制写文件**：S7 审查结束后必须调用 `save_review_report()`，产出两个文件：
+- `review_report.json` — `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/review_report.json`
+- `review_report.md` — `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/review_report.md`
+
+**v14 RCA 填写说明**：
+- `recommendations[].rca.stage` 来自根因链路图的"根本原因"层（S4/S5/S6/S2/S1）
+- `recommendations[].rca.type` 来自缺陷类型分类（OMISSION/BOUNDARY_ERR/QUALITY_LOW/FIELD_MISSING/LINKAGE_BROKEN/RULE_VIOLATION/ID_NONCOMPLIANT）
+- `recommendations[].rca.clause` 必须从 RCA 映射表 §1.3 选取，禁止自创
+- 无法定位时 `rca.stage = "UNKNOWN"` + `rca.explanation` 说明原因
+
+---
+
+## 双审查员审计
+
+### 审查员 A：结构完整性
+
+**分工**：脚本做轻量体检（数字统计），LLM 做语义审查（质量判断）。
+
+#### 审查员 A — 脚本职责（数字统计）
+
+| 检查项 | 说明 |
+|--------|------|
+| ID 规范化 | 统计 `{Module}-TC-{NNN}` 格式正确率 |
+| 字段填写率 | 统计 precondition / steps / expected_result 非空率 |
+| 模块归一化 | 统计 module 字段为 8 模块全名的比例 |
+
+#### 审查员 A — LLM 职责（语义审查，必须执行）
+
+| 检查项 | 判定标准 | 判定结果 |
+|--------|----------|----------|
+| 字段名合规 | TP/TC 字段名是否在 §1.5.5 强约束清单中 | 违规列表 |
+| 跨模块边界 | S5 TP 的 `module` 字段是否与 O_boundary.md 一致 | 误判列表 |
+| 步骤质量 | 每步是否原子性、无歧义、有具体数值；**禁止通用模板语言** | 问题列表 |
+| 预期可验证性 | 每步是否有明确 pass/fail 条件 | 问题列表 |
+| 误标案例对照 | TP 是否与 §1.5.4 反例库冲突 | 冲突列表 |
+| 业务语言 | 文案是否符合业务术语；禁止出现 S4 节点名引用（S4-R01 / S4-BIZ-1.1.1 等） | 违规列表 |
+
+**审查员 A 报告输出字段**：
+
+```json
+{
+  "reviewer_a": {
+    "id_normalization_rate": 0.95,
+    "field_completion_rate": 1.0,
+    "module_normalization_rate": 1.0,
+    "field_name_violations": [
+      {
+        "case_id": "UI-TC-005",
+        "field": "test_point_subclass",
+        "expected": "test_point_type",
+        "actual": "test_point_subclass"
+      }
+    ],
+    "module_misjudgment": [],
+    "misjudgment_pattern_violations": [],
+    "step_quality_issues": [],
+    "s4_node_reference_violations": []
+  }
+}
+```
+
+---
+
+### 审查员 B：覆盖率
+
+**分工**：脚本统计数字（s4_reference / is_assumed / applies_rule / ui_node_refs 填充率），LLM 评判质量（未覆盖项是否真的不需要覆盖）。
+
+#### 审查员 B — 脚本职责（数字统计）
+
+| 指标 | 统计方式 |
+|------|----------|
+| S4 风险点引用率 | 被 TP 引用 R-NNN 数量 / S4 风险点总数 |
+| S4 异常树叶子引用率 | 被 TP 引用异常树叶子 / 异常树叶子总数 |
+| is_assumed 字段填充率 | TP 含 is_assumed 的比例 |
+| s4_reference 字段填充率 | TP 含 s4_reference 的比例 |
+| applies_rule 字段填充率 | TP 含 applies_rule 的比例 |
+| **ui_node_coverage** | **UI TP `ui_node_refs` 覆盖率**（`S5_UI_NODE_COVERAGE = 1.0`）|
+| **density-OBJ** | **per-OBJ 4类型齐全率**（`S5_DENSITY_OBJ_COVERAGE = 1.0`）|
+
+#### 审查员 B — LLM 职责（语义评判，必须执行）
+
+| 指标 | LLM 必须回答的问题 |
+|------|-------------------|
+| S4 风险点引用 | 未覆盖的风险点（R-NNN）是否真的不需要覆盖？业务上是否可接受？ |
+| S4 异常树叶子引用 | 未覆盖的异常树叶子是否真的可忽略？遗漏的业务风险是什么？ |
+| is_assumed 标注充分性 | LLM 自由推理的字段是否都标注了 is_assumed？未标注的是否属于业务常识假设？ |
+| s4_reference 追溯完整性 | 链路追溯是否完整？哪些 TP 缺少 s4_reference 导致无法回溯到 S4？ |
+| applies_rule 可审计性 | 判定过程是否可审计？哪些 TP 缺少 applies_rule 导致无法复现判定逻辑？ |
+| **ui_node_coverage** | **UI TP 的 ui_node_refs 覆盖率是否达到 100%？未覆盖的控件节点是否有 skip_reason？** |
+| **density-OBJ** | **哪些 OBJ 缺 NEGATIVE/BOUNDARY 类型？缺失的 skip_reason 是否合理？** |
+
+**LLM 必须输出**：
+
+```json
+{
+  "reviewer_b": {
+    "s4_risk_reference_rate": 0.95,
+    "s4_exception_leaf_reference_rate": 0.83,
+    "is_assumed_compliance_rate": 0.72,
+    "s4_reference_completeness_rate": 0.88,
+    "applies_rule_completeness_rate": 0.65,
+    "ui_node_coverage_rate": 0.0,
+    "density_obj_rate": 0.222,
+    "uncovered_risks_judgment": "R-012 / R-015 未被任何 TP 引用。这两个风险点描述的缓存击穿和并发超发场景，在当前业务规模下发生概率极低。LLM 判断：可接受，不强制要求覆盖。",
+    "uncovered_leaves_judgment": "S4-BIZ-PURCHASE-1.3.2 叶子未覆盖。该叶子描述的「渠道重复回调但订单已退款」场景存在业务漏洞风险。LLM 判断：必须补充对应 TP。",
+    "is_assumed_judgment": "12 个 TP 涉及业务数字假设但未标注 is_assumed，全部需要补充标注。",
+    "ui_node_coverage_judgment": "UI TP 共 0 个含 ui_node_refs，覆盖率 0%。未覆盖的 prototype.ui_nodes 是否有 skip_reason？",
+    "density_obj_judgment": "36 个 OBJ 中仅 8 个（22.2%）具备 4 类型齐全。28 个缺 NEGATIVE，12 个缺 BOUNDARY。缺失的 skip_reason 是否合理？"
+  }
+}
+```
+
+#### 审查员 B — LLM 审查建议（必修 / 应改 / 可改）
+
+**LLM 在 review_report.md 中必须给出三类建议，不得使用"建议"等软性词汇**：
+
+| 类别 | 定义 | LLM 必须写明的判断依据 |
+|------|------|----------------------|
+| **必修** | 不补充会引发线上 bug 或严重漏测 | 该场景在 S4 风险点中存在 / 该字段缺失导致 TC 无法执行 / 该模块归属错误会误导测试方向 |
+| **应改** | 不修改会导致测试盲区 | 该场景属于边界值但未覆盖 / 该步骤描述模糊影响测试隔离 / 该引用缺失导致链路不可追溯 |
+| **可改** | 完善用例但优先级低 | 该步骤可更精确 / 该文案可更规范 / 该用例可拆分为更细粒度 |
+
+---
+
+## S7 报告结构（5 段，禁止添加第 6 段）
+
+```markdown
+# 测试用例审查报告
+
+**阶段**: S7 用例审查
+**日期**: YYYY-MM-DD
+**版本**: v1.0
+
+---
+
+## 1. 审查员A — 结构完整性（事实统计）
+
+| 指标 | 值 |
+|------|-----|
+| 总用例数 | 138 |
+| ID 规范化率 | 95% |
+| 字段填写率 | 100% |
+| 模块归一化率 | 100% |
+
+### 字段名合规问题
+
+| 用例ID | 字段 | 问题 | 严重度 |
+|--------|------|------|--------|
+| UI-TC-005 | test_point_subclass | 字段名拼写错误，应为 test_point_type | 阻断 |
+
+### 跨模块边界问题
+
+| 用例ID | 当前模块 | 应为模块 | 判定依据 |
+|--------|----------|----------|----------|
+| BIZ-TC-012 | BIZ | SPECIAL | 弱网场景属于 SPECIAL 边界（见 MODULES.md §4.9） |
+
+### 步骤质量 / 预期可验证性问题
+
+| 用例ID | 问题描述 | 严重度 |
+|--------|----------|--------|
+| HINT-TC-003 | 步骤包含模板语言「执行操作：」 | 应改 |
+
+### 业务语言问题
+
+| 用例ID | 违规内容 | 违规类型 |
+|--------|----------|----------|
+| BIZ-TC-007 | 预期结果含「（引用 S4-BIZ-PURCHASE-1.1.1）」 | 禁止引用 S4 节点 |
+
+---
+
+## 2. 审查员A — 语义审查结论
+
+（LLM 综合字段名/模块/步骤/预期/反例/业务语言，给出总体判断）
+
+---
+
+## 3. 审查员B — 覆盖率（事实统计）
+
+| 指标 | 值 | 判定 |
+|------|-----|------|
+| S4 风险点引用率 | 95% (19/20) | LLM 判定 |
+| S4 异常树叶子引用率 | 83% (10/12) | LLM 判定 |
+| is_assumed 字段填充率 | 72% | LLM 判定 |
+| s4_reference 字段填充率 | 88% | LLM 判定 |
+| applies_rule 字段填充率 | 65% | LLM 判定 |
+| **ui_node_coverage** | **0% (0/73)** | LLM 判定 |
+| **density-OBJ** | **22.2% (8/36)** | LLM 判定 |
+
+### 未覆盖风险点（LLM 判定）
+
+| 风险ID | 未覆盖原因 | LLM 判定结果 |
+|--------|------------|--------------|
+| R-012 | 缓存击穿场景未设计对应 TP | 可接受（业务规模极小） |
+| R-015 | 并发超发场景未设计对应 TP | 应改（存在资金风险） |
+
+### 未覆盖异常树叶子（LLM 判定）
+
+| 叶子ID | 未覆盖原因 | LLM 判定结果 |
+|--------|------------|--------------|
+| S4-BIZ-PURCHASE-1.3.2 | 渠道重复回调场景未覆盖 | 必修（存在退款漏洞） |
+
+### ui_node_refs 未覆盖控件（LLM 判定）
+
+| 控件ID | 未覆盖原因 | LLM 判定结果 |
+|--------|------------|--------------|
+| page_003_node_xxx | UI TP 未引用 | skip_reason 需补充 |
+
+### OBJ 缺失类型（LLM 判定）
+
+| OBJ | 已有类型 | 缺失类型 | LLM 判定结果 |
+|-----|---------|---------|--------------|
+| BIZ-001-001-OBJ-03 | POSITIVE + EXCEPTION | BOUNDARY + NEGATIVE | skip_reason 需补充 |
+| UI-001-001-OBJ-01 | POSITIVE + EXCEPTION | BOUNDARY + NEGATIVE | skip_reason 需补充 |
+
+---
+
+## 4. 审查员B — 覆盖率语义审查结论
+
+（LLM 综合数字统计和语义评判，给出业务判断）
+
+---
+
+## 5. LLM 审查建议
+
+### 必修（不补充会引发线上 bug）
+
+| ID | 问题 | 影响模块 | 修复动作 |
+|----|------|----------|----------|
+| M-001 | S4-BIZ-PURCHASE-1.3.2 异常树叶子未覆盖，渠道重复回调存在退款漏洞 | BIZ / SPECIAL | 必须补充「渠道重复回调 → 幂等拦截 → 订单状态校验」TP |
+| M-002 | R-015 风险点未覆盖，并发超发存在资金风险 | BIZ | 必须补充并发场景 TP |
+
+### 应改（会导致测试盲区）
+
+| ID | 问题 | 影响模块 | 修复动作 |
+|----|------|----------|----------|
+| S-001 | 12 个 TP 缺少 is_assumed 标注 | 全部 | 补充 is_assumed 字段和 assumption_reason |
+| S-002 | 35 个 TP 缺少 applies_rule，导致判定过程不可审计 | 全部 | 补充 applies_rule 字段说明判定路径 |
+
+### 可改（完善用例）
+
+| ID | 问题 | 修复动作 |
+|----|------|----------|
+| C-001 | UI-TC-005 步骤可更精确 | 补充具体 UI 元素名称 |
+| C-002 | BIZ-TC-007 预期结果引用了 S4 节点编号 | 删除引用，改为纯业务描述 |
+
+---
+
+*由 AIDocxWorkFlow S7 用例审查生成*
+```
+
+---
+
+## 输出规范
+
+### 成功产出（2 个文件）
+
+| 文件 | 路径 |
+|------|------|
+| 审查报告（Markdown） | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/review_report.md` |
+| 审查报告（JSON） | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/review_report.json` |
+
+**禁止的输出**：
+- ❌ `overall_pass: true/false` 字段
+- ❌ "整体判决：PASS / FAIL" 行
+- ❌ 覆盖率 ≥ X% = 通过 的硬阈值
+- ❌ 结构完整性 ≥ X% = 通过 的硬阈值
+- ❌ 在对话窗口输出审查结论后询问"是否要落文件"
+
+**必须包含的 JSON 顶层字段**（5 个）：
+
+```json
+{
+  "reviewer_a": {
+    "total_cases": 138,
+    "id_normalization_rate": 0.95,
+    "field_completion_rate": 1.0,
+    "module_normalization_rate": 1.0,
+    "field_name_violations": [],
+    "module_misjudgment": [],
+    "misjudgment_pattern_violations": [],
+    "step_quality_issues": [],
+    "s4_node_reference_violations": []
+  },
+  "reviewer_b": {
+    "s4_risk_reference_rate": 0.95,
+    "s4_exception_leaf_reference_rate": 0.83,
+    "is_assumed_compliance_rate": 0.72,
+    "s4_reference_completeness_rate": 0.88,
+    "applies_rule_completeness_rate": 0.65,
+    "ui_node_coverage_rate": 0.0,
+    "density_obj_rate": 0.222,
+    "uncovered_risks": [],
+    "uncovered_leaves": [],
+    "s2_obj_violations": [],
+    "s4_epic_violations": []
+  },
+  "llm_review_a_semantic": {},
+  "llm_review_b_semantic": {},
+  "recommendations": {
+    "must_fix": [],
+    "should_fix": [],
+    "could_fix": []
+  }
+}
+```
+
+### 失败报告（S7 审查失败）
+
+`workflow_assets/<req_name>/<version>/「S6 测试用例生成」/fail_report_S7.md`
+
+**触发条件**：
+- test_cases.json 不存在
+- 用例数量 = 0
+- 用例缺少 ID 字段
+
+> **三步自问例外条款（以上条件触发失败报告前）**：
+> ```
+> 失败报告条件命中
+>  ↓
+>  Q1：该缺陷在本业务场景下是否实际存在且可修复？
+>    → 存在可修复 → 回 LLM 迭代
+>    → 不存在/不可修复 → 进入 Q2
+>  Q2：S8 自迭代阶段是否依赖此缺陷的修复结果？
+>    → 依赖 → 回 LLM 迭代
+>    → 不依赖 → 进入 Q3
+>  Q3：该缺陷是否影响测试用例的可执行性或覆盖率追溯？
+>    → 影响 → 回 LLM 迭代
+>    → 不影响 → 允许放行（生成带 bypass 标记的 report），在 `bypass_log.json` 记录
+> ```
+> 备案路径：`workflow_assets/<req_name>/<version>/「S6 测试用例生成」/bypass_log.json`
+
+---
+
+## §1.5 决策 push 块
+
+> **S7 阶段的关键使命**：不仅审查"结构完整性 + 覆盖率"，还要审查"字段名合规 + 跨模块边界"——这才是 S8 误判分析的源头。
+
+### §1.5.1 S7 字段名合规审查
+
+**S7 审查员 A 必须新增 3 个检查项（不可跳过）**：
+
+| 检查项 | 检查内容 | 判定结果写入 |
+|--------|----------|--------------|
+| 字段名合规 | S5 TP / S6 TC 的字段名是否在 §1.5.5 强约束清单中 | `field_name_violations` |
+| 跨模块边界 | S5 TP 的 `module` 字段是否与 O_boundary.md 一致 | `module_misjudgment` |
+| 误标案例对照 | S5 TP 是否与 §1.5.4 反例库冲突 | `misjudgment_pattern_violations` |
+
+### §1.5.2 S7 覆盖率精确化
+
+**S7 审查员 B 必须新增 5 个指标（不可跳过）**：
+
+| 新增指标 | 统计内容 | 写入位置 |
+|----------|----------|----------|
+| is_assumed 字段合规率 | TP `is_assumed` 字段填充率（LLM 自由推理是否标注） | `reviewer_b.is_assumed_compliance_rate` |
+| s4_reference 字段完整率 | TP `s4_reference` 字段填充率（链路追溯完整性） | `reviewer_b.s4_reference_completeness_rate` |
+| applies_rule 字段完整率 | TP `applies_rule` 字段填充率（判定过程可审计性） | `reviewer_b.applies_rule_completeness_rate` |
+| **ui_node_coverage** | **UI TP `ui_node_refs` 覆盖率**（`S5_UI_NODE_COVERAGE = 1.0`）| `reviewer_b.ui_node_coverage_rate` |
+| **density-OBJ** | **per-OBJ 4类型齐全率**（`S5_DENSITY_OBJ_COVERAGE = 1.0`）| `reviewer_b.density_obj_rate` |
+
+> **v33 VC3-L3/L4 新增**：ui_node_coverage + density-OBJ 为 S7 审查员 B 必须统计的指标。
+
+### §1.5.3 S7 误判根因反查
+
+**S7 报告必须包含根因来源字段（不可省略）**：
+
+| 字段 | 说明 | 写入位置 |
+|------|------|----------|
+| `misjudgment_root_cause` | 误判来源阶段（`S2_OBJ` / `S4_EPIC` / `S5_TP` / `S6_TC`） | JSON 顶层 |
+| `s2_obj_violations` | S2 拆 OBJ 时违反跨模块拆分的 OBJ 列表 | `reviewer_b` |
+| `s4_epic_violations` | S4 Epic 命名/归属错误的 epic 列表 | `reviewer_b` |
+
+**S8 拿到这个报告可直接定位根因，禁止不写根因字段。**
+
+---
+
+## §2 人工审核反馈写入位置
+
+> **适用范围**：AI 审查结束后，QA 人工阅读用例时记录的意见。
+> **写入原则**：反馈写在用例旁边，不用跳到别的文件找。反馈随用例版本走，便于对比历史。
+
+### 格式一：test_cases.json（推荐，结构化记录）
+
+在每个用例对象中新增 `review_notes` 字段：
+
+```json
+{
+  "case_id": "UI-TC-001",
+  "模块": "界面",
+  "用例描述": "购买确认流程",
+  "功能描述": "购买确认弹窗正常展示道具信息",
+  "前置条件": "玩家已登录，余额充足，道具可购买",
+  "操作步骤": "1. 玩家已登录，进入道具详情页\n2. 点击【购买】按钮\n3. 系统展示购买确认弹窗",
+  "预期结果": "1. 弹窗展示道具名称\n2. 弹窗展示购买数量\n3. 弹窗展示总价",
+  "优先级": "P0",
+  "用例状态": "Draft",
+  "备注": "",
+  "review_notes": [
+    {
+      "timestamp": "2026-06-21",
+      "reviewer": "QA-张三",
+      "type": "修改建议",
+      "content": "前置条件中「余额充足」应改为具体数值，如「余额=2000游戏币」"
+    }
+  ]
+}
+```
+
+字段说明：
+- `review_notes`：数组，支持多人多次反馈，按时间倒序
+- `timestamp`：ISO 日期（反馈时间）
+- `reviewer`：审核人姓名
+- `type`：`修改建议` / `通过` / `疑问` / `缺陷记录`
+- `content`：具体意见
+
+### 格式二：test_cases.md（快速标注，human-friendly）
+
+在对应用例标题下方加一行标注：
+
+```markdown
+### UI-TC-001 | 购买确认流程 {#ui-tc-001}
+> [QA-张三 2026-06-21] 前置条件中「余额充足」应改为具体数值，如「余额=2000游戏币」
+```
+
+> 标注行格式：`> [审核人 日期] 意见内容`
+
+### 格式三：test_cases.xlsx（QA 团队协作）
+
+在 Excel 中增加一列 `审核意见`（第 11 列）：
+
+| 列 | 内容 |
+|----|------|
+| 1-10 | 原有 10 列 |
+| **11（新增）** | `审核意见` — 文字描述或 `通过/修改建议/疑问` 标签 |
+
+### 禁止的行为
+
+- ❌ 反馈写在 `feedback_logs/` 或 `review_report.md`——反馈应随用例走，不应与用例分离
+- ❌ 用 `.jsonl` 格式记录 QA 反馈——日志格式不是给人工填写的
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S6 测试用例生成 | S8 自迭代（PASS 时） |
+
+S7 审查报告（含 reviewer_a + reviewer_b + recommendations）作为 S8 输入——不按 PASS/FAIL 硬判决触发。
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.auto_reviewer import auto_review
+review_result = auto_review(
+    test_cases,        # test_cases.json 内容
+    test_points,       # test_points.json 内容（可选）
+    s4_risks          # S4 business_flow.md 解析结果（可选）
+)
+# review result['reviewer_a'] → 脚本数字统计
+# review result['reviewer_b'] → 脚本数字统计
+# review result['llm_review_a_semantic'] → LLM 语义审查结论
+# review result['llm_review_b_semantic'] → LLM 覆盖率评判结论
+# review result['recommendations'] → 必修/应改/可改分类
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/test_case_review.md`
+- 自动审查引擎：`ai_workflow/auto_reviewer.py`
+- 阈值配置：`ai_workflow/config.py`
+- 输出目录：`workflow_assets/<req_name>/<version>/「S6 测试用例生成」/`

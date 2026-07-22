@@ -1,0 +1,1791 @@
+{
+  "description": "全局 Goal 状态库",
+  "create_time": "2026-07-18T09:23:28+00:00",
+  "update_time": "2026-07-21T20:33:14.115734+00:00",
+  "task_list": [
+    {
+      "goal_id": "09cdc9e7-fc91-4a88-a391-51af56767806",
+      "title": "Goal日志库初始化模板",
+      "status": "achieved",
+      "round": 4,
+      "created_at": "2026-07-18T09:23:28+00:00",
+      "updated_at": "2026-07-18T09:34:57.550699+00:00"
+    },
+    {
+      "goal_id": "0b86ea24-f31d-40d2-b193-ba90fb9e2057",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T09:30:34.795977+00:00",
+      "updated_at": "2026-07-18T09:30:34.798848+00:00"
+    },
+    {
+      "goal_id": "20aa92e7-6171-47ab-a255-be3aed912a86",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-18T09:30:34.799216+00:00",
+      "updated_at": "2026-07-18T09:30:34.806936+00:00"
+    },
+    {
+      "goal_id": "efb7573b-672f-4625-a886-9560d292d8f4",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-18T09:30:34.807430+00:00",
+      "updated_at": "2026-07-18T09:30:34.809514+00:00"
+    },
+    {
+      "goal_id": "431e6381-474a-4729-8e2c-f2f530ab5a8a",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-18T09:30:34.809886+00:00",
+      "updated_at": "2026-07-18T09:30:34.810822+00:00"
+    },
+    {
+      "goal_id": "2b874a13-088e-43ed-98d5-2301c9343039",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-18T09:30:34.811161+00:00",
+      "updated_at": "2026-07-18T09:30:34.812964+00:00"
+    },
+    {
+      "goal_id": "561e94d9-0d64-4abb-a55a-d8b96be31b38",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T09:30:34.813359+00:00",
+      "updated_at": "2026-07-18T09:30:34.815810+00:00"
+    },
+    {
+      "goal_id": "bc99dc39-a17e-4a60-a37c-8d9ae08fc41d",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T09:31:49.376919+00:00",
+      "updated_at": "2026-07-18T09:31:49.380090+00:00"
+    },
+    {
+      "goal_id": "76c692d2-03b8-45e4-bb8f-83127782337f",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-18T09:31:49.380510+00:00",
+      "updated_at": "2026-07-18T09:31:49.390083+00:00"
+    },
+    {
+      "goal_id": "7218c4a0-7875-44af-8da8-96c1d9e7172a",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-18T09:31:49.390473+00:00",
+      "updated_at": "2026-07-18T09:31:49.392452+00:00"
+    },
+    {
+      "goal_id": "7455a5c3-bc68-4ede-8d03-2f88c99025cb",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-18T09:31:49.392828+00:00",
+      "updated_at": "2026-07-18T09:31:49.393820+00:00"
+    },
+    {
+      "goal_id": "8753fe7b-8c35-4641-aca5-f074868e2607",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-18T09:31:49.394236+00:00",
+      "updated_at": "2026-07-18T09:31:49.396507+00:00"
+    },
+    {
+      "goal_id": "a0572bfe-7a99-4f4a-9837-193361672903",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T09:31:49.397347+00:00",
+      "updated_at": "2026-07-18T09:31:49.399468+00:00"
+    },
+    {
+      "goal_id": "fe9d367c-84b7-4b05-bdd5-9b618469f2fb",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T09:36:30.124299+00:00",
+      "updated_at": "2026-07-18T09:36:30.126319+00:00"
+    },
+    {
+      "goal_id": "33b47a40-4a22-4dfc-9b07-b6c4a0f35748",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-18T09:36:30.126675+00:00",
+      "updated_at": "2026-07-18T09:36:30.134620+00:00"
+    },
+    {
+      "goal_id": "45c0155d-402e-4b6a-9271-7ac3ce8533cb",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-18T09:36:30.134940+00:00",
+      "updated_at": "2026-07-18T09:36:30.136915+00:00"
+    },
+    {
+      "goal_id": "dc8430a2-27d0-40f6-b881-fbc506acd1f6",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-18T09:36:30.137422+00:00",
+      "updated_at": "2026-07-18T09:36:30.138398+00:00"
+    },
+    {
+      "goal_id": "99a2c344-8cbf-49f9-bb18-57027c4117e7",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-18T09:36:30.138782+00:00",
+      "updated_at": "2026-07-18T09:36:30.140542+00:00"
+    },
+    {
+      "goal_id": "c5fb7085-731a-41b0-b856-ceef534587a5",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T09:36:30.140851+00:00",
+      "updated_at": "2026-07-18T09:36:30.142583+00:00"
+    },
+    {
+      "goal_id": "aa78c012-7849-4c22-9189-14e24d159abb",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T10:03:11.715069+00:00",
+      "updated_at": "2026-07-18T10:03:11.722067+00:00"
+    },
+    {
+      "goal_id": "671af95d-bc11-4713-9a39-f079d129d672",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-18T10:03:11.723290+00:00",
+      "updated_at": "2026-07-18T10:03:11.748913+00:00"
+    },
+    {
+      "goal_id": "c4343c09-9449-4f9e-91cb-a847780553b1",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-18T10:03:11.750354+00:00",
+      "updated_at": "2026-07-18T10:03:11.753705+00:00"
+    },
+    {
+      "goal_id": "df7d9b4d-c218-460e-b4af-b91b1bb3a82e",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-18T10:03:11.754647+00:00",
+      "updated_at": "2026-07-18T10:03:11.757188+00:00"
+    },
+    {
+      "goal_id": "d3a2d25f-7349-487f-b778-32010ad2b431",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-18T10:03:11.757696+00:00",
+      "updated_at": "2026-07-18T10:03:11.761344+00:00"
+    },
+    {
+      "goal_id": "dcc1e847-a0c4-4478-91e3-119c0502c4a0",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T10:03:11.761979+00:00",
+      "updated_at": "2026-07-18T10:03:11.765870+00:00"
+    },
+    {
+      "goal_id": "5ea8f31d-d057-49cc-b0be-5ed82f7a9a91",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T10:03:45.359073+00:00",
+      "updated_at": "2026-07-18T10:03:45.361327+00:00"
+    },
+    {
+      "goal_id": "660af3c0-43a4-4cda-b6eb-ab3a73f1106d",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-18T10:03:45.361746+00:00",
+      "updated_at": "2026-07-18T10:03:45.369405+00:00"
+    },
+    {
+      "goal_id": "5837a436-e7ff-45d3-b4fb-3f859392067e",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-18T10:03:45.369884+00:00",
+      "updated_at": "2026-07-18T10:03:45.371915+00:00"
+    },
+    {
+      "goal_id": "bb474d63-0735-4a4e-a64e-2f9f053ba64a",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-18T10:03:45.372314+00:00",
+      "updated_at": "2026-07-18T10:03:45.373284+00:00"
+    },
+    {
+      "goal_id": "b11543ef-bd39-4d58-b65d-bb0cd6f137d2",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-18T10:03:45.373726+00:00",
+      "updated_at": "2026-07-18T10:03:45.375786+00:00"
+    },
+    {
+      "goal_id": "8d172d21-2e2d-44a4-8f2e-c1f0961baa14",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T10:03:45.376170+00:00",
+      "updated_at": "2026-07-18T10:03:45.378406+00:00"
+    },
+    {
+      "goal_id": "49a21647-60a9-4167-ab09-9a1003bea017",
+      "title": "test goal",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:03:50.437668+00:00",
+      "updated_at": "2026-07-18T10:03:50.437669+00:00"
+    },
+    {
+      "goal_id": "a015164d-cd90-4646-89dd-c6fecf0f9e4b",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:03:50.552517+00:00",
+      "updated_at": "2026-07-18T10:03:50.552519+00:00"
+    },
+    {
+      "goal_id": "68391a01-7c86-4650-8d49-da3115b0a1c3",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:03:50.553431+00:00",
+      "updated_at": "2026-07-18T10:03:50.553433+00:00"
+    },
+    {
+      "goal_id": "7e5efa47-649a-42c2-829f-44b090610359",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:03:50.554141+00:00",
+      "updated_at": "2026-07-18T10:03:50.554758+00:00"
+    },
+    {
+      "goal_id": "5438ce12-0bf6-4bf5-aa3f-291688a54372",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:04:07.162059+00:00",
+      "updated_at": "2026-07-18T10:04:07.162061+00:00"
+    },
+    {
+      "goal_id": "995ee02b-7ddc-4e95-9e0e-d269864e3dc1",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:04:07.162929+00:00",
+      "updated_at": "2026-07-18T10:04:07.162930+00:00"
+    },
+    {
+      "goal_id": "7cda05e7-55a3-49a2-86fd-40bbff0a69ae",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:04:07.163618+00:00",
+      "updated_at": "2026-07-18T10:04:07.164206+00:00"
+    },
+    {
+      "goal_id": "57386819-a2c4-473d-9605-01a0d86c7377",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:04:07.189773+00:00",
+      "updated_at": "2026-07-18T10:04:07.189775+00:00"
+    },
+    {
+      "goal_id": "1c961369-2b14-40d0-9a55-cb2e6f072ac1",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:04:14.111387+00:00",
+      "updated_at": "2026-07-18T10:04:14.111388+00:00"
+    },
+    {
+      "goal_id": "3b09f208-e584-456c-adc6-b32353d1e5fa",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:04:14.112282+00:00",
+      "updated_at": "2026-07-18T10:04:14.112283+00:00"
+    },
+    {
+      "goal_id": "94e17566-2da6-4432-bdfa-0c9de2491463",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:04:14.112911+00:00",
+      "updated_at": "2026-07-18T10:04:14.113441+00:00"
+    },
+    {
+      "goal_id": "86c8d682-9b45-412d-a330-5f4d58ee0d1e",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:04:14.142584+00:00",
+      "updated_at": "2026-07-18T10:04:14.142585+00:00"
+    },
+    {
+      "goal_id": "f94852f1-48bc-4a47-94c4-a00d9ae77607",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T10:06:06.674702+00:00",
+      "updated_at": "2026-07-18T10:06:06.677327+00:00"
+    },
+    {
+      "goal_id": "0ec2076a-5466-4831-9bf6-bcf5ad27b3f2",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-18T10:06:06.677859+00:00",
+      "updated_at": "2026-07-18T10:06:06.687576+00:00"
+    },
+    {
+      "goal_id": "c0e5fb2f-3745-49be-978e-475888afdde9",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-18T10:06:06.688044+00:00",
+      "updated_at": "2026-07-18T10:06:06.690879+00:00"
+    },
+    {
+      "goal_id": "86bee5d5-90fa-49a6-abc6-7b92e882f478",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-18T10:06:06.691372+00:00",
+      "updated_at": "2026-07-18T10:06:06.692503+00:00"
+    },
+    {
+      "goal_id": "f3c188be-90c9-41bc-bbba-b97a67bb170e",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-18T10:06:06.692954+00:00",
+      "updated_at": "2026-07-18T10:06:06.695081+00:00"
+    },
+    {
+      "goal_id": "97aa65bb-698b-4834-bd74-9b6b4419bf27",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T10:06:06.695529+00:00",
+      "updated_at": "2026-07-18T10:06:06.698434+00:00"
+    },
+    {
+      "goal_id": "f6defa4d-b7c6-473b-b6b0-bfcb799a986d",
+      "title": "test goal",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:06:06.785727+00:00",
+      "updated_at": "2026-07-18T10:06:06.785729+00:00"
+    },
+    {
+      "goal_id": "9729e465-9389-45d9-98ae-3d9671eb78cb",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:06:06.898141+00:00",
+      "updated_at": "2026-07-18T10:06:06.898144+00:00"
+    },
+    {
+      "goal_id": "f616345f-2be3-4613-9dc1-92208d3a7985",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:06:06.899203+00:00",
+      "updated_at": "2026-07-18T10:06:06.899204+00:00"
+    },
+    {
+      "goal_id": "dc942f54-3137-4fa3-bf9c-4cd7dd1d6b52",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:06:06.899832+00:00",
+      "updated_at": "2026-07-18T10:06:06.900404+00:00"
+    },
+    {
+      "goal_id": "175e3ada-76f8-4fb4-8957-fd3e3996fc9f",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T10:06:06.927560+00:00",
+      "updated_at": "2026-07-18T10:06:06.927561+00:00"
+    },
+    {
+      "goal_id": "a9635daf-feb7-43fc-bb6c-f9d5ccae4f84",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T10:07:13.972621+00:00",
+      "updated_at": "2026-07-18T10:07:13.975228+00:00"
+    },
+    {
+      "goal_id": "1eae91c6-d742-493b-981c-666463ae308a",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-18T10:07:13.975708+00:00",
+      "updated_at": "2026-07-18T10:07:13.984692+00:00"
+    },
+    {
+      "goal_id": "e32385fd-8691-4e4e-b862-ee849ce65c9e",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-18T10:07:13.985164+00:00",
+      "updated_at": "2026-07-18T10:07:13.987529+00:00"
+    },
+    {
+      "goal_id": "2d9eb9fc-1d03-47bd-a253-7928a4375eef",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-18T10:07:13.988076+00:00",
+      "updated_at": "2026-07-18T10:07:13.989189+00:00"
+    },
+    {
+      "goal_id": "46f9719a-b4c5-4dfe-94b4-45bd274c0356",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-18T10:07:13.989646+00:00",
+      "updated_at": "2026-07-18T10:07:13.991756+00:00"
+    },
+    {
+      "goal_id": "4c425fdd-c9e7-4efb-bddb-172560171ca4",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-18T10:07:13.992234+00:00",
+      "updated_at": "2026-07-18T10:07:13.994289+00:00"
+    },
+    {
+      "goal_id": "directory-reorg-001",
+      "title": "目录结构整理",
+      "status": "achieved",
+      "round": 2,
+      "created_at": "2026-07-18T10:15:00+08:00",
+      "updated_at": "2026-07-18T10:40:00+08:00"
+    },
+    {
+      "goal_id": "8107e82e-daf6-4956-a9fe-80eeeef0a174",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T13:51:03.496574+00:00",
+      "updated_at": "2026-07-18T13:51:03.496577+00:00"
+    },
+    {
+      "goal_id": "a7f6ee74-d761-4bc1-a18b-d767a39024cc",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T13:51:03.497731+00:00",
+      "updated_at": "2026-07-18T13:51:03.497732+00:00"
+    },
+    {
+      "goal_id": "cab41063-eb45-4e13-a32e-0ecaa5b66cbb",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T13:51:03.498458+00:00",
+      "updated_at": "2026-07-18T13:51:03.499338+00:00"
+    },
+    {
+      "goal_id": "0e0d131f-ffd0-4897-927d-67d5ac4768ac",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T13:51:03.526452+00:00",
+      "updated_at": "2026-07-18T13:51:03.526454+00:00"
+    },
+    {
+      "goal_id": "ca62846d-640a-4175-a26e-a476fc2a35d2",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:05:35.470395+00:00",
+      "updated_at": "2026-07-18T14:05:35.470397+00:00"
+    },
+    {
+      "goal_id": "a8238f8d-54cb-470e-b5e8-52e1d22c2cca",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:05:35.471350+00:00",
+      "updated_at": "2026-07-18T14:05:35.471352+00:00"
+    },
+    {
+      "goal_id": "0baf579d-e65f-4f89-80b0-d0eeda068135",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:05:35.472137+00:00",
+      "updated_at": "2026-07-18T14:05:35.472900+00:00"
+    },
+    {
+      "goal_id": "712a4004-116b-46ce-86b0-54d3928c64c3",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:05:35.500231+00:00",
+      "updated_at": "2026-07-18T14:05:35.500234+00:00"
+    },
+    {
+      "goal_id": "2ddb95c6-a69f-4770-8fba-05382ded9d90",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:58:51.127337+00:00",
+      "updated_at": "2026-07-18T14:58:51.127339+00:00"
+    },
+    {
+      "goal_id": "7b1885fa-771a-4e0b-a851-d8bce98f5b70",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:58:51.128300+00:00",
+      "updated_at": "2026-07-18T14:58:51.128302+00:00"
+    },
+    {
+      "goal_id": "5dfbec01-933c-4560-89c1-f87b940847e4",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:58:51.129068+00:00",
+      "updated_at": "2026-07-18T14:58:51.129643+00:00"
+    },
+    {
+      "goal_id": "3b2bf6aa-be55-46e5-9cd2-81f3b3d15237",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:58:51.158950+00:00",
+      "updated_at": "2026-07-18T14:58:51.158953+00:00"
+    },
+    {
+      "goal_id": "9d930933-9d31-4b4b-b93a-ca3f3d9c8166",
+      "title": "AFE 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:58:51.160026+00:00",
+      "updated_at": "2026-07-18T14:58:51.160028+00:00"
+    },
+    {
+      "goal_id": "d6201c88-9e3d-4875-9406-9a8826a28ead",
+      "title": "ASH 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T14:58:51.162292+00:00",
+      "updated_at": "2026-07-18T14:58:51.162294+00:00"
+    },
+    {
+      "goal_id": "4caccca0-bf8c-4c32-8973-551dac4c52e6",
+      "title": "实现并行化扩展目标",
+      "status": "active",
+      "round": 3,
+      "created_at": "2026-07-18T15:10:16.289054+00:00",
+      "updated_at": "2026-07-18T15:10:16.289871+00:00"
+    },
+    {
+      "goal_id": "06802451-118a-4c91-a8a6-fcb0c409da46",
+      "title": "Goal 1 目标",
+      "status": "active",
+      "round": 5,
+      "created_at": "2026-07-18T15:10:16.290641+00:00",
+      "updated_at": "2026-07-18T15:10:16.291781+00:00"
+    },
+    {
+      "goal_id": "8c1d5655-a714-4d87-8b37-6d8d3a42a984",
+      "title": "Goal 2 目标",
+      "status": "active",
+      "round": 2,
+      "created_at": "2026-07-18T15:10:16.291177+00:00",
+      "updated_at": "2026-07-18T15:10:16.292381+00:00"
+    },
+    {
+      "goal_id": "756993df-0e79-4ba3-ab38-f8a402e92e10",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:13:44.433785+00:00",
+      "updated_at": "2026-07-18T15:13:44.433787+00:00"
+    },
+    {
+      "goal_id": "0b762fed-d3e5-46e1-901f-1fef62ba86a3",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:13:44.434579+00:00",
+      "updated_at": "2026-07-18T15:13:44.434580+00:00"
+    },
+    {
+      "goal_id": "5e9770ec-7d4e-4256-a048-c4124c30ff5d",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:13:44.435230+00:00",
+      "updated_at": "2026-07-18T15:13:44.435231+00:00"
+    },
+    {
+      "goal_id": "fb53dfe1-01f6-4c12-9b38-c6804017b62e",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:13:44.435709+00:00",
+      "updated_at": "2026-07-18T15:13:44.435710+00:00"
+    },
+    {
+      "goal_id": "725c2d64-e026-44c6-8fa4-ecc954f26f78",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:14:47.327197+00:00",
+      "updated_at": "2026-07-18T15:14:47.327199+00:00"
+    },
+    {
+      "goal_id": "fa96ae2b-9f93-424c-b2a8-7dd81756df01",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:14:47.329032+00:00",
+      "updated_at": "2026-07-18T15:14:47.329034+00:00"
+    },
+    {
+      "goal_id": "587cc765-8c84-4c45-8df4-e15bc645b295",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:14:47.369609+00:00",
+      "updated_at": "2026-07-18T15:14:47.369610+00:00"
+    },
+    {
+      "goal_id": "61bc541e-b52d-4911-bba6-ad5025a08580",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:14:47.370476+00:00",
+      "updated_at": "2026-07-18T15:14:47.370478+00:00"
+    },
+    {
+      "goal_id": "2f925382-caef-43a0-afd4-72c93cd15828",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:14:47.371139+00:00",
+      "updated_at": "2026-07-18T15:14:47.371140+00:00"
+    },
+    {
+      "goal_id": "941524cc-95c9-40ce-b895-9ba2a4cbf766",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:14:47.371665+00:00",
+      "updated_at": "2026-07-18T15:14:47.371666+00:00"
+    },
+    {
+      "goal_id": "4e67db75-944f-4ba0-b4d3-e9884d174125",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:15:37.270174+00:00",
+      "updated_at": "2026-07-18T15:15:37.270176+00:00"
+    },
+    {
+      "goal_id": "c7dd16c5-e160-485f-8276-0fcc9e63dade",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:15:37.273107+00:00",
+      "updated_at": "2026-07-18T15:15:37.273109+00:00"
+    },
+    {
+      "goal_id": "a775c945-6f5b-4313-9153-72b1f7c14aaf",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:15:37.362177+00:00",
+      "updated_at": "2026-07-18T15:15:37.362178+00:00"
+    },
+    {
+      "goal_id": "dc7ed858-da85-4b47-890a-0267d34398f4",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:15:37.363123+00:00",
+      "updated_at": "2026-07-18T15:15:37.363124+00:00"
+    },
+    {
+      "goal_id": "f61667fb-7171-4c92-8407-d1851a43a0e9",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:15:37.363831+00:00",
+      "updated_at": "2026-07-18T15:15:37.363832+00:00"
+    },
+    {
+      "goal_id": "f4101fe4-8a61-4fc6-89b2-18471af50843",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:15:37.364330+00:00",
+      "updated_at": "2026-07-18T15:15:37.364331+00:00"
+    },
+    {
+      "goal_id": "4c6467da-d59d-4ab3-87e4-8ff52cccfd76",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:36.566889+00:00",
+      "updated_at": "2026-07-18T15:16:36.566890+00:00"
+    },
+    {
+      "goal_id": "93e05540-b18f-42ff-82e1-908b62450feb",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:36.567861+00:00",
+      "updated_at": "2026-07-18T15:16:36.567862+00:00"
+    },
+    {
+      "goal_id": "f8b86ec2-0321-4bf9-971f-80e82aec9264",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:36.568643+00:00",
+      "updated_at": "2026-07-18T15:16:36.569487+00:00"
+    },
+    {
+      "goal_id": "28fdfafc-fbdd-4775-87dd-43cc2e0b11e7",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:36.598812+00:00",
+      "updated_at": "2026-07-18T15:16:36.598813+00:00"
+    },
+    {
+      "goal_id": "86e2e6d7-cfe0-4892-83fc-45e04eaa240a",
+      "title": "AFE 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:36.599956+00:00",
+      "updated_at": "2026-07-18T15:16:36.599957+00:00"
+    },
+    {
+      "goal_id": "8b74939c-642b-432a-a327-47e99ead2fc9",
+      "title": "ASH 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:36.602859+00:00",
+      "updated_at": "2026-07-18T15:16:36.602860+00:00"
+    },
+    {
+      "goal_id": "17aa2c12-1a92-4619-b991-86f967c34d7d",
+      "title": "实现并行化扩展目标",
+      "status": "active",
+      "round": 3,
+      "created_at": "2026-07-18T15:16:45.273625+00:00",
+      "updated_at": "2026-07-18T15:16:45.274479+00:00"
+    },
+    {
+      "goal_id": "d1f8063d-c0aa-4fc0-9493-1f99459a4934",
+      "title": "Goal 1 目标",
+      "status": "active",
+      "round": 5,
+      "created_at": "2026-07-18T15:16:45.275543+00:00",
+      "updated_at": "2026-07-18T15:16:45.277001+00:00"
+    },
+    {
+      "goal_id": "03f8f918-86ae-40e1-8f60-2e2dedc3b87b",
+      "title": "Goal 2 目标",
+      "status": "active",
+      "round": 2,
+      "created_at": "2026-07-18T15:16:45.276110+00:00",
+      "updated_at": "2026-07-18T15:16:45.277717+00:00"
+    },
+    {
+      "goal_id": "27862735-796a-456d-8218-27a2467d5131",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:45.834492+00:00",
+      "updated_at": "2026-07-18T15:16:45.834494+00:00"
+    },
+    {
+      "goal_id": "ad2433b9-0cab-4782-99b2-17688128ddf5",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:45.836253+00:00",
+      "updated_at": "2026-07-18T15:16:45.836255+00:00"
+    },
+    {
+      "goal_id": "cffc32ce-0b6e-4747-8dd7-431d99fed1fd",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:45.876205+00:00",
+      "updated_at": "2026-07-18T15:16:45.876206+00:00"
+    },
+    {
+      "goal_id": "37f48ba0-abd7-43d4-8a0c-e36b74310fe3",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:45.877071+00:00",
+      "updated_at": "2026-07-18T15:16:45.877072+00:00"
+    },
+    {
+      "goal_id": "3039c8ae-11b3-4caf-9587-b5a77e97a0a5",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:45.877823+00:00",
+      "updated_at": "2026-07-18T15:16:45.877824+00:00"
+    },
+    {
+      "goal_id": "6b5420a7-b30b-4d6a-9b69-e6b5024cca9d",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:16:45.878391+00:00",
+      "updated_at": "2026-07-18T15:16:45.878393+00:00"
+    },
+    {
+      "goal_id": "4ec76258-e912-4327-b0ce-e3b067248a60",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:48:02.750892+00:00",
+      "updated_at": "2026-07-18T15:48:02.750896+00:00"
+    },
+    {
+      "goal_id": "e4d754aa-2668-485a-bde6-49836c8e049c",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:48:02.751918+00:00",
+      "updated_at": "2026-07-18T15:48:02.751919+00:00"
+    },
+    {
+      "goal_id": "a25b2995-f5aa-4ac0-8f1c-1534f1f7b9ef",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:48:02.752625+00:00",
+      "updated_at": "2026-07-18T15:48:02.753243+00:00"
+    },
+    {
+      "goal_id": "21673bf8-f14e-499b-98c2-09c587017f80",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:48:02.785893+00:00",
+      "updated_at": "2026-07-18T15:48:02.785895+00:00"
+    },
+    {
+      "goal_id": "a5ff3aa2-8265-4baa-a375-668ff8fbf7e5",
+      "title": "AFE 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:48:02.787058+00:00",
+      "updated_at": "2026-07-18T15:48:02.787060+00:00"
+    },
+    {
+      "goal_id": "7824de8d-d2e1-44a0-9ddf-d34290b9d1ed",
+      "title": "ASH 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T15:48:02.789700+00:00",
+      "updated_at": "2026-07-18T15:48:02.789702+00:00"
+    },
+    {
+      "goal_id": "56b0eebb-d955-4432-8b55-8604e9ab3dcb",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T16:07:24.481625+00:00",
+      "updated_at": "2026-07-18T16:07:24.481626+00:00"
+    },
+    {
+      "goal_id": "221d8e51-caa9-45cf-bf89-f61c24d010d3",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T16:07:24.482718+00:00",
+      "updated_at": "2026-07-18T16:07:24.482720+00:00"
+    },
+    {
+      "goal_id": "d1999dca-f340-4528-a18e-f67eec2a7a1c",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T16:07:24.483596+00:00",
+      "updated_at": "2026-07-18T16:07:24.484357+00:00"
+    },
+    {
+      "goal_id": "ed63423e-a7fc-42ab-bc04-4dfc0df601dd",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T16:07:24.516763+00:00",
+      "updated_at": "2026-07-18T16:07:24.516765+00:00"
+    },
+    {
+      "goal_id": "458e5a8e-a868-4282-87c0-74e49bbe85d2",
+      "title": "AFE 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T16:07:24.518281+00:00",
+      "updated_at": "2026-07-18T16:07:24.518284+00:00"
+    },
+    {
+      "goal_id": "9a5248ad-4fbf-456a-a61a-a8b70813e604",
+      "title": "ASH 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-18T16:07:24.520875+00:00",
+      "updated_at": "2026-07-18T16:07:24.520877+00:00"
+    },
+    {
+      "goal_id": "80257891-99f3-4828-b23c-0fcb85b1b13e",
+      "title": "审查 v3.01 错误目录产出根因，修复相关错误逻辑",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-19T04:31:59.461894+00:00",
+      "updated_at": "2026-07-19T04:35:28.117763+00:00"
+    },
+    {
+      "goal_id": "6b3af7f9-93d0-4244-8c77-036ec9101331",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T06:48:12.702257+00:00",
+      "updated_at": "2026-07-19T06:48:12.702261+00:00"
+    },
+    {
+      "goal_id": "250740b3-b2a5-4f35-b8ab-4de8dd5ff8a5",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T06:48:12.703821+00:00",
+      "updated_at": "2026-07-19T06:48:12.703823+00:00"
+    },
+    {
+      "goal_id": "9efcaa64-b6cd-4be5-9bdf-00084c058d03",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T06:48:12.705010+00:00",
+      "updated_at": "2026-07-19T06:48:12.705011+00:00"
+    },
+    {
+      "goal_id": "b67a0ca0-6e35-4136-8ee7-ef3593d92858",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T06:48:12.705599+00:00",
+      "updated_at": "2026-07-19T06:48:12.705600+00:00"
+    },
+    {
+      "goal_id": "ea3f436f-edd9-44dd-8a2f-7f0a7d2c35a2",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T06:48:12.709925+00:00",
+      "updated_at": "2026-07-19T06:48:12.709928+00:00"
+    },
+    {
+      "goal_id": "879dbf5c-9d9e-415d-8cb8-5ba56cd05bc9",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T06:48:12.713666+00:00",
+      "updated_at": "2026-07-19T06:48:12.713672+00:00"
+    },
+    {
+      "goal_id": "a11cfab8-6a38-48c5-8a77-5a124eb7732d",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:47.502629+00:00",
+      "updated_at": "2026-07-19T08:05:47.502632+00:00"
+    },
+    {
+      "goal_id": "da2b9dce-299d-4429-b5e8-9a5c3b959068",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:47.504098+00:00",
+      "updated_at": "2026-07-19T08:05:47.504100+00:00"
+    },
+    {
+      "goal_id": "ea2ba125-b332-4b99-9fe2-c88aad721d50",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:47.505389+00:00",
+      "updated_at": "2026-07-19T08:05:47.505391+00:00"
+    },
+    {
+      "goal_id": "9443abd6-8103-44c2-89f8-32513cb02966",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:47.506265+00:00",
+      "updated_at": "2026-07-19T08:05:47.506267+00:00"
+    },
+    {
+      "goal_id": "de409be9-5798-4c55-9f9b-2d3ac0ca2821",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:47.507910+00:00",
+      "updated_at": "2026-07-19T08:05:47.507912+00:00"
+    },
+    {
+      "goal_id": "d2cf2a55-8e19-4cfa-aa9d-682f2778b2d0",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:47.509931+00:00",
+      "updated_at": "2026-07-19T08:05:47.509933+00:00"
+    },
+    {
+      "goal_id": "cf696ad8-6d15-4021-827c-bc9ab72ce022",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:52.812431+00:00",
+      "updated_at": "2026-07-19T08:05:52.812433+00:00"
+    },
+    {
+      "goal_id": "1eca1b3f-a87b-4495-96f9-a5bac668bc39",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:52.813623+00:00",
+      "updated_at": "2026-07-19T08:05:52.813624+00:00"
+    },
+    {
+      "goal_id": "2f822f4b-9723-4b80-ba19-156633f8705d",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:52.815230+00:00",
+      "updated_at": "2026-07-19T08:05:52.815231+00:00"
+    },
+    {
+      "goal_id": "a53cbd6c-2375-489b-8823-689eb41343d4",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:52.815870+00:00",
+      "updated_at": "2026-07-19T08:05:52.815871+00:00"
+    },
+    {
+      "goal_id": "9d1728d4-c60e-4d57-82ec-416654cb479f",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:52.817239+00:00",
+      "updated_at": "2026-07-19T08:05:52.817240+00:00"
+    },
+    {
+      "goal_id": "0de7cc89-f292-49a3-85d6-609474e0deac",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:05:52.819529+00:00",
+      "updated_at": "2026-07-19T08:05:52.819531+00:00"
+    },
+    {
+      "goal_id": "fb5812e6-71f6-4381-b99c-d1cf95083f16",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:09:18.997236+00:00",
+      "updated_at": "2026-07-19T08:09:18.997237+00:00"
+    },
+    {
+      "goal_id": "6be03c93-4db1-444c-a03e-8205e76c5ce9",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:09:18.998455+00:00",
+      "updated_at": "2026-07-19T08:09:18.998458+00:00"
+    },
+    {
+      "goal_id": "e7b059b8-7038-40b1-a86b-2cfe5591fc13",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:09:18.999652+00:00",
+      "updated_at": "2026-07-19T08:09:18.999653+00:00"
+    },
+    {
+      "goal_id": "ce1ebdfc-f5a8-467c-929b-ab1887274bfa",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:09:19.000284+00:00",
+      "updated_at": "2026-07-19T08:09:19.000285+00:00"
+    },
+    {
+      "goal_id": "4e0e2ce1-f2ac-4a89-af2f-646a0663ae16",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:09:19.001754+00:00",
+      "updated_at": "2026-07-19T08:09:19.001755+00:00"
+    },
+    {
+      "goal_id": "7bfbb3a7-17f6-4bde-a01f-cae0e52d1e97",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:09:19.004083+00:00",
+      "updated_at": "2026-07-19T08:09:19.004085+00:00"
+    },
+    {
+      "goal_id": "45d41a38-ecb1-4d47-a096-1bba401ba71a",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:10:42.528810+00:00",
+      "updated_at": "2026-07-19T08:10:42.528811+00:00"
+    },
+    {
+      "goal_id": "ed9ce8be-9d7b-4f81-b018-7dfa62fbbe98",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:10:42.530116+00:00",
+      "updated_at": "2026-07-19T08:10:42.530118+00:00"
+    },
+    {
+      "goal_id": "aca3a7fe-4947-4857-8392-84ec5af61990",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:10:42.531259+00:00",
+      "updated_at": "2026-07-19T08:10:42.531260+00:00"
+    },
+    {
+      "goal_id": "fa536087-a566-47d7-879d-7be9139d2f79",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:10:42.531960+00:00",
+      "updated_at": "2026-07-19T08:10:42.531962+00:00"
+    },
+    {
+      "goal_id": "2d8b48c6-3e83-46ae-ba1b-92dd941b4876",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:10:42.533491+00:00",
+      "updated_at": "2026-07-19T08:10:42.533493+00:00"
+    },
+    {
+      "goal_id": "37603add-d5bf-49d2-8588-eacc9709dede",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:10:42.536341+00:00",
+      "updated_at": "2026-07-19T08:10:42.536343+00:00"
+    },
+    {
+      "goal_id": "18ab29d4-35ff-4c1e-b54e-288f2e1104f1",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:02.997397+00:00",
+      "updated_at": "2026-07-19T08:19:02.997399+00:00"
+    },
+    {
+      "goal_id": "720767a9-de5a-415c-a2e6-671ec04be7f9",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:02.998545+00:00",
+      "updated_at": "2026-07-19T08:19:02.998546+00:00"
+    },
+    {
+      "goal_id": "145e2895-0470-4584-9ee3-c01ab07c880b",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:02.999636+00:00",
+      "updated_at": "2026-07-19T08:19:02.999637+00:00"
+    },
+    {
+      "goal_id": "1650a00e-7f3c-4e14-a7e6-9dd70112d2e2",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:03.000306+00:00",
+      "updated_at": "2026-07-19T08:19:03.000307+00:00"
+    },
+    {
+      "goal_id": "10f2d2e4-a14a-4d47-a6d4-3457fe2670fe",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:03.001835+00:00",
+      "updated_at": "2026-07-19T08:19:03.001838+00:00"
+    },
+    {
+      "goal_id": "26bd812a-8fab-42a5-8b06-d2105312f9a6",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:03.004178+00:00",
+      "updated_at": "2026-07-19T08:19:03.004179+00:00"
+    },
+    {
+      "goal_id": "106d5328-3041-4cc2-bb0c-6c6f37da7b96",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:45.767934+00:00",
+      "updated_at": "2026-07-19T08:19:45.767936+00:00"
+    },
+    {
+      "goal_id": "f9d32109-e4ed-489a-88ab-d419f28abb9c",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:45.769695+00:00",
+      "updated_at": "2026-07-19T08:19:45.769696+00:00"
+    },
+    {
+      "goal_id": "93cadd21-6fa7-4163-949a-d772af9fb469",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:45.771068+00:00",
+      "updated_at": "2026-07-19T08:19:45.771069+00:00"
+    },
+    {
+      "goal_id": "513ecb9d-5f34-41d8-a10b-60695f6e4f9d",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:45.771768+00:00",
+      "updated_at": "2026-07-19T08:19:45.771769+00:00"
+    },
+    {
+      "goal_id": "50efb2f8-ec44-4ac7-98d4-770e31885bc8",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:45.773267+00:00",
+      "updated_at": "2026-07-19T08:19:45.773269+00:00"
+    },
+    {
+      "goal_id": "1a278bdc-955f-46a9-9e38-e51f68f433cd",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T08:19:45.775232+00:00",
+      "updated_at": "2026-07-19T08:19:45.775233+00:00"
+    },
+    {
+      "goal_id": "8137ba59-66fd-42f0-ac54-6c75070fc35a",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:20:46.035345+00:00",
+      "updated_at": "2026-07-19T13:20:46.035349+00:00"
+    },
+    {
+      "goal_id": "bd541ed1-ae6f-4a1c-b5b5-0fa707a6618a",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:20:46.036984+00:00",
+      "updated_at": "2026-07-19T13:20:46.036986+00:00"
+    },
+    {
+      "goal_id": "2873e671-c859-4b2d-990f-2330595da1b5",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:20:46.038581+00:00",
+      "updated_at": "2026-07-19T13:20:46.038582+00:00"
+    },
+    {
+      "goal_id": "4bc1ff47-e1b9-45bf-b505-423183d19623",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:20:46.039572+00:00",
+      "updated_at": "2026-07-19T13:20:46.039576+00:00"
+    },
+    {
+      "goal_id": "001337e6-22be-454e-9480-98f78b563c70",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:20:46.041660+00:00",
+      "updated_at": "2026-07-19T13:20:46.041661+00:00"
+    },
+    {
+      "goal_id": "52dec7f7-2ec5-431d-b67e-de486d9056a7",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:20:46.043952+00:00",
+      "updated_at": "2026-07-19T13:20:46.043953+00:00"
+    },
+    {
+      "goal_id": "068d6ff2-6c0a-46bb-b4ad-913d4aa39c49",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:00.888852+00:00",
+      "updated_at": "2026-07-19T13:38:00.888853+00:00"
+    },
+    {
+      "goal_id": "4221fdbd-09a0-4a07-a655-3ba8a41b4d01",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:00.890211+00:00",
+      "updated_at": "2026-07-19T13:38:00.890212+00:00"
+    },
+    {
+      "goal_id": "0596a82f-9deb-4b66-aeba-e51d5fb1b5d1",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:00.891926+00:00",
+      "updated_at": "2026-07-19T13:38:00.891928+00:00"
+    },
+    {
+      "goal_id": "3294d9ab-3af8-4666-8323-ca59e00ab352",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:00.892672+00:00",
+      "updated_at": "2026-07-19T13:38:00.892673+00:00"
+    },
+    {
+      "goal_id": "b9982f5b-fd71-4e35-a290-2fe31975e4bc",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:00.894230+00:00",
+      "updated_at": "2026-07-19T13:38:00.894232+00:00"
+    },
+    {
+      "goal_id": "b843f426-8d3d-4828-9359-3d355836cffe",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:00.896219+00:00",
+      "updated_at": "2026-07-19T13:38:00.896223+00:00"
+    },
+    {
+      "goal_id": "38e5beb0-7f87-486c-9090-7789c88dfd1d",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:51.790029+00:00",
+      "updated_at": "2026-07-19T13:38:51.790031+00:00"
+    },
+    {
+      "goal_id": "cb253c71-53f6-485f-a98f-95b54e132af0",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:51.791238+00:00",
+      "updated_at": "2026-07-19T13:38:51.791240+00:00"
+    },
+    {
+      "goal_id": "9e2cc639-6d9e-40fc-b735-6439d8378355",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:51.792416+00:00",
+      "updated_at": "2026-07-19T13:38:51.792418+00:00"
+    },
+    {
+      "goal_id": "1f9ee168-3028-43c4-babb-2af1e173b843",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:51.793202+00:00",
+      "updated_at": "2026-07-19T13:38:51.793203+00:00"
+    },
+    {
+      "goal_id": "73c3255e-fbbe-48bd-8731-af36318a54fd",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:51.796529+00:00",
+      "updated_at": "2026-07-19T13:38:51.796530+00:00"
+    },
+    {
+      "goal_id": "153a99a6-5235-44d7-8d40-c222e7a43b67",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:38:51.798817+00:00",
+      "updated_at": "2026-07-19T13:38:51.798819+00:00"
+    },
+    {
+      "goal_id": "2e666dbf-77dc-4556-8981-63757396af3d",
+      "title": "并行测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:44:21.716690+00:00",
+      "updated_at": "2026-07-19T13:44:21.716692+00:00"
+    },
+    {
+      "goal_id": "5bd751ec-adb4-4652-9f7d-05f295f2475a",
+      "title": "并行任务",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:44:21.717944+00:00",
+      "updated_at": "2026-07-19T13:44:21.717946+00:00"
+    },
+    {
+      "goal_id": "36c7f0f5-054c-4fd3-a101-4cafb290d7c1",
+      "title": "Goal1 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:44:21.719080+00:00",
+      "updated_at": "2026-07-19T13:44:21.719081+00:00"
+    },
+    {
+      "goal_id": "6addfcc6-839d-4bca-a265-697a535511b0",
+      "title": "Goal2 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:44:21.719851+00:00",
+      "updated_at": "2026-07-19T13:44:21.719852+00:00"
+    },
+    {
+      "goal_id": "5fe34f8c-4d8c-46cb-808d-36e1a8a0bdf2",
+      "title": "Hook 测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:44:21.721553+00:00",
+      "updated_at": "2026-07-19T13:44:21.721555+00:00"
+    },
+    {
+      "goal_id": "4507fed0-8399-4b96-a2ac-e3eb162c67b5",
+      "title": "续跑测试",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T13:44:21.723842+00:00",
+      "updated_at": "2026-07-19T13:44:21.723843+00:00"
+    },
+    {
+      "goal_id": "5f3d3103-6603-46fd-a662-1254903015d1",
+      "title": "已完成的目标",
+      "status": "achieved",
+      "round": 5,
+      "created_at": "2026-07-19T14:53:43.323051+00:00",
+      "updated_at": "2026-07-19T14:53:43.324081+00:00"
+    },
+    {
+      "goal_id": "bae5be53-75f4-4aef-b950-d00359700086",
+      "title": "进行中的目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T14:53:43.326474+00:00",
+      "updated_at": "2026-07-19T14:53:43.326476+00:00"
+    },
+    {
+      "goal_id": "35eee279-9c86-4441-a9bd-e484915268a9",
+      "title": "已完成的目标",
+      "status": "achieved",
+      "round": 5,
+      "created_at": "2026-07-19T14:54:11.155909+00:00",
+      "updated_at": "2026-07-19T14:54:11.156853+00:00"
+    },
+    {
+      "goal_id": "8c42212b-15d6-41b1-a9f6-ae9a332a4c6e",
+      "title": "进行中的目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T14:54:11.159442+00:00",
+      "updated_at": "2026-07-19T14:54:11.159444+00:00"
+    },
+    {
+      "goal_id": "b2b500da-738f-4a2b-b18e-7405fc8dbb8e",
+      "title": "实现并行化扩展目标",
+      "status": "active",
+      "round": 3,
+      "created_at": "2026-07-19T16:49:41.773370+00:00",
+      "updated_at": "2026-07-19T16:49:41.774361+00:00"
+    },
+    {
+      "goal_id": "94d68cff-0e30-4298-85a7-d94fb4dd8a61",
+      "title": "Goal 1 目标",
+      "status": "active",
+      "round": 5,
+      "created_at": "2026-07-19T16:49:41.775326+00:00",
+      "updated_at": "2026-07-19T16:49:41.776873+00:00"
+    },
+    {
+      "goal_id": "94f6a307-79dd-4be3-9c59-3e565a23ff92",
+      "title": "Goal 2 目标",
+      "status": "active",
+      "round": 2,
+      "created_at": "2026-07-19T16:49:41.776016+00:00",
+      "updated_at": "2026-07-19T16:49:41.777615+00:00"
+    },
+    {
+      "goal_id": "1626ad8f-2644-4fa5-85b8-2ea1138d9119",
+      "title": "/goal-loop 启动 v29 — 承接 v28 CONVERGED §遗留项（1 MAJOR ",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-19T17:45:03.255386+00:00",
+      "updated_at": "2026-07-19T17:45:18.733226+00:00"
+    },
+    {
+      "goal_id": "7d263452-bd40-44c1-a77b-a185c19ad16c",
+      "title": "/goal-loop 启动 v29 — 承接 v28 CONVERGED §遗留项（1 MAJOR ",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-19T17:45:18.731972+00:00",
+      "updated_at": "2026-07-19T18:04:22.081371+00:00"
+    },
+    {
+      "goal_id": "97ab325d-a505-466b-8778-62c4706c9ff8",
+      "title": "/goal-loop 启动 v29 Round 2 — 补全审计完整性（4 项 MINOR 弱证据补",
+      "status": "active",
+      "round": 4,
+      "created_at": "2026-07-19T18:09:44.340437+00:00",
+      "updated_at": "2026-07-20T00:39:36.419531+00:00"
+    },
+    {
+      "goal_id": "81203dc8-417c-4e91-acfe-fcf3cdf93cf6",
+      "title": "v26 真实缺口闭环：修复决策密度/价值比/签名阈值/SKILL章节/例外率口径五项一致性问题",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-20T01:29:14.730513+00:00",
+      "updated_at": "2026-07-20T01:37:33.761996+00:00"
+    },
+    {
+      "goal_id": "8e3e2a3d-736c-44f4-aa66-52a23b7b7925",
+      "title": "重写S5测试点与S6测试用例方法论，并以游戏道具商城系统v3.01验证覆盖、溯源和三格式产出",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-20T16:05:55.267600+00:00",
+      "updated_at": "2026-07-20T16:05:55.267602+00:00"
+    },
+    {
+      "goal_id": "398cd3ef-f397-4212-9676-b5e3086b03ed",
+      "title": "v32 治理路线推进：渐进式推进 v31 6 项遗留（L1 ssot_citation_path /",
+      "status": "active",
+      "round": 2,
+      "created_at": "2026-07-20T18:17:25.554909+00:00",
+      "updated_at": "2026-07-20T18:21:22.328408+00:00"
+    },
+    {
+      "goal_id": "63302b9a-c13a-43c5-8bac-c4b730ea4159",
+      "title": "v33 goal-loop：接力 v32 治理路线剩余 6 项移交任务加审查过往改动，推进 L1 到",
+      "status": "active",
+      "round": 2,
+      "created_at": "2026-07-21T01:38:14.470349+00:00",
+      "updated_at": "2026-07-21T02:16:58.615395+00:00"
+    },
+    {
+      "goal_id": "c6fa9121-14d8-4954-9962-65c30c326d9d",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-21T04:25:45.061421+00:00",
+      "updated_at": "2026-07-21T04:25:45.065631+00:00"
+    },
+    {
+      "goal_id": "14d65a54-ced3-4ad9-bba2-50cd27fa4dd5",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-21T04:25:45.066453+00:00",
+      "updated_at": "2026-07-21T04:25:45.080816+00:00"
+    },
+    {
+      "goal_id": "6fb26d0e-8354-427a-988e-bf3448aa12f6",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-21T04:25:45.081613+00:00",
+      "updated_at": "2026-07-21T04:25:45.085344+00:00"
+    },
+    {
+      "goal_id": "5b579918-488b-4f25-b407-80a131fe2c46",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-21T04:25:45.086125+00:00",
+      "updated_at": "2026-07-21T04:25:45.087847+00:00"
+    },
+    {
+      "goal_id": "8d37db5d-ddb3-49c8-a048-7ac3e60fd585",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-21T04:25:45.088599+00:00",
+      "updated_at": "2026-07-21T04:25:45.092504+00:00"
+    },
+    {
+      "goal_id": "bfb3a05b-5c29-44f3-8889-a355429b02f9",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-21T04:25:45.093299+00:00",
+      "updated_at": "2026-07-21T04:25:45.096760+00:00"
+    },
+    {
+      "goal_id": "6a1e0b08-76a3-48c1-941e-0ff8336956e3",
+      "title": "C3 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-21T04:25:48.714413+00:00",
+      "updated_at": "2026-07-21T04:25:48.714415+00:00"
+    },
+    {
+      "goal_id": "75ca63ee-49bc-4229-b3af-77b95eb49480",
+      "title": "C4 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-21T04:25:48.715559+00:00",
+      "updated_at": "2026-07-21T04:25:48.715560+00:00"
+    },
+    {
+      "goal_id": "865915f5-a121-4471-bfe4-c428fafef9b6",
+      "title": "C5 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-21T04:25:48.716574+00:00",
+      "updated_at": "2026-07-21T04:25:48.717527+00:00"
+    },
+    {
+      "goal_id": "148cd0dc-8b41-4b32-80a9-ca9a4b240f26",
+      "title": "S7 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-21T04:25:48.744522+00:00",
+      "updated_at": "2026-07-21T04:25:48.744526+00:00"
+    },
+    {
+      "goal_id": "3454dace-073b-4c17-8150-05d82c956b8e",
+      "title": "AFE 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-21T04:25:48.748657+00:00",
+      "updated_at": "2026-07-21T04:25:48.748659+00:00"
+    },
+    {
+      "goal_id": "1508a7bb-3393-46e0-a4ba-60086d0f2be3",
+      "title": "ASH 目标",
+      "status": "active",
+      "round": 0,
+      "created_at": "2026-07-21T04:25:48.751370+00:00",
+      "updated_at": "2026-07-21T04:25:48.751372+00:00"
+    },
+    {
+      "goal_id": "9b40c076-d096-4df3-9fbe-c95a617ca600",
+      "title": "AskQuestion 测试目标",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-21T06:44:42.301670+00:00",
+      "updated_at": "2026-07-21T06:44:42.305103+00:00"
+    },
+    {
+      "goal_id": "50277db9-fe8a-49bd-9e8d-4355b0935869",
+      "title": "测试目标",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-21T06:46:18.153188+00:00",
+      "updated_at": "2026-07-21T06:46:18.157452+00:00"
+    },
+    {
+      "goal_id": "11f3e112-a93a-4c94-8527-9bf63c4b9aee",
+      "title": "B",
+      "status": "budget-limited",
+      "round": 5,
+      "created_at": "2026-07-21T06:46:18.158314+00:00",
+      "updated_at": "2026-07-21T06:46:18.173310+00:00"
+    },
+    {
+      "goal_id": "251f036b-ac05-44c1-8cd8-4728c95ab31e",
+      "title": "C",
+      "status": "budget-limited",
+      "round": 1,
+      "created_at": "2026-07-21T06:46:18.174114+00:00",
+      "updated_at": "2026-07-21T06:46:18.177698+00:00"
+    },
+    {
+      "goal_id": "2470e90d-ffbd-4b9b-86b4-218128afe3cb",
+      "title": "D",
+      "status": "paused",
+      "round": 0,
+      "created_at": "2026-07-21T06:46:18.178468+00:00",
+      "updated_at": "2026-07-21T06:46:18.180326+00:00"
+    },
+    {
+      "goal_id": "169ebffc-c4ff-483b-9102-266f4f8ea7db",
+      "title": "E",
+      "status": "active",
+      "round": 1,
+      "created_at": "2026-07-21T06:46:18.181254+00:00",
+      "updated_at": "2026-07-21T06:46:18.184805+00:00"
+    },
+    {
+      "goal_id": "40e7a109-e763-4406-9ea2-ff5da24f9c8d",
+      "title": "F",
+      "status": "achieved",
+      "round": 1,
+      "created_at": "2026-07-21T06:46:18.185586+00:00",
+      "updated_at": "2026-07-21T06:46:18.189113+00:00"
+    },
+    {
+      "goal_id": "dc32800e-bcd0-495a-b05e-b83a5d1cc0c5",
+      "title": "审查 aidocx-workflow-conversation SKILL.md 全流程实现，给出加",
+      "status": "active",
+      "round": 2,
+      "created_at": "2026-07-21T10:08:41.091315+00:00",
+      "updated_at": "2026-07-21T10:14:50.936187+00:00"
+    },
+    {
+      "goal_id": "abeee22e-764a-4b34-bd29-ecf1e5c99d1d",
+      "title": "/goal-loop 根据 UI 专家的搭建模式，搭建其他专家 [v36 阶段 1+2：模板提炼 +",
+      "status": "converged_with_followup",
+      "round": 1,
+      "created_at": "2026-07-21T18:41:02.271779+00:00",
+      "updated_at": "2026-07-21T20:33:14.115731+00:00"
+    }
+  ]
+}

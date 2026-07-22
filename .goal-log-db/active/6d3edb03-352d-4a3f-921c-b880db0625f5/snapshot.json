@@ -1,0 +1,174 @@
+{
+  "goal_id": "6d3edb03-352d-4a3f-921c-b880db0625f5",
+  "raw_user_goal": "Round 16 用户立项：把 Round 15 §11.5 遗留 follow_up 4 项 + Round 16 新增诉求「用例描述/功能描述格式治理」合并为新 Goal，统一推进。\n\nRound 15 遗留 follow_up 4 项：\n1. normalizer mirror_bilingual_aliases 把 list join 成字符串 bug（MAJOR）\n2. SSOT §11 拆约束对象：LLM 生成约束 vs 数据存储约束（MAJOR）\n3. 合并 TC 加 source_case_ids 追溯字段（MINOR）\n4. v3.01 数据 step/expected 错位（MINOR）\n\nRound 16 新诉求 1 项：\n- 用例描述 / 功能描述 字段格式治理：xlsx 按 OBJ→FP 分组排序 + Sheet 2「用例描述索引」+ 同 OBJ 同色背景 + 空行隔离 + 测试设计层级原则落档\n\n边界：不动 v3.01 JSON / 不重跑 S5/S6 prompt 治理 / 不 commit。",
+  "value_criteria": [
+    "V-001 [BLOCKER] normalizer mirror_bilingual_aliases 不再把 list 字段 join 成字符串（list → list 镜像；string → string 镜像；mix → 修复 merge 后的 list 同步逻辑）+ self_test 增 case 验证",
+    "V-002 [BLOCKER] SSOT §11 测试设计层级原则段落档：1 OBJ 下可含多个 FP / 1 FP 下可含多个前置条件 / 1 前置下可含多个步骤 → 多个独立 TC；SKILL.md + .mdc 双写同步",
+    "V-003 [BLOCKER] xlsx 重导出（合并 + OBJ→FP 分组排序 + 同 OBJ 同色背景 + OBJ 边界空行隔离）→ 物理验证：主表行按 obj_id 升序，同 obj 内按 feature_point_ref 升序",
+    "V-004 [BLOCKER] xlsx 加 Sheet 2「用例描述索引」：列 OBJ 名 / FP 数 / TC 数 / Ready 数；按 OBJ 分组聚合；用户打开 Sheet 2 即知 OBJ/FP 全局视图",
+    "V-005 [MAJOR] scenario_group_merger 加 source_case_ids 字段：合并 TC 标注 source TC id list，便于追溯",
+    "V-006 [MAJOR] 端到端验证：所有 5 项 follow_up + 1 项格式治理落地后，xlsx 双 Sheet 分流仍正确（主表 87 / 附录 0）"
+  ],
+  "process_criteria": [
+    "P-001 [MAJOR] 治理记录同步：snapshot.json / 落档文件 §1-6 / CONVERGED.md 三处一致",
+    "P-002 [MAJOR] 所有新增 .py 文件含 def self_test() → int + --self-test argv；normalizer 修后必跑 self-test 验证",
+    "P-003 [MAJOR] 不修改 v3.01 test_cases.json（继承 Round 12 out_of_scope §10）；不 commit（用户明确禁止）",
+    "P-004 [MAJOR] 严格执行已批准的 12 项 task_queue；不改 task_queue、不扩展目标范围"
+  ],
+  "value_ratio": 0.6,
+  "severity_label": "BLOCKER",
+  "follow_up_items": [
+    "v3.01 数据 step/expected 错位（Round 15 §11.5 FU-A4）→ v3.02 prompt 治理",
+    "SSOT 拆约束对象（Round 15 §11.5 FU-A2 LLM 生成 vs 数据存储）→ v3.02 治理",
+    "_sync_list_fields_after_merge 补丁清理 → Round 17 验证 normalizer 修复后可移除",
+    "source_case_ids 在 xlsx 主表渲染 → Round 17 可扩展主表 +1 列展示"
+  ],
+  "goal_signature": "0bebec8bef6c8bffb3f200dbc15447f5168ebce10c9a61624acb5326a4257b44",
+  "out_of_scope_md": ".goal-log-db/active/6d3edb03-352d-4a3f-921c-b880db0625f5/out_of_scope.md",
+  "audit_stability": {
+    "audit_16": "PASS",
+    "review_16": "PASS",
+    "v_passed": 6,
+    "p_passed": 4,
+    "value_ratio": 0.6
+  },
+  "efficiency_stats": {
+    "rounds_to_convergence": 1,
+    "first_pass_rate": 1.0,
+    "blocker_residual_rate": 0.0,
+    "avg_round_duration_seconds": null,
+    "last_updated": "2026-07-19T22:00:00+08:00"
+  },
+  "task_queue": [
+    {
+      "id": "T-001",
+      "title": "修 normalizer mirror_bilingual_aliases：list 字段保持 list 不 join",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "ai_workflow/case_id_and_field_normalizer.py"
+    },
+    {
+      "id": "T-002",
+      "title": "normalizer self_test 加 case：list→list 镜像 + string→string 镜像 + mix 字段不破坏",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": ["T-001"],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "ai_workflow/case_id_and_field_normalizer.py"
+    },
+    {
+      "id": "T-003",
+      "title": "scenario_group_merger 加 source_case_ids 字段",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "ai_workflow/scenario_group_merger.py"
+    },
+    {
+      "id": "T-004",
+      "title": "scenario_group_merger self_test 加 case：source_case_ids 字段存在且包含 source TC id",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": ["T-003"],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "ai_workflow/scenario_group_merger.py"
+    },
+    {
+      "id": "T-005",
+      "title": "test_case_formatter 加 Sheet 2「用例描述索引」生成函数 + 主表 OBJ→FP 分组排序 + 同 OBJ 同色背景",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "ai_workflow/test_case_formatter.py"
+    },
+    {
+      "id": "T-006",
+      "title": "run_round15_merge_export.py 升级：调用新 formatter 入口 + 传 sort_options",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": ["T-005"],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "ai_workflow/run_round15_merge_export.py"
+    },
+    {
+      "id": "T-007",
+      "title": "SKILL.md §11 加测试设计层级原则段 + Round 16 引用",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": ".cursor/skills/aidocx-s6-test-cases/SKILL.md"
+    },
+    {
+      "id": "T-008",
+      "title": "STAGE_S6_TEST_CASES.mdc §11 同步 SKILL.md 测试设计层级原则",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": ["T-007"],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": ".cursor/rules/STAGE_S6_TEST_CASES.mdc"
+    },
+    {
+      "id": "T-009",
+      "title": "跑完整 pytest 套件 + 4 个 self-test + 主调脚本",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": ["T-001", "T-002", "T-003", "T-004", "T-005", "T-006", "T-007", "T-008"],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": null
+    },
+    {
+      "id": "T-010",
+      "title": "重导 v3.01 xlsx + 物理验证（双 Sheet + 索引 + 排序 + 背景）",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": ["T-009"],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx"
+    },
+    {
+      "id": "T-011",
+      "title": "audit_16.md + review_16.md 落档（6 VC 全 PASS 证据）",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": ["T-010"],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "governance/design_iter/plans/v17/audit_16.md"
+    },
+    {
+      "id": "T-012",
+      "title": "snapshot 推进 + CONVERGED.md 6 项必含",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": ["T-011"],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": ".goal-log-db/active/6d3edb03-352d-4a3f-921c-b880db0625f5/snapshot.json"
+    }
+  ],
+  "loop_round": 1,
+  "last_audit": "governance/design_iter/plans/v17/audit_16.md",
+  "last_review": "governance/design_iter/plans/v17/review_16.md",
+  "latest_artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx",
+  "status": "achieved",
+  "token_budget": {
+    "used": 0,
+    "limit": 500000,
+    "updated_at": "2026-07-19T22:00:00+08:00"
+  }
+}

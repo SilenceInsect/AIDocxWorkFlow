@@ -1,0 +1,80 @@
+# AIDocxWorkFlow 项目产物格式规范（YAML 配置中心）
+
+# 用途：本文件是"项目文件落地规则"的唯一真相源（SSOT）。
+# - Hook (content_compliance_check.py) 读取本文件进行自动检测
+# - 禁止在其他地方重复定义相同规则
+
+# ── 违规检测模式 ─────────────────────────────────────────────────────────────
+# 检测项目文件中的版本标记违规
+detection_patterns:
+  # 模式 1: 双版本标签（如 "v16 v2"、"v12 v3.01"）
+  double_version:
+    enabled: true
+    severity: HIGH
+    pattern: '\b(v\d+(?:\.\d+)?)\s+(v\d+(?:\.\d+)?)\b'
+    exempt_files:
+      - CHANGELOG.md
+    examples:
+      - "v16 v2"
+      - "v12 v3.01"
+
+  # 模式 2: 永久规范版本标记（如 "v17 新增"、"v17 SSOT"、"v17+ 强制"）
+  # 正文条文中不应该有版本历史注释，变更记录在 CHANGELOG.md
+  permanent_rule_version_tag:
+    enabled: true
+    severity: HIGH
+    # 匹配 v{N} 新增 / v{N} 新增规则 / v{N}+ 强制 / v{N} SSOT
+    pattern: '\b(v\d+(?:\.\d+)?)\s*(\+?\s*(?:新增|SSOT|强制))(规则)?'
+    exempt_files:
+      - CHANGELOG.md
+    examples:
+      - "v17 新增"
+      - "v17 新增规则"
+      - "v17+ 强制"
+      - "v17 SSOT"
+
+  # 模式 3: 禁止字段（JSON，产物中禁止出现 version_note / changelog 等字段）
+  # 变更记录统一归口 CHANGELOG.md 或对应模块字段，禁止在产物 JSON 中自定义版本/变更字段
+  forbidden_json_fields:
+    enabled: true
+    severity: HIGH
+    pattern: '"(version_note|changelog)"\s*:'
+    exempt_files:
+      - CHANGELOG.md
+    examples:
+      - '"version_note": "..."'
+      - '"changelog": "..."'
+
+  # 模式 4: ISO 时间戳（产物中禁止出现 ISO 8601 格式时间戳，归口 meta.created_at 字段后可豁免）
+  # 检测形如 2026-07-17T18:00:00+08:00 的硬编码时间戳
+  iso_timestamp:
+    enabled: true
+    severity: MEDIUM
+    pattern: '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?[+-]\d{2}:\d{2}'
+    exempt_files:
+      - CHANGELOG.md
+    examples:
+      - "2026-07-17T18:00:00+08:00"
+
+# ── 豁免路径模式 ─────────────────────────────────────────────────────────────
+# 这些路径下的文件不进行检测（过程资产 + 原始输入，不入 git）
+exempt_paths:
+  - /workflow_assets/   # 过程资产（单次需求产物，.gitignore）
+  - /resource/          # 原始输入材料（.gitignore）
+
+# ── 不豁免的目录说明 ─────────────────────────────────────────────────────────
+# 不豁免 knowledge/：
+# - knowledge/public/    入 Git（公共库），违规需扫描
+# - knowledge/project_local/  虽 .gitignore，但违规仍需发现
+exempt_paths_note: |
+  原则：只豁免「不入 git」的过程资产 + 输入材料。
+  knowledge/ 不豁免——
+  - knowledge/public/ 入 Git（公共知识库），违规必须扫描
+  - knowledge/project_local/ 虽 .gitignore，但违规仍应在 Hook 中被发现后再人工决定是否处理
+
+# ── 元数据 ───────────────────────────────────────────────────────────────────
+meta:
+  ssot_location: ".cursor/rules/product_format_rules.yaml"
+  referenced_by:
+    - content_compliance_check.py
+  maintained_by: AIDocxWorkFlow Agent

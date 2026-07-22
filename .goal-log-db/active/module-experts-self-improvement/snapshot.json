@@ -1,0 +1,99 @@
+{
+  "goal_id": "module-experts-self-improvement-v1",
+  "raw_user_goal": "8个角色的自我能力认知提升任务，先读自己负责模块的@knowledge/public/module_templates 知识，让自己对每个模版点都有清晰的认知，不要装自己会，能够熟练给出对应专业的判断，有了基础的知识储备后，再在后续的业务工作中不停学习是你们的核心价值，你们的工作内容和产出是对原始需求或者拆解后的需求生成对应模块的测试点和测试用例",
+  "goal_signature": "8modules_self_improvement_v1",
+  "accept_criteria": [
+    "8个模块专家各自的SKILL.md中module_templates知识认知清晰度达到可输出标准（每模块至少5个子模板关键认知点）",
+    "每个模块专家能熟练给出对应专业的测试点/测试用例判断（8模块 × 核心场景1个示例）",
+    "模块概览文件(MODULE.md)对模块边界和能力范围描述清晰（8个模块各1份）",
+    "模块边界文件(O_boundary.md)对跨模块边界划分清晰（8个模块各1份）",
+    "种子TP库/边界TP对模块自身能力覆盖完整（每模块至少3个种子TP示例）"
+  ],
+  "task_queue": [
+    {
+      "id": "task-1",
+      "title": "CONFIG模块专家自我认知提升",
+      "status": "completed",
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/CONFIG_expert_cognition.md",
+      "module": "CONFIG"
+    },
+    {
+      "id": "task-2",
+      "title": "UI模块专家自我认知提升",
+      "status": "completed",
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/UI_expert_cognition.md",
+      "module": "UI"
+    },
+    {
+      "id": "task-3",
+      "title": "BIZ模块专家自我认知提升",
+      "status": "completed",
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/BIZ_expert_cognition.md",
+      "module": "BIZ"
+    },
+    {
+      "id": "task-4",
+      "title": "AUX模块专家自我认知提升",
+      "status": "completed",
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/AUX_expert_cognition.md",
+      "module": "AUX"
+    },
+    {
+      "id": "task-5",
+      "title": "LINK模块专家自我认知提升",
+      "status": "completed",
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/LINK_expert_cognition.md",
+      "module": "LINK"
+    },
+    {
+      "id": "task-6",
+      "title": "SPECIAL模块专家自我认知提升",
+      "status": "completed",
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/SPECIAL_expert_cognition.md",
+      "module": "SPECIAL"
+    },
+    {
+      "id": "task-7",
+      "title": "LOG模块专家自我认知提升",
+      "status": "completed",
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/LOG_expert_cognition.md",
+      "module": "LOG"
+    },
+    {
+      "id": "task-8",
+      "title": "HINT模块专家自我认知提升",
+      "status": "completed",
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/HINT_expert_cognition.md",
+      "module": "HINT"
+    }
+  ],
+  "loop_round": 2,
+  "last_audit": {
+    "file": ".goal-log-db/active/module-experts-self-improvement/audit_2.md",
+    "verdicts": {
+      "AC-1": "PASS",
+      "AC-2": "PASS",
+      "AC-3": "PASS",
+      "AC-4": "PASS",
+      "AC-5": "PASS"
+    },
+    "summary": "5项全部通过，CONVERGED"
+  },
+  "last_review": {
+    "file": ".goal-log-db/active/module-experts-self-improvement/review_2.md",
+    "defects": [],
+    "next_actions": [
+      "身份卡更新（8份）为剩余优化项，可后续单独处理"
+    ]
+  },
+  "latest_artifact": "knowledge/public/module_templates/_module_expert_cognition/",
+  "status": "achieved",
+  "token_budget": {
+    "used": 0,
+    "limit": null,
+    "updated_at": "2026-07-22T02:50:00Z"
+  },
+  "goal_signature_changelog": [],
+  "created_at": "2026-07-22T02:21:00Z",
+  "converged_at": "2026-07-22T02:50:00Z"
+}

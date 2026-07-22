@@ -1,0 +1,650 @@
+---
+description: AIDocxWorkFlow Stage 5 — 测试点生成（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S5 — 测试点生成
+
+> **独立阶段**：可以单独调用。上游材料（S2 backlog）审查合格后开始，失败写失败报告。
+
+## 第一原则
+
+> **S5 当前不是在做代码实现，也不是在写最短答案，而是在做需求覆盖设计。**
+> **默认目标不是少写，而是找全；不是压缩，而是显式列出覆盖和未覆盖。**
+> **任何未设计成 TP 的需求点，不允许静默消失，必须进入 `omission_ledger.json`。**
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s5-test-points` 或粘贴 S2 backlog
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S2 backlog.md（**必须读取**） | `workflow_assets/<req_name>/<version>/「S2 需求拆解」/backlog.md` | 存在且含 Epic/Story |
+| S4 business_flow.md（**必须读取**） | `workflow_assets/<req_name>/<version>/「S4 流程图导出」/business_flow.md` | 包含异常/错误决策树和风险点清单，用于补充 EXCEPTION 类型测试点 |
+
+**前置材料缺失时**：生成失败报告，停止 S5。
+
+---
+
+## §1.9 命名一致性 & 产出标准化门禁（字段溯源版）
+
+> **（FIELD-001）：本节解决 TP 文本语义与 S2 正式命名体系脱节的问题。
+> **校验精度**：字段溯源版（**字段精准匹配**——obj_name/fp_name == S2）+ LLM 自由文本溯源（title/description 不带锚点）
+
+### §1.9.1 核心规范
+
+S5 产出的每条测试点必须满足以下要求：
+
+> **v31 修订**：`obj_name` 来源 = `S2 backlog.epics[].title`（Epic 标题 = 需求对象）；`fp_name` 来源 = `S2 backlog.stories[].title`（Story 标题 = 功能描述）。
+
+1. **显式字段**：`obj_name` 和 `fp_name` 字段必须存在
+   - `obj_name`：从 S2 `backlog.epics[].title` 取值，**100% 原样写入**
+   - `fp_name`：从 S2 `backlog.stories[].title` 取值，**100% 原样写入**
+
+2. **文本溯源分离**：
+   - `title`：纯场景简短标题（**不带锚点**），4-12 字场景摘要
+   - `description`：纯测试逻辑（前置+步骤+预期），干净通顺
+
+3. **字段精准匹配**：
+   - `obj_name` == S2 `requirement_objects[].obj_name`（逐字相等）
+   - `fp_name` 不重复 S2 `requirement_objects[].feature_points[].fp_desc`（LLM 自创中性名）
+
+4. **锚点取消**：title / description / test_scenario **不再以锚点开头**——锚点仅存 JSON 字段，不重复进文本
+
+### §1.9.2 校验方式
+
+L1 格式校验层执行，检查项：`field_traceability`
+
+| 校验项 | 要求 |
+|--------|------|
+| `obj_name` 字段 | 存在且 == S2 `obj_name`（逐字相等） |
+| `fp_name` 字段 | 存在且 LLM 自创（命名规则见 §1.9.1） |
+| `feature_point_ref` 字段 | **强制必填**——必须引用 S2 OBJ.feature_points[].id |
+| `title` 文本 | 不带锚点（无【】） |
+| `description` 文本 | 不带锚点（无【】） |
+
+**通过率硬门禁**：100%（0 错误才可进入 S6）
+
+### §1.9.3 不通过处理
+
+- 自动触发 S5 迭代补全，最多重试 3 次
+- 3 次仍不通过 → `L1_FAILED` 状态 → 人工审查队列
+- 禁止未通过校验的 TP 进入 S6
+
+### §1.9.4 命名来源约束
+
+- `obj_name`：唯一来源 = S2 `requirement_objects.json` 的 `obj_name` 字段。**100% 逐字相等**。必须是**实体名词**。
+- `fp_name`：唯一来源 = **LLM 自创**（中性功能名）。约束：**必须是动词/动作** + 长度 ≤ 20 字符 + 不与 S2 `fp_desc` 字面量重复；**禁止名词性描述**（如"道具数据配置"/"价格配置"应改为"道具从配置加载"/"道具按配置价格展示"）。
+- `功能描述` 字段（JSON 中的 `功能描述` 键）：**必须动作化**——来自 S2 `fp_desc` 做语义等价改写，将名词性描述改写为动词化表达。
+  - 改写规则：**不得改变 S2 `fp_desc` 的事实范围**，仅将静态描述动作化。
+  - 改写模式（参考）：
+    | S2 fp_desc（原始）| 动作化后（生成 TP 时使用）|
+    |---|---|
+    | 配置道具分类归属 | 按配置对道具分类 |
+    | 配置道具基础信息 | 按配置表加载道具数据 |
+    | 配置道具价格 | 按配置校验道具价格 |
+  - 改写后同步更新 `s2_source.fp_desc` 字段（记录改写后语义，供溯源）。
+  - `s2_source` 块记录的是**实际使用的语义**（改写后），不是 S2 原始文本的复述。
+- 禁止 LLM 自创 `obj_name`（必须 S2 严格匹配）。
+- 禁止 `fp_name` 与 S2 `fp_desc` 字面量重复（避免语义重定义）。
+
+### §1.9.5 标准格式
+
+```
+title: {4-12字场景摘要}（不带锚点）
+description: {完整测试逻辑，前置+步骤+预期}（不带锚点）
+```
+
+**反例（不允许）**：
+```
+title: 【商城首页道具列表 - 首页按销量展示前10个热门道具】验证销量排序
+description: 【商城首页道具列表 - 首页按销量展示前10个热门道具】验证玩家进入商城首页时...
+```
+
+### §1.9.6 L1 校验函数
+
+校验函数位于 `ai_workflow/validators/l1_s5.py` 的 `L1S5Validator.validate_field_traceability()` 方法。
+
+调用方式：
+```python
+from ai_workflow.validators.l1_s5 import L1S5Validator
+
+validator = L1S5Validator()
+validator.set_requirement_objects(requirement_objects_list)
+passed, errors, stats = validator.validate_field_traceability(tp_data)
+# passed=True 且 errors=[] 才可进入 S6
+```
+
+### §1.9.7 产出 Schema
+
+每条 TP 必须包含：
+```json
+{
+  "tp_id": "TP-001",
+  "s5_ref": "TP-001",
+  "module": "UI",
+  "obj_id": "UI-ITEM-MALL-01-002-OBJ-01",
+  "obj_name": "商城首页道具列表",
+  "feature_point_ref": "UI-ITEM-MALL-01-002-OBJ-01-FP-2",
+  "fp_name": "首页销量排序展示",
+  "case_type": "功能测试",
+  "test_method": ["正向流程", "基于规格"],
+  "title": "首页销量排序展示验证",
+  "description": "玩家已登录游戏，进入商城首页。验证按销量降序展示前10个道具，与 S2 OBJ 对比字段值一致。",
+  "priority": "P1",
+  "status": "Draft",
+  "remark": ""
+}
+```
+
+> **字段语义说明（Round 14 F-C 修订）**：
+> - `tp_id`：S5 TP 实体主键（**唯一 ID**）
+> - `s5_ref`：S6 TC 反向引用别名，**值必须 == `tp_id`**（用于跨阶段追溯）
+> - 双标识并存方案（决策档 `governance/design_iter/current/s5_id_dedupe_decision.md` 推荐方案 C）
+> - 兼容性：v3.01 87 TP × `tp_id == s5_ref` 100% 满足一致性
+
+---
+
+## §1.4 LLM 必读材料（阶段前置）
+
+**生成任何 TP 前，必须先读取以下全部材料。禁止凭印象/常识/历史产物直接生成。**
+
+| # | 材料 | 路径 | 读取原因 |
+|---|---|---|---|
+| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | 所有 Epic/Story 必须有模块前缀；模块分类决定后续所有判断 |
+| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md） | 8 模块边界容易混淆（如 HINT vs UI、BIZ vs CONFIG），判定前必须读取 |
+| 3 | 命中模块的 `<MODULE>.md` | `knowledge/public/module_templates/<Module>/<Module>.md` | 该模块的子类枚举和测试方法决定 TP 类型与数量 |
+| 4 | 命中模块的边界文件 | `knowledge/public/module_templates/<Module>/O_boundary.md` | 反例库对照，防止模块归属错误 |
+| 5 | S4 business_flow（**必须读取**） | `workflow_assets/<req_name>/<version>/「S4 流程图导出」/business_flow.md` | 异常决策树和风险点清单是 EXCEPTION 类型 TP 的核心来源 |
+
+**8 模块必读文件路径**：
+
+| 模块 | 模块文件 | 边界文件 |
+|------|---------|----------|
+| CONFIG | `knowledge/public/module_templates/CONFIG.md` | `knowledge/public/module_templates/CONFIG/J_boundary.md` |
+| UI | `knowledge/public/module_templates/UI.md` | `knowledge/public/module_templates/UI/I_boundary.md` |
+| BIZ | `knowledge/public/module_templates/BIZ.md` | `knowledge/public/module_templates/BIZ/O_boundary.md` |
+| AUX | `knowledge/public/module_templates/AUX.md` | `knowledge/public/module_templates/AUX/O_boundary.md` |
+| LINK | `knowledge/public/module_templates/LINK.md` | `knowledge/public/module_templates/LINK/O_boundary.md` |
+| LOG | `knowledge/public/module_templates/LOG.md` | `knowledge/public/module_templates/LOG/O_boundary.md` |
+| SPECIAL | `knowledge/public/module_templates/SPECIAL.md` | `knowledge/public/module_templates/SPECIAL/O_boundary.md` |
+| HINT | `knowledge/public/module_templates/HINT.md` | `knowledge/public/module_templates/HINT/O_boundary.md` |
+
+---
+
+## 核心原则
+
+> **S5 的核心使命**：为每个 Story 生成高质量测试点，覆盖需求对象、功能点和关键场景族。模块归属正确性很重要，但**需求覆盖完整性优先级更高**。
+
+**禁止出现的行为**：
+- ❌ 凭印象/常识/历史产物直接生成 TP
+- ❌ 在没有读取 §1.4 材料的情况下生成 TP
+- ❌ 跳过 §1.5 决策 push 块直接生成 TP
+- ❌ 跳过 §1.5.4 反例库对照直接生成 TP
+- ❌ 为同一功能点的同一模块生成重复 TP
+- ❌ 因为"实现可能共用逻辑"而合并不同需求对象的测试意图
+- ❌ 因为"代码层已覆盖"就省略产品层测试设计
+- ❌ 因为不确定而直接不写，必须进入 omission ledger
+
+## 运行时前置
+
+S5 启动时必须先由脚本生成以下文件，缺任一文件 = 阶段未开始：
+
+| 文件 | 作用 |
+|---|---|
+| `stage_context.md` | 汇总全局规则、当前阶段规则、上下游契约、历史失败模式 |
+| `stage_context.json` | 机器可读上下文包 |
+| `read_ack.json` | 记录阶段已读材料和全局目标确认 |
+
+> **禁止**在没有 `stage_context.*` 和 `read_ack.json` 的情况下直接生成测试点。
+
+## 覆盖账本
+
+S5 正式产物除 `test_points.json` 外，新增两份强制账本：
+
+| 文件 | 要求 |
+|---|---|
+| `coverage_ledger.json` | 按 Story 记录 expected/covered scenario families、covered_by、status |
+| `omission_ledger.json` | 记录所有 partial/uncovered 点及原因 |
+
+### 场景族扫描（每个 Story 默认至少扫一次）
+
+- `positive`
+- `boundary`
+- `negative`
+- `exception`
+- `config_change`
+- `permission_role`
+- `state_transition`
+- `concurrency_timing`
+- `recovery_rollback`
+- `observability_hint_log`
+
+如果某类场景不适用，必须在 `omission_ledger.json` 记录原因，而不是直接不写。
+
+---
+
+## 测试类型枚举
+
+> 完整定义见 [`.cursor/MODULES.md` §4 测试类型矩阵](./MODULES.md)。
+
+### 等价类 + 边界值 + 正交试验（永久强制）
+
+**等价类划分（Equivalence Partitioning）**：
+
+| 枚举值 | 含义 | 示例 |
+|--------|------|------|
+| `EP_VALID` | 有效等价类 | 数量输入 1-99 范围内 |
+| `EP_INVALID` | 无效等价类 | 数量 = 0 或 > 99 |
+
+**边界值分析（Boundary Value Analysis）— 四点法详细规则**
+
+对于有明确数值范围 `[min, max]` 的输入字段，必须生成 **4 条边界值 TP**：
+
+| 枚举值 | 类型 | 取值 | 预期结果 |
+|--------|------|------|---------|
+| `BOUNDARY_MIN` | 最小有效值 | 输入 = min | 验证通过 |
+| `BOUNDARY_MAX` | 最大有效值 | 输入 = max | 验证通过 |
+| `BOUNDARY_MIN_1` | 最小无效值（min-1）| 输入 = min - 粒度 | 验证拒绝 |
+| `BOUNDARY_MAX_1` | 最大无效值（max+1）| 输入 = max + 粒度 | 验证拒绝 |
+
+**不同数据类型取值规则**：
+
+| 类型 | 范围示例 | min | max | min-1 | max+1 |
+|------|---------|-----|-----|-------|-------|
+| 整数 | [1, 9999] | 1 | 9999 | 0 | 10000 |
+| 浮点/金额 | [0.01, 9999.99]（精度2位）| 0.01 | 9999.99 | 0.00 | 10000.00 |
+| 字符串长度 | [1, 50] 字符 | 1 | 50 | 0（空串）| 51 |
+| 枚举 | [A, B, C] | 每枚举1条正向 TC；非法值/null/空另1条异常 TC |
+| 列表/数组 | [0, 100] 个元素 | 0（空数组）| 100 | — | 101 |
+
+**隐式边界（主动检查，即使需求未明确写）**：零值(0/空)、负数(-1)、极大值(接近类型上限)、特殊字符(SQL注入/XSS/emoji)、空白字符(首尾空格/null/类型不匹配)
+
+| 枚举值 | 含义 | 示例 |
+|--------|------|------|
+| `BOUNDARY_MIN` | 最小有效值 | 数量 = 1 |
+| `BOUNDARY_MAX` | 最大有效值 | 数量 = 99 |
+| `BOUNDARY_MIN_1` | 最小无效值（min-1）| 数量 = 0 |
+| `BOUNDARY_MAX_1` | 最大无效值（max+1）| 数量 = 100 |
+
+**正交试验（Orthogonal Array）**：
+
+| 枚举值 | 含义 | 示例 |
+|--------|------|------|
+| `OA_2N` | 二水平正交 | 2 因素 × 2 水平 |
+| `OA_3N` | 三水平正交 | 2 因素 × 3 水平 |
+| `OA_MIXED` | 混合水平正交 | 多因素多水平 |
+
+### 完整枚举表（永久 SSOT）
+
+| 枚举值 | 类型 | 归属象限 |
+|--------|------|----------|
+| `POSITIVE` | 正向 | Q1 |
+| `EP_VALID` | 等价类-有效 | Q1 |
+| `EP_INVALID` | 等价类-无效 | Q1 |
+| `BOUNDARY_MIN` | 边界值-最小 | Q1 |
+| `BOUNDARY_MAX` | 边界值-最大 | Q1 |
+| `BOUNDARY_MIN_1` | 边界值-越界 | Q1 |
+| `BOUNDARY_MAX_1` | 边界值-越界 | Q1 |
+| `NEGATIVE` | 负向 | Q1 |
+| `EXCEPTION` | 异常 | Q1 |
+| `OA_2N` | 正交-二水平 | Q1 |
+| `OA_3N` | 正交-三水平 | Q1 |
+| `OA_MIXED` | 正交-混合 | Q1 |
+| `PERFORMANCE` | 性能 | Q2 |
+| `SECURITY` | 安全 | Q2 |
+| `SPECIAL` | 特殊（权限/并发）| Q2/Q3 |
+| `CONFIG` | 配置变更 | Q4 |
+| `LOG` | 日志 | Q4 |
+
+> **覆盖要求**：每个 Story 至少覆盖 `EP_VALID + EP_INVALID + BOUNDARY_MIN + BOUNDARY_MAX + BOUNDARY_MIN_1 + BOUNDARY_MAX_1`（6 类边界）。
+> 多因素场景使用 `OA_*` 补充。
+
+---
+
+## 模块 × 类型双维度强制判定
+
+> 完整边界规则见 [`.cursor/MODULES.md` §4.11.2 HINT vs UI 边界](./MODULES.md) + [`knowledge/public/module_templates/HINT/O_boundary.md`](../../../knowledge/public/module_templates/HINT/O_boundary.md)。
+
+---
+
+## §1.5 决策 push 块（6 个强制检查，必须全部执行）
+
+> **哲学**：不告诉 LLM 多少算合格，告诉 LLM 怎么思考产出质量。
+
+### §1.5.1 跨模块拆分 push
+
+**写 TP 前先问自己 3 问**：
+- **Q1**：这个 Story 的"业务流"是单系统还是涉及上下游/第三方？（如购买涉及支付/订单/邮件）
+- **Q2**："业务流"的数据/状态变化会触发哪些 UI/HINT/LOG 反馈？
+- **Q3**：这个 Story 是否会暴露配置/缓存/异常/合规风险？
+
+**3 问任一为"是" → 必须为该模块单独生成 TP，不偷懒合并。**
+
+### §1.5.2 4 步判定 push
+
+**每个 TP 写之前必走 4 步（任一空答 → 暂停，先补 Read）**：
+
+| # | 步骤 | 操作 |
+|---|------|------|
+| Push 1 | 读 §3.5 找命中模块 | 从 8 模块中匹配 1 个 |
+| Push 2 | 读该模块 `<MODULE>.md` 找命中子类 | 从模块子类枚举中匹配 1 个 |
+| Push 3 | 读该模块 `O_boundary.md` 边界对照表 | 确认不与相邻模块冲突 |
+| Push 4 | 读 S4 业务流找对应 F-XX 节点/异常树叶子/R-XX 风险点 | 在 TP 中填写 s4_reference |
+
+**4 步全部回答后，再开始写 TP。**
+
+### §1.5.2.1 命中冲突查优先级矩阵（模块优先级冲突矩阵出口）
+
+> **本节是 §1.5.2 "4 步判定 push" 的冲突场景出口**——当 §1.5.2 Push 1 命中多个模块（同一测试场景可同时归入 2 个模块）时，按 MODULES.md §3.6 冲突优先级矩阵判定归属。
+> **本节为模块优先级矩阵落地项**（2026-07-17 用户拍板落地）
+
+**触发条件**：
+
+1. §1.5.2 Push 1 输出"模块 A 或模块 B"歧义（两个模块均命中）
+2. §1.5.2 Push 3 边界对照表显示无明确判定
+3. 现有 O_boundary.md 案例未覆盖该冲突
+
+**判定流程**：
+
+```
+Push 1 命中多模块
+    ↓
+查 MODULES.md §3.6 冲突优先级矩阵（8 行场景）
+    ↓
+命中表行 → 按行内优先级判定归属
+    ↓
+未命中表行 → 升级到人工裁定 + 登记为新冲突行
+    ↓
+写入 TP.module 字段 + applies_rule 字段说明"按 §3.6 第 N 行归属"
+```
+
+**8 行冲突场景速查**：
+
+| # | 冲突 | 优先级 |
+|---|------|--------|
+| 1 | 异常/对抗 vs 常规业务 | SPECIAL > BIZ/UI |
+| 2 | 跨服务 vs 业务逻辑 | LINK > BIZ |
+| 3 | 配置驱动 vs 业务逻辑 | CONFIG > BIZ |
+| 4 | 纯日志 vs 业务附带日志 | 纯 LOG / 附 BIZ |
+| 5 | 红点/弹窗样式 vs 内容触发 | 样式 UI / 触发 HINT |
+| 6 | 辅助功能 vs 业务功能 | AUX < BIZ（业务优先） |
+| 7 | 关联影响 vs 主业务 | LINK 独立 / BIZ 主归 |
+| 8 | 特殊配置 vs 配置通用 | SPECIAL > CONFIG |
+
+### is_assumed 标记
+
+> 定义见 [`.cursor/MODULES.md`](./MODULES.md)（全局强制）。
+
+| 字段 | 强制要求 |
+|------|----------|
+| `is_assumed` | 必须填 `true`，默认 `false` |
+| `assumption_reason` | 必须说明来源（S2 backlog / S4 / 业务常识） |
+| `requires_human_review` | 若来源于业务常识，必须填 `true` |
+
+### 反例对照 push
+
+> 完整反例库见 [`.cursor/MODULES.md`](./MODULES.md) 各模块 O_boundary.md。
+
+对照结果必须声明（写入 `applies_rule` 字段）：与某反例同 pattern → 改 module 或删除；不与任何反例撞 → 记录"与反例库无冲突"。
+
+### JSON Schema 字段名强约束
+
+> 定义见各阶段 SKILL.md。
+
+### 四象限展开
+
+> **约束**：每个 Story 的 TP 生成必须按 **四象限** 全展开——不是选项，是必走。
+>
+> **四象限定义**：
+>
+> | 象限 | 名称 | 内容 | 强门禁 |
+> |---|---|---|---|
+> | **Q1** | 功能性 | 正常/异常/边界/状态 | ≥ 3 类场景族 |
+> | **Q2** | 非功能性 | 性能/安全/兼容/可用性 | ≥ 1 类（SPECIAL/AUX 涉入）|
+> | **Q3** | 业务域交互 | 模块 × 模块交互（LINK/SPECIAL）| ≥ 1 类 |
+> | **Q4** | 工程域 | 配置/日志/缓存（AUX/CONFIG/LOG）| ≥ 1 类 |
+>
+> **强制场景族 10 类**（来自 §1.4）：
+>
+> | # | 场景族 | test_point_type 枚举 | 归属象限 |
+> |---|---|---|---|
+> | 1 | positive | POSITIVE | Q1 |
+> | 2 | boundary | BOUNDARY | Q1 |
+> | 3 | negative | NEGATIVE | Q1 |
+> | 4 | exception | EXCEPTION | Q1 |
+> | 5 | config_change | CONFIG | Q4 |
+> | 6 | permission_role | SPECIAL | Q2 |
+> | 7 | state_transition | BIZ / SPEC | Q1 |
+> | 8 | concurrency_timing | SPECIAL | Q2/Q3 |
+> | 9 | recovery_rollback | EXCEPTION | Q1 |
+> | 10 | observability_hint_log | LOG / HINT | Q3/Q4 |
+>
+> **门禁**：
+> - 每个 Story 必走全 10 类场景族（不适用 → omission_ledger 备案原因）
+> - 四象限按业务风险自然分布（不设硬数量指标——见 aidocx-s5-test-points/SKILL.md §1.5.1"数量原则：去硬数字"）
+> - 8 模块全名（CONFIG/UI/BIZ/AUX/LINK/SPECIAL/LOG/HINT）—— **HINT 仅作 module 字段值，不作 Epic/TC 前缀**
+> - 每个 TP 填 `test_type_subclass`（模块子类枚举，如 `BIZ.H_payment`）
+> - `applies_rule` 字段写明"反例对照"（§3.5 O_boundary）
+
+### 5 问质量 push
+
+**每个 TP 必须能回答 5 问。5 问任一空答 → TP 不合格，删除或重写**。
+
+| # | 问题 | 判定标准 |
+|---|------|----------|
+| Q1 | 测什么（明确场景）？ | 场景描述清晰，无歧义 |
+| Q2 | 命中哪个模块 + 哪个子类（精确不模糊）？ | 8 模块选 1，模块子类选 1（走 §3.5 判定）|
+| Q3 | 边界值/异常输入是什么（具体不抽象）？ | 0/1/100/9999/超时30s 等具体数值 |
+| Q4 | 预期结果可验证吗（pass/fail 明确）？ | 每步有明确判定条件 |
+| Q5 | 对应 S4 哪个节点（链路可追溯）？ | s4_reference 填写 R-NNN / F-XX / 异常树叶子 |
+
+---
+
+## §1.6 强制输出字段清单
+
+**S5 产物（test_points.json）必须包含以下全部字段。缺一视为 TP 不完整，不合格。**
+
+| 字段名 | 说明 | 级别（三级强制） |
+|--------|------|-----------------|
+| `tp_id` | TP 唯一 ID | **MUST**（缺失 → 产物不合格） |
+| `module` | 8 模块之一 | **MUST** |
+| `test_point_type` | 4 类型之一 | **MUST** |
+| `test_type_subclass` | 细分枚举（如 `BIZ.H_payment`） | **MUST** |
+| `description` | TP 描述 | **MUST** |
+| `s4_reference` | 必须填写，引用 S4 R-NNN / F-XX / 异常树叶子 | **MUST** |
+| `boundary` | 具体边界值或"无" | **MUST** |
+| `is_assumed` | boolean | **MUST** |
+| `applies_rule` | 说明 4 步判定 + 反例对照结果 | **MUST** |
+| `is_assumed: true` 时加 `assumption_reason` | 来源：S2 backlog / S4 / 业务常识 | **SHOULD**（is_assumed=true 时为 MUST,通过脚本条件校验） |
+| `is_assumed: true` + 来源为业务常识时加 `requires_human_review: true` | — | **SHOULD**（条件必填） |
+| **`feature_point_ref`** | **强制必填**——S2 `requirement_object.feature_points[].id`（如 `BIZ-001-001-OBJ-01-FP-2`），未填 → S5 不合格 | **MUST** |
+| `priority` | 优先级（LLM 自由决定） | **COULD** |
+| `tags` | 标签数组，便于检索 | **COULD** |
+
+> **三级强制说明**：
+> - **MUST** = 必填，缺失 → `scripts/check_field_completion.py --stage s5` 退出码 1
+> - **SHOULD** = 推荐填，缺失 → 警告（默认不强制；`--strict` 模式或 S5 填写率 < 80% 时报错）
+> - **COULD** = 可选填，缺失不警告
+> - SSOT：`scripts/check_field_completion.py` 的 `FIELD_SPECS["s5"]`
+
+### §FP 必填 + OBJ 覆盖率继承
+
+> **SSOT**：本节是 §FP 全覆盖门禁的 S5 落地条款。配合 `.cursor/skills/aidocx-s5-test-points/SKILL.md` 中 TP 必须引用 feature_point 使用。
+
+#### 字段约束
+
+| 字段 | 必填 | 来源 |
+|------|------|------|
+| `scenario_test_points[].feature_point_ref` | **必填** | S2 OBJ.feature_points[].id |
+
+#### FP 覆盖率门禁
+
+- `fp_linkage_coverage_at_s5 = len(TP 引用的 FP 集合) / len(S2 feature_points 总数)`
+- 阈值：**≥ 1.0（100%）**（与 S4 §4.3.1 异常路径覆盖率 + OBJ 覆盖率同档）
+- 未达 → 回 LLM 迭代，禁止进入 S6
+
+#### 未覆盖 FP 处理（参考 OBJ 5 类 skip_reason）
+
+未引用的 FP 必须显式标注 `skip_reason`：`no_test_needed` / `merged` / `manual_only` / `deprecated` / `unknown`
+
+#### S5 → S6 链路条款
+
+S6 TC 将通过 `s5_ref` 字段（**别名 = `tp_id`**）回溯到 S5 TP。每个 TP 必须有唯一 `tp_id` 让 S6 TC 能 1:N 拓宽。
+
+> **一致性约束（Round 14 F-C 修订）**：
+> - `s5_ref` 是 S6 TC 反向引用的别名字段，值必须 == `tp_id`
+> - L1 校验器（含 `l1_format_validator.py` 基类）对每条 TP 强制 `tp_id == s5_ref`
+> - 不一致时 → 报 `INCONSISTENT_TP_ID` 错误（severity MAJOR）
+> - 决策档：`governance/design_iter/current/s5_id_dedupe_decision.md` 推荐方案 C
+
+---
+
+## ID 格式
+
+`{StoryID}-TP-{3位序号}`，如 `UI-001-001-TP-001`
+
+---
+
+## 输入审查（门禁前置条件）
+
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S5 阶段**输入物料门禁**的细化定义（**非全阶段质量门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **配置常量 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §4.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#43-配置常量)（参考 `S5_MIN_TP_PER_STORY`）
+> - 本表不可独立编辑；任何阈值变更**必须**先修改 SSOT，再回写本表。
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| backlog.md 存在 | 必须 | 失败报告 → 触发三步自问（见下方例外条款） |
+| Story 数量 ≥ 1 | 必须 | 失败报告 → 触发三步自问（见下方例外条款） |
+| 每个 Story 有 acceptance_criteria | 建议有 | 自动填充默认 AC |
+| 每个 Story 有模块前缀 | 必须 | 纠正分配 |
+| TP 含 module 字段 | 必须 | 触发三步自问（见下方例外条款） |
+| TP 含 test_point_type 字段 | 必须 | 触发三步自问（见下方例外条款） |
+| TP 含 s4_reference 字段 | 必须 | 警告，提示补充 |
+| TP 含 applies_rule 字段 | 必须 | 警告，提示补充 |
+| UI TP 含 ui_node_refs 字段 | **必须**（UI 模块）；不适用（BIZ/LOG/AUX/LINK/SPECIAL）| UI TP 触发 bypass_log 备案；BIZ 类 TP 不检查此字段 |
+
+> **三步自问例外条款（backlog存在 / Story数量 / module字段 / test_point_type字段 未达标时触发）**：
+> ```
+> gate 未达标
+>  ↓
+>  Q1：该字段/物料在本业务场景下是否实际存在可填内容？
+>    → 存在 → 必须补充，回 LLM 迭代
+>    → 不存在 → 进入 Q2
+>  Q2：S6 TC 的后续阶段是否依赖此字段/物料的结果？
+>    → 依赖 → 必须补充
+>    → 不依赖 → 进入 Q3
+>  Q3：该缺失是否影响 S6 测试用例的可执行性？
+>    → 影响 → 必须补充
+>    → 不影响 → 允许放行，在 `bypass_log.json` 记录
+> ```
+> 备案路径：`workflow_assets/<req_name>/<version>/「S5 测试点生成」/bypass_log.json`
+
+---
+
+## 输出规范
+
+### 成功产出
+
+`workflow_assets/<req_name>/<version>/「S5 测试点生成」/test_points.json`
+
+```json
+[
+  {
+    "story_id": "UI-001-001",
+    "module_coverage": {
+      "CONFIG": {"covered": false, "points": []},
+      "UI": {"covered": true, "points": []},
+      "BIZ": {"covered": false, "points": []},
+      "AUX": {"covered": false, "points": []},
+      "LINK": {"covered": false, "points": []},
+      "LOG": {"covered": false, "points": []},
+      "SPECIAL": {"covered": false, "points": []},
+      "HINT": {"covered": false, "points": []}
+    },
+    "scenario_test_points": [
+      {
+        "tp_id": "UI-001-001-TP-001",
+        "module": "UI",
+        "test_point_type": "POSITIVE",
+        "test_type_subclass": "UI.A_interaction",
+        "description": "商城首页分类导航 — 正向流程",
+        "precondition": "玩家已登录系统，进入商城",
+        "test_input": "...",
+        "expected_result": "...",
+        "priority": "P1",
+        "regression": true,
+        "s4_reference": "R-001",
+        "boundary": "无",
+        "is_assumed": false,
+        "applies_rule": "Push1: 匹配 UI 模块 | Push2: 匹配 UI.A_interaction 子类 | Push3: 确认与 HINT 无冲突（不是事件触发） | Push4: 引用 S4 R-001 风险点 | 反例对照：与 HINT-1/2/3 无冲突",
+        "module_judgment_basis": "页面常驻展示，非事件触发，归 UI"
+      }
+    ],
+    "total_points": 6
+  }
+]
+```
+
+### 失败报告（S5 测试点失败）
+
+`workflow_assets/<req_name>/<version>/「S5 测试点生成」/fail_report_S5.md`
+
+```markdown
+# 测试点生成失败报告
+
+**阶段**: S5 测试点生成
+**日期**: YYYY-MM-DD
+
+## 失败原因
+
+（列出具体问题）
+
+## 后续动作
+
+[ ] 补充 backlog 后重新提交 S5
+```
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S2 需求拆解 | S6 测试用例生成 |
+
+S5 产出（test_points.json）作为 S6 的输入。
+
+---
+
+## 代码入口
+
+```python
+# 自动骨架生成（Python）
+from ai_workflow.test_case_formatter import compose_test_points_from_structure
+breakdown = {'epics': [...], '_version': 'v1.0'}
+skeleton = compose_test_points_from_structure(breakdown)
+# skeleton 中每个 Story 仅含原始字段（story_id / title / module 等）
+# scenario_test_points: [] — LLM 按 §1.5 推理填入
+
+# AI 补充（对话模式）
+# 根据骨架生成 scenario_test_points，§1.5 决策 push 全部执行
+
+# 保存
+from ai_workflow.conversation_skills import save_stage5_output
+save_stage5_output(version, breakdown, flowchart_text, raw_output, parsed, req_name)
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/test_point_gen.md`
+- 骨架引擎：`ai_workflow/test_case_formatter.py` → `compose_test_points_from_structure()`
+- 保存逻辑：`ai_workflow/conversation_skills.py` → `save_stage5_output()`
+- 输出目录：`workflow_assets/<req_name>/<version>/「S5 测试点生成」/`

@@ -1,0 +1,86 @@
+{
+  "version": "v2",
+  "title": "5 决策回答 + 4 步迁移实施",
+  "status": "待 5 决策",
+  "created_at": "2026-06-17",
+  "based_on": "v1",
+  "author": "AI",
+  "migrated_from": null,
+  "decisions": {
+    "D-101": {
+      "title": "Q-001: gen 脚本定位",
+      "decided": false,
+      "value": null,
+      "decided_at": null,
+      "rationale": null,
+      "question_id": "Q-001",
+      "default_value": "A (守护者 — v1 倾向)",
+      "pending_user_approval": true,
+      "impact_if_changed": "选 B（生成器）会改 v1 §2.6 + §八 P2.1 设计——gen 脚本需同时写 RULES_INDEX.md/json"
+    },
+    "D-102": {
+      "title": "Q-002: DESIGN §2.3 / §4.3 重写",
+      "decided": false,
+      "value": null,
+      "decided_at": null,
+      "rationale": null,
+      "question_id": "Q-002",
+      "default_value": "A (全删硬阈值 — v1 倾向)",
+      "pending_user_approval": true,
+      "impact_if_changed": "选 B/C 会保留 S1/S5/S6 部分硬阈值——STAGE_S1/S5/S6 §核心原则不变"
+    },
+    "D-103": {
+      "title": "Q-003: STAGE_S* vs SKILL.md 物理分离",
+      "decided": false,
+      "value": null,
+      "decided_at": null,
+      "rationale": null,
+      "question_id": "Q-003",
+      "default_value": "A (物理分离 — v1 倾向)",
+      "pending_user_approval": true,
+      "impact_if_changed": "选 B（合并）会改 9 份 STAGE_S* 文档结构——拆出的 SKILL 内容回填"
+    },
+    "D-104": {
+      "title": "Q-004: 双视图索引",
+      "decided": false,
+      "value": null,
+      "decided_at": null,
+      "rationale": null,
+      "question_id": "Q-004",
+      "default_value": "A (双视图 — v1 倾向)",
+      "pending_user_approval": true,
+      "impact_if_changed": "选 B（单视图）会减少 RULES_INDEX 一种格式——gen_rules_index.py 只输出 1 个文件"
+    },
+    "D-105": {
+      "title": "Q-005: DESIGN §3 知识层迁出",
+      "decided": false,
+      "value": null,
+      "decided_at": null,
+      "rationale": null,
+      "question_id": "Q-005",
+      "default_value": "A (迁出到 knowledge/ — v1 倾向)",
+      "pending_user_approval": true,
+      "impact_if_changed": "选 B（留在 DESIGN）不创建 knowledge/ 目录——DRY/KISS/YAGNI 仍被 Agent 强读"
+    }
+  },
+  "open_questions": [
+    "Q-001", "Q-002", "Q-003", "Q-004", "Q-005",
+    "Q-101", "Q-102", "Q-103", "Q-104", "Q-201"
+  ],
+  "open_questions_note": "Q-001~Q-005 在 v2 PLAN.md §⚠️ 启动必读 等待点头（D-101~D-105 占位）；Q-101~Q-104 + Q-201 在 open_questions.md 跟踪，v2 完成后才评估。",
+  "resolved_questions": [],
+  "files": [
+    "PLAN.md",
+    "open_questions.md",
+    "resolved_questions.md",
+    "decisions.json"
+  ],
+  "v2_completion_checklist": [
+    "Q-001~Q-005 全部点头",
+    "D-101~D-105 全部写入 decisions.json (decided=true)",
+    "v1 §五 4 步迁移全部完成",
+    "gen_consistency_check 6 项检查全过（或未过的有显式 skip_reason）",
+    "CHANGELOG 加 [v2.2] — 4 步迁移完成",
+    "v2 open_questions.md 重写（Q-101~Q-104 / Q-201 留给 v3 评估）"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "project_name": "AMRD",
+  "sheet_name": "测试用例",
+  "headers": [
+    "用例ID",
+    "模块",
+    "用例描述",
+    "功能描述",
+    "前置条件",
+    "操作步骤",
+    "预期结果",
+    "优先级",
+    "用例状态",
+    "备注"
+  ],
+  "field_mapping": {
+    "用例ID": ["case_id"],
+    "模块": ["模块", "module"],
+    "用例描述": ["用例描述", "scenario"],
+    "功能描述": ["功能描述", "description"],
+    "前置条件": ["前置条件", "precondition"],
+    "操作步骤": ["操作步骤", "test_steps", "steps"],
+    "预期结果": ["预期结果", "expected_result", "expected"],
+    "优先级": ["优先级", "priority"],
+    "用例状态": ["用例状态", "case_status"],
+    "备注": ["备注", "story_id", "tp_id"]
+  }
+}

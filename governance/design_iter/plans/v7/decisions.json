@@ -1,0 +1,65 @@
+{
+  "version": "v9",
+  "title": "数据修复 + INDEX 同步 + v7 治理层推进",
+  "status": "启动版",
+  "started_at": "2026-07-10",
+  "decider": "用户（via AskQuestion 3 议题批量收集）",
+  "decisions": {
+    "D-V9-001": {
+      "subject": "Q-V9-001 v3.0/v3.01 数据重复",
+      "candidates": {
+        "A": "重命名 v3.0/raw → v3.01/raw（路径与 resource 一对一）",
+        "B": "删 v3.0/raw，从 v3.01 docx 重跑 S1 Pipeline",
+        "C": "保留 v3.0 为早期快照，加文档说明"
+      },
+      "chosen": "A",
+      "reasoning": "数据内容完全一致（124 段 / 0 图片），无需重跑；保留为快照无依据（v3.0 在 resource 没原档）"
+    },
+    "D-V9-002": {
+      "subject": "Q-V9-002 INDEX.md 同步",
+      "candidates": {
+        "A": "加 v8 段 + v9 段",
+        "B": "留 v9 写"
+      },
+      "chosen": "A",
+      "reasoning": "current 跟 v8/v9 切换后 INDEX 必须同步"
+    },
+    "D-V9-003": {
+      "subject": "Q-V9-003 v7.1 - 9 阶段 .mdc 同步",
+      "candidates": {
+        "A": "v9 内启动 v7.1",
+        "B": "留 v9.x"
+      },
+      "chosen": "A",
+      "reasoning": "v7 治理层悬空 50+ 天，v7.1 必须推进"
+    },
+    "D-V9-004": {
+      "subject": "Q-V9-004 v7.2 - S7 审查脚本适配",
+      "candidates": {
+        "A": "v9 内启动 v7.2",
+        "B": "留 v9.x"
+      },
+      "chosen": "A",
+      "reasoning": "auto_reviewer 4 项指标 → 5 项字段映射必须改"
+    },
+    "D-V9-005": {
+      "subject": "Q-V9-005 v7.3 - S8 review_report 适配",
+      "candidates": {
+        "A": "v9 内启动 v7.3",
+        "B": "留 v9.x"
+      },
+      "chosen": "A",
+      "reasoning": "S8 期望 `s4_risk_coverage` 字段，S7 .mdc 当前给的是旧 4 项字段"
+    }
+  },
+  "execution_summary": {
+    "phases": 4,
+    "files_changed": 17,
+    "directories_mv": 1,
+    "v7_plan_completion": "v7.1 + v7.2 + v7.3 全部启动"
+  },
+  "issues_for_v10": [
+    "跨阶段引用一致性回归测试（v9 改 15+ 份规则后需全流程验证）",
+    "before_prompt_dna_check.py 适配 v7/v8/v9 决策表落档协议"
+  ]
+}

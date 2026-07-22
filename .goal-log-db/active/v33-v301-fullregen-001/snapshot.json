@@ -1,0 +1,121 @@
+{
+  "goal_id": "v33-v301-fullregen-001",
+  "raw_user_goal": "删除旧产出，重新生成所有阶段产出，最高质量，LLM推理补齐阻塞产物，自动推进下一轮",
+  "input_source": "resource/游戏道具商城系统/v3.01_raw.docx",
+  "accept_criteria": [
+    "S1: review_report.md 评分 >= 7.0，clarification_checklist.md P0/P1/P2 完整",
+    "S1.5: exit_permission.json can_proceed_to_s2 == true",
+    "S2: backlog.json Epic精度 >= 90%，Story覆盖率 100%，requirement_objects OBJ+FP 完整",
+    "S3: prototype.md Mermaid语法合法，UI节点ID唯一",
+    "S4: business_flow.md 异常路径覆盖率 100%，s4_reference 完整",
+    "S5: test_points.json OBJ覆盖率100%，density-OBJ四类型齐全率100%，ui_node_refs覆盖率100%，skip_reason显式标注",
+    "S6: test_cases.json 必填字段填写率>=90%，OBJ覆盖率100%，FP覆盖率100%",
+    "S7: review_snapshot.md 双审查员结构完整，无uncovered硬判决",
+    "S8: iteration.md 缺陷模式>=3，可执行建议>=3，知识库候选已归档"
+  ],
+  "task_queue": [
+    {
+      "id": "T1",
+      "title": "删除旧阶段产出",
+      "status": "completed"
+    },
+    {
+      "id": "T2",
+      "title": "S1 需求评审",
+      "status": "completed"
+    },
+    {
+      "id": "T3",
+      "title": "S1.5 业务澄清（LLM自填充）",
+      "status": "completed"
+    },
+    {
+      "id": "T4",
+      "title": "S2 需求拆解",
+      "status": "pending"
+    },
+    {
+      "id": "T5",
+      "title": "S3 原型导出",
+      "status": "pending"
+    },
+    {
+      "id": "T6",
+      "title": "S4 流程图导出",
+      "status": "pending"
+    },
+    {
+      "id": "T7",
+      "title": "S5 测试点生成",
+      "status": "pending"
+    },
+    {
+      "id": "T8",
+      "title": "S6 测试用例生成",
+      "status": "pending"
+    },
+    {
+      "id": "T9",
+      "title": "S7 用例审查",
+      "status": "pending"
+    },
+    {
+      "id": "T10",
+      "title": "S8 自迭代",
+      "status": "pending"
+    }
+  ],
+  "loop_round": 4,
+  "last_audit": null,
+  "last_review": null,
+  "latest_artifact": "workflow_assets/游戏道具商城系统/v3.01/「S1 需求评审」/exit_permission.json",
+  "status": "active",
+  "token_budget": {
+    "used": 0,
+    "limit": null,
+    "updated_at": "2026-07-21T09:33:00+08:00"
+  },
+  "value_criteria": [
+    "S1: review_report.md 评分 >= 7.0，clarification_checklist.md P0/P1/P2 完整",
+    "S1.5: exit_permission.json can_proceed_to_s2 == true",
+    "S2: backlog.json Epic精度 >= 90%，Story覆盖率 100%，requirement_objects OBJ+FP 完整",
+    "S3: prototype.md Mermaid语法合法，UI节点ID唯一",
+    "S4: business_flow.md 异常路径覆盖率 100%，s4_reference 完整",
+    "S5: test_points.json OBJ覆盖率100%，density-OBJ四类型齐全率100%，ui_node_refs覆盖率100%，skip_reason显式标注",
+    "S6: test_cases.json 必填字段填写率>=90%，OBJ覆盖率100%，FP覆盖率100%",
+    "S7: review_snapshot.md 双审查员结构完整，无uncovered硬判决",
+    "S8: iteration.md 缺陷模式>=3，可执行建议>=3，知识库候选已归档"
+  ],
+  "process_criteria": [],
+  "value_ratio": 1.0,
+  "severity_label": "MAJOR",
+  "follow_up_items": [
+    {
+      "description": "[Round4] S6 TCs: 237 (OBJ 15/15, FP 57/57, fill_rate 100%)",
+      "severity": "BLOCKER",
+      "suggested_fix": "",
+      "source_round": 4,
+      "source_criterion": ""
+    },
+    {
+      "description": "[Round4] S7 artifacts: review_snapshot + review_report json+md",
+      "severity": "BLOCKER",
+      "suggested_fix": "",
+      "source_round": 4,
+      "source_criterion": ""
+    },
+    {
+      "description": "[Round4] S8 recommended: s4_reference 74.3% empty + generic assertion placeholder",
+      "severity": "MAJOR",
+      "suggested_fix": "S5: enrich s4_reference; S6: replace generic assertion with domain-specific rules",
+      "source_round": 4,
+      "source_criterion": ""
+    }
+  ],
+  "goal_signature": "",
+  "goal_signature_changelog": [],
+  "out_of_scope_md": "",
+  "audit_stability": {},
+  "efficiency_stats": {},
+  "parallel_executor_hints": {}
+}

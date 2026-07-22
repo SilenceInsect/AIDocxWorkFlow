@@ -1,0 +1,27 @@
+{
+  "goal_id": "8c42212b-15d6-41b1-a9f6-ae9a332a4c6e",
+  "raw_user_goal": "进行中的目标",
+  "value_criteria": [
+    "标准B"
+  ],
+  "process_criteria": [],
+  "value_ratio": 1.0,
+  "severity_label": "MAJOR",
+  "follow_up_items": [],
+  "goal_signature": "",
+  "out_of_scope_md": "",
+  "audit_stability": {},
+  "efficiency_stats": {},
+  "task_queue": [],
+  "parallel_executor_hints": {},
+  "loop_round": 0,
+  "last_audit": null,
+  "last_review": null,
+  "latest_artifact": null,
+  "status": "active",
+  "token_budget": {
+    "used": 0,
+    "limit": 100,
+    "updated_at": "2026-07-19T14:54:11.158898+00:00"
+  }
+}

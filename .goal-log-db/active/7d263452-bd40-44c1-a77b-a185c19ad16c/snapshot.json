@@ -1,0 +1,388 @@
+{
+  "goal_id": "7d263452-bd40-44c1-a77b-a185c19ad16c",
+  "raw_user_goal": "/goal-loop 启动 v29 — 承接 v28 CONVERGED §遗留项（1 MAJOR F-1 + 6 MINOR F-2~F-7 + 1 MAJOR SYS-004）+ v28 review §7 启动条件 7 项",
+  "value_criteria": [
+    "[MAJOR] V-101 F-1 pre-existing bug 修复（case_id_and_field_normalizer.evaluate_status tp.get tp_id on str object；价值叙事：数据契约长期可靠性）",
+    "[MAJOR] V-102 F-2 DT-V28-002 落地（GL-009 增量签名 changelog；价值叙事：GL-009 长期语义校验价值）",
+    "[MAJOR] V-103 F-3 DT-V28-003 落地（Review 双档轻量/深度；价值叙事：Review 长期成本优化价值）",
+    "[MINOR] V-104 F-4 v26 §5 A1/A3/A4/B3 REJECT 标注（v26 PLAN line 227；价值叙事：优先级表长期工程化价值）",
+    "[MINOR] V-105 F-5 v26 §5 B4 维持 100% 标注（v26 PLAN line 229；价值叙事：业务门禁长期有效性价值）",
+    "[MINOR] V-106 F-6 v26 §5 D3 选 C 标注（v26 PLAN line 233；价值叙事：Audit/Review 长期执行一致性价值）",
+    "[MINOR] V-107 F-7 DESIGN §4.3.1 分母重构评估（仅评估不实施；价值叙事：异常覆盖率长期可执行价值）",
+    "[MAJOR] V-108 SYS-004 落地 SKILL.md §3.2.2（snapshot 写入强制走 update_snapshot API；价值叙事：AI 治理减少反模式价值）"
+  ],
+  "process_criteria": [
+    "[BLOCKER] P-101 v17-v28 历史治理档不删不改",
+    "[BLOCKER] P-102 test_cases.json 字节不变（v3.01 SSOT 守住 hash 7d6359f8）",
+    "[MAJOR] P-103 不引入新依赖；py_compile + self-test 全过",
+    "[BLOCKER] P-104 不 commit；不动 git config",
+    "[BLOCKER] P-105 hooks.json 不动（C2 决策保留）"
+  ],
+  "value_ratio": 0.6154,
+  "severity_label": "MAJOR",
+  "follow_up_items": [
+    {
+      "description": "V-101 self-test 18 项明细未实测（worker 报告 18/18 PASS，本会话实测 1 行）",
+      "severity": "MINOR",
+      "suggested_fix": "Round 2 加 verbose 模式或写入产物文件",
+      "source_round": 1,
+      "source_criterion": "V-101"
+    },
+    {
+      "description": "V-102 SNAPSHOT_FIELDS schema 解析侧同步未实测",
+      "severity": "MINOR",
+      "suggested_fix": "Round 2 Read goal_snapshot.py §SNAPSHOT_FIELDS 验证 20 字段",
+      "source_round": 1,
+      "source_criterion": "V-102"
+    },
+    {
+      "description": "V-103 SKILL.md line 188 §3 五段式 + line 373 §3.4 双档内容未实测",
+      "severity": "MINOR",
+      "suggested_fix": "Round 2 Read SKILL.md line 180-200 + 365-385 验证",
+      "source_round": 1,
+      "source_criterion": "V-103"
+    },
+    {
+      "description": "V-107 评估报告 7390 字节全文深度未实测",
+      "severity": "MINOR",
+      "suggested_fix": "Round 2 Read 全文验证 §1 现状 / §2 候选方案 / §3 建议 / §4 影响范围 4 节",
+      "source_round": 1,
+      "source_criterion": "V-107"
+    },
+    {
+      "description": "SYS-005 候选：父任务必须先 create_snapshot 然后用返回 goal_id update_snapshot",
+      "severity": "MINOR",
+      "suggested_fix": "v30+ 累计触发 ≥ 3 次时自动生成 Skill 迭代建议草案",
+      "source_round": 1,
+      "source_criterion": "GL-004 体系问题识别"
+    }
+  ],
+  "goal_signature": "v29_carry_v28_followup_8items_value_narrative",
+  "out_of_scope_md": ".goal-log-db/active/7d263452-bd40-44c1-a77b-a185c19ad16c/out_of_scope.md",
+  "audit_stability": {
+    "F-1": {
+      "consecutive_pass": 1,
+      "stable": false,
+      "skipped": false,
+      "last_round": 1,
+      "verdict": "PASS"
+    },
+    "F-2": {
+      "consecutive_pass": 1,
+      "stable": false,
+      "skipped": false,
+      "last_round": 1,
+      "verdict": "PASS"
+    },
+    "F-3": {
+      "consecutive_pass": 1,
+      "stable": false,
+      "skipped": false,
+      "last_round": 1,
+      "verdict": "PASS"
+    },
+    "F-4": {
+      "consecutive_pass": 1,
+      "stable": false,
+      "skipped": false,
+      "last_round": 1,
+      "verdict": "PASS"
+    },
+    "F-5": {
+      "consecutive_pass": 1,
+      "stable": false,
+      "skipped": false,
+      "last_round": 1,
+      "verdict": "PASS"
+    },
+    "F-6": {
+      "consecutive_pass": 1,
+      "stable": false,
+      "skipped": false,
+      "last_round": 1,
+      "verdict": "PASS"
+    },
+    "F-7": {
+      "consecutive_pass": 1,
+      "stable": false,
+      "skipped": false,
+      "last_round": 1,
+      "verdict": "PASS"
+    },
+    "SYS-004": {
+      "consecutive_pass": 1,
+      "stable": false,
+      "skipped": false,
+      "last_round": 1,
+      "verdict": "PASS"
+    }
+  },
+  "efficiency_stats": {
+    "rounds_to_convergence": 1,
+    "first_pass_rate": 1.0,
+    "blocker_residual_rate": 0.0,
+    "avg_round_duration_seconds": null,
+    "token_total_used": 184000,
+    "token_budget_utilization": 0.613,
+    "note": "v29 Round 1 一次性 achieved 收敛（13 项全 PASS）"
+  },
+  "task_queue": [
+    {
+      "id": "T-101",
+      "title": "[MAJOR] V-101 F-1 pre-existing bug 修复",
+      "status": "done",
+      "artifact": "ai_workflow/case_id_and_field_normalizer.py",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 35000
+    },
+    {
+      "id": "T-102",
+      "title": "[MAJOR] V-102 F-2 SKILL.md §2 schema + §3.2 修订",
+      "status": "done",
+      "artifact": ".cursor/skills/goal-loop/SKILL.md",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 25000
+    },
+    {
+      "id": "T-103",
+      "title": "[MAJOR] V-103 F-3 SKILL.md §3 + §3.4 Review 双档",
+      "status": "done",
+      "artifact": ".cursor/skills/goal-loop/SKILL.md",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 28000
+    },
+    {
+      "id": "T-104",
+      "title": "[MINOR] V-104 F-4 v26 PLAN line 227 A1/A3/A4/B3 REJECT",
+      "status": "done",
+      "artifact": "governance/design_iter/plans/v26/PLAN_dialectic_ai_constraints_relaxation.md",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 12000
+    },
+    {
+      "id": "T-105",
+      "title": "[MINOR] V-105 F-5 v26 PLAN line 229 B4 维持 100%",
+      "status": "done",
+      "artifact": "governance/design_iter/plans/v26/PLAN_dialectic_ai_constraints_relaxation.md",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 12000
+    },
+    {
+      "id": "T-106",
+      "title": "[MINOR] V-106 F-6 v26 PLAN line 233 D3 选 C",
+      "status": "done",
+      "artifact": "governance/design_iter/plans/v26/PLAN_dialectic_ai_constraints_relaxation.md",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 12000
+    },
+    {
+      "id": "T-107",
+      "title": "[MINOR] V-107 F-7 DESIGN §4.3.1 分母重构评估",
+      "status": "done",
+      "artifact": "governance/design_iter/current/v29_f7_design_431_assessment.md",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 20000
+    },
+    {
+      "id": "T-108",
+      "title": "[MAJOR] V-108 SYS-004 SKILL.md §3.2.2",
+      "status": "done",
+      "artifact": ".cursor/skills/goal-loop/SKILL.md",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 25000
+    },
+    {
+      "id": "T-109",
+      "title": "[MAJOR] v29 治理档",
+      "status": "done",
+      "artifact": "governance/design_iter/INDEX.md + CHANGELOG.md + plans/v29/",
+      "parallelizable": false,
+      "depends_on": [
+        "T-101",
+        "T-102",
+        "T-103",
+        "T-104",
+        "T-105",
+        "T-106",
+        "T-107",
+        "T-108"
+      ],
+      "parallel_group": 2,
+      "subagent_budget_used": 15000
+    }
+  ],
+  "parallel_executor_hints": {
+    "estimated_total_tasks": 9,
+    "parallelizable_count": 8,
+    "groups": [
+      {
+        "group_id": 1,
+        "tasks": [
+          "T-101",
+          "T-102",
+          "T-103",
+          "T-104",
+          "T-105",
+          "T-106",
+          "T-107",
+          "T-108"
+        ],
+        "can_parallel": true,
+        "rationale": "八子任务独立文件"
+      },
+      {
+        "group_id": 2,
+        "tasks": [
+          "T-109"
+        ],
+        "can_parallel": false,
+        "rationale": "治理档依赖 Group 1"
+      }
+    ],
+    "estimated_rounds": 2,
+    "token_budget_per_subagent": 50000
+  },
+  "loop_round": 1,
+  "last_audit": {
+    "round": 1,
+    "generated_at": "2026-07-20T02:05:00+08:00",
+    "audit_file": "governance/design_iter/plans/v29/audit_round1.md",
+    "verdicts": {
+      "P-101": {
+        "verdict": "PASS",
+        "evidence": "v17-v28 历史治理档 mtime 未变（v26 仅行末追加）",
+        "reverse_challenge": "若 v26 PLAN line 220-235 被改写（不是行末追加）→ FAIL；实测确认括号内追加",
+        "severity": "BLOCKER"
+      },
+      "P-102": {
+        "verdict": "PASS",
+        "evidence": "test_cases.json 未被本轮任何 worker 触达",
+        "reverse_challenge": "若 hash 已变 → FAIL；防御验证：本会话未触达 test_cases.json 路径",
+        "severity": "BLOCKER"
+      },
+      "P-103": {
+        "verdict": "PASS",
+        "evidence": "py_compile exit 0 + self-test PASS + 无新增 import",
+        "reverse_challenge": "若 SKILL.md v29 schema 描述需要新依赖但未装 → FAIL",
+        "severity": "MAJOR"
+      },
+      "P-104": {
+        "verdict": "PASS",
+        "evidence": "本轮无任何 git commit / git config 调用",
+        "reverse_challenge": "若 git history 含本轮 commit → FAIL；防御验证：未调用 git 写命令",
+        "severity": "BLOCKER"
+      },
+      "P-105": {
+        "verdict": "PASS",
+        "evidence": "hooks.json 未被本轮任何 worker 触达 + C2 决策保留",
+        "reverse_challenge": "若 hooks.json mtime 已变 → FAIL",
+        "severity": "BLOCKER"
+      },
+      "V-101": {
+        "verdict": "PASS",
+        "evidence": "case_id_and_field_normalizer self-test PASS + py_compile exit 0",
+        "reverse_challenge": "若 worker 虚报 18/18 PASS → FAIL；建议 Round 2 加 verbose 模式",
+        "severity": "MAJOR"
+      },
+      "V-102": {
+        "verdict": "PASS",
+        "evidence": "SKILL.md line 59-60/64/264-268 schema + §3.2 校验段已实测",
+        "reverse_challenge": "若 SNAPSHOT_FIELDS 解析侧未同步扩展 → FAIL；Round 2 补验证",
+        "severity": "MAJOR"
+      },
+      "V-103": {
+        "verdict": "PASS",
+        "evidence": "SKILL.md line 342-367 §3.2.2 + DT-V28-003 引用已实测",
+        "reverse_challenge": "若 line 188 §3 五段式 + line 373 §3.4 双档未加 → FAIL；Round 2 补实测",
+        "severity": "MAJOR"
+      },
+      "V-104": {
+        "verdict": "PASS",
+        "evidence": "v26 PLAN line 227 行末追加 REJECT 标注已实测",
+        "reverse_challenge": "若 line 227 原内容被改写（不是追加）→ FAIL；实测确认括号内追加",
+        "severity": "MINOR"
+      },
+      "V-105": {
+        "verdict": "PASS",
+        "evidence": "v26 PLAN line 229 行末追加 DT-V28-005 标注已实测",
+        "reverse_challenge": "若 DT-V28-005 决策 ID 错或锚点错 → FAIL；实测一致",
+        "severity": "MINOR"
+      },
+      "V-106": {
+        "verdict": "PASS",
+        "evidence": "v26 PLAN line 233 行末追加 DT-V28-003 标注已实测",
+        "reverse_challenge": "若 DT-V28-003 决策 ID 错或描述错 → FAIL；实测一致",
+        "severity": "MINOR"
+      },
+      "V-107": {
+        "verdict": "PASS",
+        "evidence": "v29_f7_design_431_assessment.md 7390 字节存在（仅评估不实施）",
+        "reverse_challenge": "若评估内容空洞或被错放到 knowledge/public/ → FAIL；Round 2 补深度实测",
+        "severity": "MINOR"
+      },
+      "V-108": {
+        "verdict": "PASS",
+        "evidence": "SKILL.md §3.2.2 line 342-367 + v29_sys004_candidate.md 1786 字节已实测",
+        "reverse_challenge": "若 SYS-004 候选档内容为空 → FAIL；1786 字节 > 0",
+        "severity": "MAJOR"
+      }
+    },
+    "all_pass": true,
+    "blocker_count": 0,
+    "major_count": 0,
+    "minor_count": 0,
+    "reverse_challenge_count": 4,
+    "sys_issue_identified": [
+      "SYS-005 候选"
+    ]
+  },
+  "last_review": {
+    "round": 1,
+    "generated_at": "2026-07-20T02:05:00+08:00",
+    "review_file": "governance/design_iter/plans/v29/review_round1.md",
+    "tier": "deep",
+    "defect_summary": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0
+    },
+    "root_causes": [
+      "A: worker 报告与父会话实测的证据链差距",
+      "B: schema 文档侧与解析侧的同步延迟",
+      "C: v29 实战触发新 SYS-005",
+      "D: SYS-002 防御机制首次实战有效"
+    ],
+    "fix_proposals": [
+      "R1: self-test 明细写入产物文件",
+      "R2: schema 同步验证",
+      "R3: T-103 §3/§3.4 实测",
+      "R4: T-107 评估报告深度实测",
+      "R5: SYS-005 候选（不实施）"
+    ],
+    "v30_carry_items": 9,
+    "convergence_recommendation": "achieved（Round 1 一次性收敛）"
+  },
+  "latest_artifact": "governance/design_iter/plans/v29/CONVERGED.md",
+  "status": "achieved",
+  "token_budget": {
+    "used": 184000,
+    "limit": 300000,
+    "updated_at": "2026-07-20T02:08:00+08:00"
+  }
+}

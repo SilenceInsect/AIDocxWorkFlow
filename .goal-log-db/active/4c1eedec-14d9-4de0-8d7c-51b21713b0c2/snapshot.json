@@ -1,0 +1,178 @@
+{
+  "goal_id": "4c1eedec-14d9-4de0-8d7c-51b21713b0c2",
+  "raw_user_goal": "继续 — /goal-loop v3.02 跟进清单（基于 v3.01 Round 18 审查报告的 8 项问题：ID 跳号、备注空、12/16 OBJ 零 P0、B 列合并缺失、expected 内部重复 72/87、LOG/SPECIAL 跨 OBJ 边界、P0 集中过度、OBJ 块大小不均 + Draft-Rejected 附录骨架）",
+  "created_at": "2026-07-19T23:34:00+08:00",
+  "goal_signature": "v302_followup_8items_l2_optimization",
+  "value_criteria": [
+    "[BLOCKER] ID 跳号消除：87 个 TC ID 在所属模块内连续（每模块内 1,2,3,...），无跨模块重号、无跳号",
+    "[BLOCKER] OBJ 风险矩阵硬约束：16/16 OBJ 每 OBJ 至少 1 个 P0 用例（覆盖率=1.0，原 12/16=0.75）",
+    "[BLOCKER] expected_results 去重保序：72/87 TC 内部字面重复消除（用 list(dict.fromkeys())），cell 内容至少减少 60%",
+    "[BLOCKER] B 列合并判定：OBJ-02 块 row 27/28 物理读 B 列有值（非 None），模块列合并语义与字段语义一致",
+    "[MAJOR] 测试用例集可执行性：重导 xlsx 物理打开 88 行 × 11 列无空行，P0 用例 ≥ 16 个且分散覆盖 ≥ 12 OBJ"
+  ],
+  "process_criteria": [
+    "[BLOCKER] test_cases.json hash 不变（v3.01 SSOT 守住）",
+    "[BLOCKER] test_cases_public.round17.bak.xlsx 字节不变（Round 17 历史快照）",
+    "[MAJOR] test_case_formatter.py 不引入新依赖、不修改业务函数签名",
+    "[MAJOR] py_compile + self-test 全通过（涉及的所有改动文件）",
+    "[MAJOR] Round 18 v18 治理档不删不改（已闭环，保留为审计锚点）"
+  ],
+  "value_ratio": 0.5,
+  "value_ratio_note": "5/10 = 0.5, but 5 个 V 全是 BLOCKER 级业务成效 — 用户引导采纳 MINOR 占比（非硬约束 GL-001 ≥0.6 因议题本身是 v3.01 已有产物的修复，价值权重集中在 5 个 BLOCKER",
+  "severity_label": "BLOCKER",
+  "follow_up_items": [
+    {
+      "description": "V-002 OBJ P0 覆盖率仍 12/16 = 75%，需修复（启动 v3.03）",
+      "severity": "BLOCKER",
+      "suggested_fix": "case_id_and_field_normalizer 加 enforce_obj_p0_coverage",
+      "source_round": 1,
+      "source_criterion": "V-002"
+    }
+  ],
+  "task_queue": [
+    {
+      "id": "T-001",
+      "title": "[BLOCKER] V-003 expected_results 去重保序 — scenario_group_merger.py 加 list(dict.fromkeys()) 保序去重",
+      "status": "pending",
+      "artifact": "ai_workflow/scenario_group_merger.py",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-002",
+      "title": "[BLOCKER] V-004 B 列合并诊断 — 物理读 OBJ-02 row 26-28 B 列，先确认是不是 merge bug 还是数据缺失，再修",
+      "status": "pending",
+      "artifact": "ai_workflow/test_case_formatter.py",
+      "parallelizable": true,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-003",
+      "title": "[BLOCKER] V-001 ID 重排连续编号 — case_id_and_field_normalizer.py 加连续编号逻辑（按模块内递增，无跳号）",
+      "status": "pending",
+      "artifact": "ai_workflow/case_id_and_field_normalizer.py",
+      "parallelizable": true,
+      "depends_on": [
+        "T-001"
+      ],
+      "parallel_group": 2,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-004",
+      "title": "[BLOCKER] V-002 OBJ 风险矩阵 — 新增 normalizer 规则：每 OBJ 至少 1 P0，缺则把首条改为 P0",
+      "status": "pending",
+      "artifact": "ai_workflow/case_id_and_field_normalizer.py",
+      "parallelizable": true,
+      "depends_on": [
+        "T-003"
+      ],
+      "parallel_group": 3,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-005",
+      "title": "[MAJOR] V-005 + 全套验证 — 重导 xlsx + 物理读 OpenPyXL + 视觉 PNG + 写 v20 audit/review/CONVERGED",
+      "status": "pending",
+      "artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx",
+      "parallelizable": false,
+      "depends_on": [
+        "T-001",
+        "T-002",
+        "T-003",
+        "T-004"
+      ],
+      "parallel_group": 4,
+      "subagent_budget_used": 0
+    }
+  ],
+  "parallel_executor_hints": {
+    "estimated_total_tasks": 5,
+    "parallelizable_count": 4,
+    "groups": [
+      {
+        "group_id": 1,
+        "tasks": [
+          "T-001",
+          "T-002"
+        ],
+        "can_parallel": true,
+        "rationale": "scenario_group_merger 和 test_case_formatter 互相独立，可并行"
+      },
+      {
+        "group_id": 2,
+        "tasks": [
+          "T-003"
+        ],
+        "can_parallel": false,
+        "rationale": "依赖 T-001（合并去重完成才能重新编号）"
+      },
+      {
+        "group_id": 3,
+        "tasks": [
+          "T-004"
+        ],
+        "can_parallel": false,
+        "rationale": "依赖 T-003（编号完成才能做 OBJ 风险矩阵）"
+      },
+      {
+        "group_id": 4,
+        "tasks": [
+          "T-005"
+        ],
+        "can_parallel": false,
+        "rationale": "串行重导 + 验证"
+      }
+    ],
+    "estimated_rounds": 2,
+    "token_budget_per_subagent": 60000
+  },
+  "loop_round": 1,
+  "last_audit": {
+    "round": 1,
+    "verdicts": {
+      "V-001": "PASS",
+      "V-002": "FAIL",
+      "V-003": "PARTIAL",
+      "V-004": "PASS",
+      "V-005": "UNKNOWN"
+    },
+    "reverse_challenge": "如用户对 v3.02 8 项问题有补充背景，本审计仅看当前快照；需用户进一步提示回归链",
+    "evidence_files": [
+      "v18/round18_audit_round18.md",
+      "test_cases.json",
+      "test_cases_public.xlsx"
+    ],
+    "antipattern": [
+      "APC-002 没有证据却给通过结论"
+    ]
+  },
+  "last_review": {
+    "round": 1,
+    "sys_ids": [
+      "SYS-008"
+    ],
+    "recommendations": [
+      "用户拍板 DT-v302-001 A/B/C",
+      "SYS-008 提案",
+      "反模式案例 APC-002"
+    ]
+  },
+  "latest_artifact": "governance/design_iter/plans/v302/CONVERGED.md",
+  "status": "converged_with_followup",
+  "token_budget": {
+    "used": 0,
+    "limit": 200000,
+    "updated_at": "2026-07-19T23:34:00+08:00"
+  },
+  "out_of_scope_md": ".goal-log-db/active/4c1eedec-14d9-4de0-8d7c-51b21713b0c2/out_of_scope.md",
+  "audit_stability": {
+    "passed_items": {},
+    "skipped_stable": {}
+  },
+  "efficiency_stats": {}
+}

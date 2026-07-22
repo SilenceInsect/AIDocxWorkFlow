@@ -1,0 +1,52 @@
+{
+  "version": "v1",
+  "title": "规则体系重构（备份迁入 + 3 栏框架）",
+  "status": "待 5 决策",
+  "created_at": "2026-06-17",
+  "based_on": null,
+  "author": "AI",
+  "migrated_from": "workflow_assets/_refactor_backup/RULES_REFACTOR_PLAN_v1_2026-06-17.md",
+  "decisions": {
+    "D-001": {
+      "title": "采用 3 栏框架（解决/新增/遗留）",
+      "decided": true,
+      "value": "yes",
+      "decided_at": "2026-06-17",
+      "rationale": "让'遗留问题'永远在眼前——v2 启动时必读"
+    },
+    "D-002": {
+      "title": "采用 design_iter 目录（INDEX.md + plans/ + scripts/）",
+      "decided": true,
+      "value": "yes",
+      "decided_at": "2026-06-17",
+      "rationale": "Git-like 的方案版本管理 + CLI 工具可重复"
+    },
+    "D-003": {
+      "title": "v1 起点包含原备份（迁入 + 软链）",
+      "decided": true,
+      "value": "B (包含 v1)",
+      "decided_at": "2026-06-17",
+      "rationale": "历史连续；保留 .bak + 软链避免引用方找不到"
+    }
+  },
+  "open_questions": [
+    "Q-001", "Q-002", "Q-003", "Q-004", "Q-005",
+    "Q-101", "Q-102", "Q-103", "Q-104",
+    "Q-201"
+  ],
+  "open_questions_count": 10,
+  "open_questions_note": "open_questions.md 中用 '- [ A]' / '- [B ]' 标注的是'默认答案'(v1 倾向),不是已决标记——v2 启动时仍需点头。CLI _count_open_questions 暂不认这种格式,故 status 报 open=0(已知行为,见 open_questions.md 顶部格式约定)。",
+  "resolved_questions": [
+    "D-001",
+    "D-002",
+    "D-003"
+  ],
+  "resolved_questions_count": 3,
+  "resolved_questions_note": "resolved_questions.md 实际有 3 个 D-XXX + 8 个'v1 完成工作'项 = 11 行被 _count_resolved 识别(它认 '- [x]' 和 '- ✅')。decisions.json 只数 D-XXX 决策 = 3。",
+  "files": [
+    "PLAN.md",
+    "open_questions.md",
+    "resolved_questions.md",
+    "decisions.json"
+  ]
+}

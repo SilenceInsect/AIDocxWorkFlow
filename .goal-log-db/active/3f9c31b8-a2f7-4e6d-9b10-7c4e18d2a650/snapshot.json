@@ -1,0 +1,140 @@
+{
+  "goal_id": "3f9c31b8-a2f7-4e6d-9b10-7c4e18d2a650",
+  "raw_user_goal": "Round 18 收尾：只重导验证五列合并意图、物理 merge_cells、颜色、排序、H 列独立性，生成视觉与治理产物；禁止改输入 JSON、禁止重做 patch、禁止 commit。",
+  "value_criteria": [
+    "V-001 [BLOCKER] 已有内存 uniform guard patch 生效，py_compile 与两组 self-test 全通过",
+    "V-002 [BLOCKER] xlsx 物理尺寸 88x11、16 个 OBJ 块、obj_id 与 case_id 升序、五色背景连续",
+    "V-003 [BLOCKER] 物理 merge_cells 共 48，B/C/D 各 16，E/F/H 各 0",
+    "V-004 [BLOCKER] E/F 在 16 个 OBJ 块非均匀时由 uniform guard 保护且不丢值",
+    "V-005 [BLOCKER] H 列每个 cell 为独立非空 string，与唯一 case_id 一一对应且无 merge range"
+  ],
+  "process_criteria": [
+    "P-001 [MAJOR] 不重新发明 patch、不引入依赖、不 commit",
+    "P-002 [MAJOR] 不修改 v3.01 test_cases.json，并用 SHA-256 验证",
+    "P-003 [MAJOR] 不删除或改变 round17.bak.xlsx，不动 L1S6Validator，不动 S7 review_report"
+  ],
+  "value_ratio": 0.625,
+  "severity_label": "BLOCKER",
+  "follow_up_items": [
+    {
+      "id": "FU-R18-001",
+      "severity": "BLOCKER",
+      "issue": "V-003 要求 B=16 与实际 per-TC module 数据契约冲突；两个 purchase OBJ 块包含 BIZ/LOG/SPECIAL 混合值，内存 uniform guard 正确返回 false。",
+      "decision_required": "人工选择接受 46 个动态安全合并，或批准将 B 改为 OBJ 归属模块并新增独立 per-TC module 展示字段。",
+      "evidence": "governance/design_iter/plans/v18/round18_audit_round18.md"
+    },
+    {
+      "id": "FU-R18-002",
+      "severity": "MAJOR",
+      "issue": "若接受动态安全合并，需要把 V-003 从固定 48 改为按每列实际 uniformity 计算。",
+      "decision_required": "更新验收标准并重新执行一次只读 OpenPyXL audit。",
+      "evidence": "governance/design_iter/plans/v18/round18_CONVERGED_round18.md"
+    },
+    {
+      "id": "FU-R18-003",
+      "severity": "MAJOR",
+      "issue": "若要求 48，需要定义 OBJ 归属模块与 per-TC module 的双字段契约，避免 LOG/SPECIAL 被视觉覆盖。",
+      "decision_required": "先完成字段来源与展示契约设计，再授权代码改动；不得直接绕过 uniform guard。",
+      "evidence": "governance/design_iter/plans/v18/round18_goal_round18_merge_5cols.md"
+    }
+  ],
+  "out_of_scope": [
+    "不修改 workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases.json",
+    "不修改 L1S6Validator",
+    "不修改 S7 review_report",
+    "不重新设计或替换现有 Round 18 patch",
+    "不删除或改变 test_cases_public.round17.bak.xlsx",
+    "不 commit"
+  ],
+  "audit_stability": {
+    "repeatable": true,
+    "physical_reader": "openpyxl",
+    "source_json_sha256": "7d6359f81563d23c991cc8393f084ca436bcd0665979675fada207f93d4316ca",
+    "round17_backup_sha256": "dc2fa66dd43f2db611ae7eac08fda64de8c2e480ff8464f6843bca63ee316831"
+  },
+  "efficiency_stats": {
+    "rounds_to_convergence": null,
+    "blocker_residual_rate": 0.2,
+    "note": "5 个价值标准中 V-003 仍阻塞；其余 4 个通过。"
+  },
+  "task_queue": [
+    {
+      "id": "T-005",
+      "title": "重导并物理验证 workbook",
+      "status": "blocked",
+      "artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx",
+      "result": "重导完成；46 merges 安全，但固定 48 验收失败"
+    },
+    {
+      "id": "T-006",
+      "title": "生成 Round 18 视觉 PNG",
+      "status": "done",
+      "artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.round18.visual.png"
+    },
+    {
+      "id": "T-007",
+      "title": "写 Round 18 五段式产物",
+      "status": "done",
+      "artifact": "governance/design_iter/plans/v18/round18_goal_round18_merge_5cols.md"
+    },
+    {
+      "id": "T-008",
+      "title": "写新 goal snapshot",
+      "status": "done",
+      "artifact": ".goal-log-db/active/3f9c31b8-a2f7-4e6d-9b10-7c4e18d2a650/snapshot.json"
+    }
+  ],
+  "parallel_executor_hints": {
+    "estimated_total_tasks": 4,
+    "parallelizable_count": 0,
+    "note": "worker 模式按用户禁止项串行执行；未启动 sibling subagent。"
+  },
+  "loop_round": 1,
+  "last_audit": {
+    "round": 1,
+    "verdicts": {
+      "V-001": "PASS",
+      "V-002": "PASS",
+      "V-003": "FAIL",
+      "V-004": "PASS",
+      "V-005": "PASS",
+      "P-001": "PASS",
+      "P-002": "PASS",
+      "P-003": "PASS"
+    },
+    "physical_metrics": {
+      "rows": 88,
+      "columns": 11,
+      "obj_blocks": 16,
+      "total_merges": 46,
+      "merges_by_column": {
+        "B": 14,
+        "C": 16,
+        "D": 16,
+        "E": 0,
+        "F": 0,
+        "H": 0
+      },
+      "h_independent_string_cells": 87,
+      "unique_case_ids": 87,
+      "color_count": 5
+    },
+    "evidence_paths": [
+      "governance/design_iter/plans/v18/round18_audit_round18.md",
+      "governance/design_iter/plans/v18/round18_review_round18.md",
+      "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx",
+      "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.round18.visual.png"
+    ]
+  },
+  "last_review": {
+    "round": 1,
+    "root_cause": "固定 48 merge 假设把 B 当成 OBJ 级字段；实际两个 OBJ 块的 B 是 per-TC 混合 module。",
+    "decision": "保持 guard 与数据，不伪造 PASS，等待人工确认 B 字段语义。"
+  },
+  "latest_artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx",
+  "status": "blocked",
+  "token_budget": {
+    "used": null,
+    "limit": null
+  }
+}

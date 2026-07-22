@@ -1,0 +1,93 @@
+{
+  "version": "v4",
+  "title": "需求转用例主线强化 + 运行时硬约束闭环",
+  "status": "partial_closed_loop_verified",
+  "created_at": "2026-06-27",
+  "based_on": "v2",
+  "author": "AI",
+  "trigger_event": "内网训练阶段暴露：编码思维收缩测试设计、skill 规范被脚本绕过、阶段启动缺少全局上下文汇总",
+  "decisions": {
+    "D-401": {
+      "title": "S5/S6 是否以 coverage-first 替代自由生成优先",
+      "decided": true,
+      "value": "coverage-first 已落地到 S5/S6 rule + skill + gate",
+      "question_id": "Q-401",
+      "default_value": "coverage-first",
+      "pending_user_approval": false,
+      "impact_if_changed": "若保持现状，模型仍会优先压缩用例而不是显式报告未覆盖点"
+    },
+    "D-402": {
+      "title": "是否引入 stage_context 作为阶段启动硬前置",
+      "decided": true,
+      "value": "stage_context + read_ack 已在 S5/S6/S7 验证落盘",
+      "question_id": "Q-402",
+      "default_value": "stage_context + read_ack + runtime gate",
+      "pending_user_approval": false,
+      "impact_if_changed": "若不引入，跨阶段和全局定义仍依赖模型自行回忆"
+    },
+    "D-403": {
+      "title": "runtime gate 是否对 P0 问题阻断",
+      "decided": true,
+      "value": "graded blocking 已落地，P0_BLOCK 阻断 preflight/postflight",
+      "question_id": "Q-402",
+      "default_value": "P0 阻断，P1/P2 警告",
+      "pending_user_approval": false,
+      "impact_if_changed": "若只警告，skill 规范继续难以在脚本下强制执行"
+    },
+    "D-404": {
+      "title": "是否引入 coverage_ledger / omission_ledger 双账本",
+      "decided": true,
+      "value": "双账本已在 S5/S6 生成，并被 S7 消费",
+      "question_id": "Q-403",
+      "default_value": "双账本",
+      "pending_user_approval": false,
+      "impact_if_changed": "若不引入，未覆盖点仍会静默消失"
+    },
+    "D-405": {
+      "title": "历史失败是否自动回灌阶段启动",
+      "decided": false,
+      "value": "Top 3 注入 + S7/S8 写回能力已落地，但尚未形成脚本默认自动触发闭环",
+      "question_id": "Q-405",
+      "default_value": "Top 3 recurring failures",
+      "pending_user_approval": true,
+      "impact_if_changed": "若不回灌，重复犯错只能靠人工反复提醒"
+    },
+    "D-406": {
+      "title": "是否补最小自动化回归锁住 v4 gate/ledger/编排链路",
+      "decided": true,
+      "value": "已补 unittest 覆盖 run_stage 与 S5 preflight/postflight 关键链路",
+      "question_id": "Q-406",
+      "default_value": "先补最小实现层回归，再扩全流程样例",
+      "pending_user_approval": false,
+      "impact_if_changed": "若不补回归，v4 编排与 gate 容易在后续迭代中再次漂移"
+    }
+  },
+  "open_questions": [
+    "Q-401",
+    "Q-402",
+    "Q-403",
+    "Q-404",
+    "Q-405",
+    "Q-406"
+  ],
+  "resolved_questions": [
+    "Q-400",
+    "Q-407"
+  ],
+  "planned_files": [
+    "governance/design_iter/plans/v4/ITERATION_PLAN.md",
+    "ai_workflow/stage_context_builder.py",
+    "ai_workflow/stage_gatekeeper.py",
+    "ai_workflow/coverage_validator.py",
+    "ai_workflow/recurring_failures.py",
+    ".cursor/rules/STAGE_S5_TEST_POINTS.mdc",
+    ".cursor/rules/STAGE_S6_TEST_CASES.mdc",
+    ".cursor/skills/aidocx-s5-test-points/SKILL.md",
+    ".cursor/skills/aidocx-s6-test-cases/SKILL.md",
+    ".cursor/skills/aidocx-workflow-conversation/SKILL.md",
+    "ai_workflow/conversation_skills.py",
+    "ai_workflow/consistency_check.py",
+    "ai_workflow/auto_reviewer.py",
+    "ai_workflow/test_case_formatter.py"
+  ]
+}

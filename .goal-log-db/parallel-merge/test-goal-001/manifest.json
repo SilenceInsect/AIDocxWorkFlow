@@ -1,0 +1,8 @@
+{
+  "goal_id": "test-goal-001",
+  "artifacts": [
+    "/path/to/t1.md",
+    "/path/to/t2.md"
+  ],
+  "merged_at": "2026-07-18T15:16:36.034543+00:00"
+}

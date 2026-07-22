@@ -1,0 +1,225 @@
+---
+description: AIDocxWorkFlow Stage 1.5 — 需求澄清与准出（独立子阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow Stage 1.5 — 需求澄清与准出
+
+> **独立子阶段**：S1 评审通过后、S2 需求拆解前执行。
+> **S1.5 不可被缺省**——S2 执行前**必须**有 `exit_permission.json` 且 `can_proceed_to_s2 == true`。
+> 详见 `STAGE_S2_BREAKDOWN.mdc` 前置材料门禁。
+
+---
+
+## 阶段定位
+
+```
+S1 需求评审（AI：发现问题）
+  ↓ S1 产出 clarification_checklist.md（含 P0/P1/P2 未闭环问题）
+S1.5 需求澄清（人工：给出决策）
+  ↓ S1.5 产出 exit_permission.json（含 can_proceed_to_s2 判定）
+S2 需求拆解（AI：执行拆解）
+```
+
+**三阶段 SSOT**：各阶段边界在 rule 文件中具体定义：
+- S1：`.cursor/rules/STAGE_S1_REVIEW.mdc` §阶段入口
+- S1.5：`.cursor/rules/STAGE_S1.5 Clarification.mdc` §阶段定位
+- S2：`.cursor/rules/STAGE_S2_BREAKDOWN.mdc` §阶段入口
+
+**S1.5 本质**：人工决策阶段——S1 评审结论中未闭环的问题（P0/P1/P2），由人工给出决策，AI 将决策落档并生成准出许可。
+
+> S1.5 **不生产新知识**，只**归档人工决策**。所有 AI 评审产出的文档（S1 的 gm_commands.md / test_coverage.md / planning_acceptance.md 等）**不经过 S1.5**，直接进入 S2。
+
+---
+
+## 阶段入口
+
+**触发**：`/aidocx-s1-5-clarification`，或用户填写完 `clarification_checklist.md` 后告知 AI。
+
+---
+
+## 前置物料（S1 产出 = S1.5 输入）
+
+> S1.5 只验收 3 份 S1 产出。其余 S1 产出（gm_commands.md / test_coverage.md 等）直接进入 S2，不经过 S1.5。
+
+**交互原则**：clarification_checklist 以**人工填写为主**；空白 / 占位内容由 LLM 补齐（标注 `[LLM 推导]`）。
+
+| # | 物料 | 路径 | S1.5 用途 |
+|---|------|------|----------|
+| 1 | `clarification_checklist.md` | `workflow_assets/<req_name>/<version>/「S1 需求评审」/` | **唯一验收对象**：人工填写 P0/P1/P2 处理方案；LLM 补齐缺口 |
+| 2 | `终版需求.md`（草稿） | `workflow_assets/<req_name>/<version>/「S1 需求评审」/` | S1.5 完善后的输出（S1.5 修改它） |
+| 3 | `review_report.md` | `workflow_assets/<req_name>/<version>/「S1 需求评审」/` | S1.5 参考，不验收（AI 产出） |
+
+---
+
+## 输入审查（门禁前置）
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| clarification_checklist.md 存在 | 文件存在且 P0 项非空 | 提示用户先完成 S1 |
+| P0 项已填写 | P0 100% 填写 | `can_proceed_to_s2 = false`，S2 阻塞 |
+| 处理方案有效 | 处理方案不为空 / 不为占位文字 | 提示用户填写具体决策 |
+
+> **强付费项闭环**：S1 识别的强付费项 3 段（程序自测点/测试覆盖/策划验收）缺失，以 P0 项写入 clarification_checklist。S1.5 验收 P0（含强付费项 P0）即完成闭环。
+> S1.5 **不再重复检查**强付费项 3 段（S1 已检查，S1.5 只检查 P0 是否填完）。
+
+---
+
+## 核心职责
+
+1. **完善终版需求.md**：基于人工填写的处理方案，补充缺失的业务规则
+2. **生成准出许可（exit_permission.json）**：输出质量评价和准出判定，供 S2 读取
+3. **更新 clarification_checklist.md 状态**：标记为已处理
+
+### LLM 补齐机制
+
+> **前提**：人工填写是主要来源；LLM 在人工填写的**基础上**补齐缺口。
+> **约束**：LLM 推导内容**必须**标注来源（`[LLM 推导]`），不得冒充人工决策。
+
+**触发条件**：clarification_checklist 中存在以下情况时，AI 自动补齐：
+- P0/P1/P2 处理方案为空或为占位文字
+- P1/P2 未填写（LOW 模式下 P1/P2 可选，但 LLM 应给出推导建议供人工确认）
+- 强付费项 3 段缺失时，LLM 推导合理的保底规则
+
+**补齐方式**：
+```
+1. 识别空白 / 占位处理方案
+2. 基于终版需求.md 中的上下文，LLM 推导合理的处理方案
+3. 标注 [LLM 推导] 前缀
+4. 输出时提示人工确认（或标记为 [待确认]）
+```
+
+**示例**：
+
+| 字段 | 原始 | LLM 补齐后 |
+|------|------|-----------|
+| 处理方案 | （空） | `[LLM 推导] VIP 月卡与季卡不可叠加开通；需运营确认是否允许同时持有` |
+
+---
+
+## 产出规范
+
+### 产出1：完善的 `终版需求.md`（更新）
+
+路径：`workflow_assets/<req_name>/<version>/「S1 需求评审」/终版需求.md`
+
+在 S1 草稿基础上，基于人工处理方案进行以下更新：
+- 补充缺失的业务规则（将处理方案转化为标准业务语言）
+- 修正歧义或冲突
+- 更新待确认项状态（已解决 / 遗留）
+
+### 产出2：准出许可 `exit_permission.json`
+
+路径：`workflow_assets/<req_name>/<version>/「S1 需求评审」/exit_permission.json`
+
+```json
+{
+  "version": "v1.0",
+  "date": "YYYY-MM-DD",
+  "stage": "S1.5",
+  "upstream": {
+    "s1_verdict": "PASS",
+    "s1_score": 7.425,
+    "req_name": "<req_name>"
+  },
+  "exit_permission": {
+    "can_proceed_to_s2": true,
+    "quality_level": "HIGH | MEDIUM | LOW",
+    "quality_summary": "<一句话质量评价>",
+    "items_filled": {
+      "p0": 1,
+      "p1": 3,
+      "p2": 2
+    },
+    "items_total": {
+      "p0": 1,
+      "p1": 3,
+      "p2": 2
+    }
+  },
+  "s2_guidance": {
+    "priority_epics": ["<EpicID>"],
+    "risk_points": ["<风险点>"],
+    "open_questions": ["<待确认问题>"]
+  },
+  "遗留项": [
+    {
+      "id": "L1",
+      "description": "<描述>",
+      "impact": "<影响范围>",
+      "resolution": "<建议处理方式>"
+    }
+  ]
+}
+```
+
+### 产出3：更新 `clarification_checklist.md` 状态
+
+将状态字段改为「✅ 已处理（S1.5 准出许可已生成）」。
+
+---
+
+## 质量评价标准
+
+| quality_level | 判定条件 | can_proceed_to_s2 | S2 拆解策略 |
+|---------------|----------|-------------------|-------------|
+| **HIGH** | P0 全填 + P1 全填 + P2 全填 + 无遗留歧义 | true | 标准拆解 |
+| **MEDIUM** | P0 全填 + P1 全填 + P2 部分填写 | true | 标准拆解 + 关注 s2_guidance.open_questions |
+| **LOW**（轻量跑通） | P0 全填 + P1/P2 可不填 | true | 标准拆解 + 重点标注遗留项 |
+
+| 状态 | 条件 | 结果 |
+|------|------|------|
+| P0 全部填写完毕 | — | `can_proceed_to_s2 = true` |
+| P0 未全部填写 | — | `can_proceed_to_s2 = false`，阻塞 S2 |
+
+> **轻量跑通** = P0 全填 + P1/P2 可不填，S2 仍可执行。轻量跑通 ≠ 跳过 S1.5。S1.5 不可被缺省。
+> **can_proceed_to_s2 == true 的唯一必要条件** = P0 全部填写。
+
+---
+
+## 与 S2 的衔接
+
+S2 执行前**必须**读取 `exit_permission.json`：
+
+| 状态 | S2 处置 |
+|------|---------|
+| `can_proceed_to_s2 == true` | 正常执行 S2 |
+| `can_proceed_to_s2 == false` | **拒绝执行**，生成 `fail_report_S2.md` |
+| `exit_permission.json` 文件不存在 | **拒绝执行**，生成 `fail_report_S2.md`，提示"S1.5 未执行" |
+
+---
+
+## 失败报告
+
+路径：`workflow_assets/<req_name>/<version>/「S1 需求评审」/fail_report_S1_5.md`
+
+触发条件：
+- P0 项未填写
+- clarification_checklist.md 中所有 P0 项均为无效内容
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.stage_s1_input import read_clarification_checklist, read_exit_permission
+
+# 读取 S1.5 准入物料
+checklist = read_clarification_checklist(req_name="游戏道具商城系统", version="v1.0")
+# 返回 dict: {"items": [...], "status": "pending"/"filled", "p0_filled": bool, ...}
+
+# 读取 S1.5 产出准出许可
+permission = read_exit_permission(req_name="游戏道具商城系统", version="v1.0")
+# permission['exit_permission']['can_proceed_to_s2'] → bool
+```
+
+---
+
+## 参考文档
+
+- 三阶段边界 SSOT：`AGENTS.md` §三阶段核心边界
+- S1 评审规范：`.cursor/rules/STAGE_S1_REVIEW.mdc`
+- S2 拆解规范：`.cursor/rules/STAGE_S2_BREAKDOWN.mdc`
+- 清单文件：`workflow_assets/<req_name>/<version>/「S1 需求评审」/clarification_checklist.md`
+- 终版需求：`workflow_assets/<req_name>/<version>/「S1 需求评审」/终版需求.md`
+- 准出许可：`workflow_assets/<req_name>/<version>/「S1 需求评审」/exit_permission.json`

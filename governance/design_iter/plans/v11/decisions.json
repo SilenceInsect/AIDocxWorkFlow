@@ -1,0 +1,64 @@
+{
+  "_meta": {
+    "version": "v11",
+    "title": "FP 全覆盖门禁（S5 TP + S6 TC 双层 FP 引用 + 1:N 拓宽规则）",
+    "created_at": "2026-07-10T02:00:00+08:00",
+    "obsoleted_at": "2026-07-10T02:02:00+08:00",
+    "obsoleted_by": "v12",
+    "obsoleted_reason": "FP 全覆盖不能覆盖 UI/BIZ 全覆盖——v12 以 S3/S4 为 TC 来源",
+    "status": "OBSOLETE（已被 v12 替代）",
+    "data_handling": "S5/S6 数据暂不重生成，等 v12 规则调整到位后处理"
+  },
+  "decisions": [
+    {
+      "id": "D-V11-001",
+      "q_id": "Q-V11-001",
+      "question": "S5 TP 是否必须带 feature_point_id",
+      "selected": "A",
+      "options": ["A: 必填", "B: 选填", "C: 无要求"],
+      "reasoning": "硬契约——S5 TP 没 feature_point_ref 就无法追溯到 S2 FP，整条 S5→S6 链无法做覆盖率校验。",
+      "decided_at": "2026-07-10T01:54:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V11-002",
+      "q_id": "Q-V11-002",
+      "question": "S6 TC 是否必须能追溯到 S5 TP",
+      "selected": "A",
+      "options": ["A: 必填 s5_ref", "B: 选填", "C: 仅 OBJ 引用"],
+      "reasoning": "硬契约——TC 必须从 TP 派生（1:N 拓宽），否则 S5 的 TP 设计与 S6 的 TC 设计双轨失联。",
+      "decided_at": "2026-07-10T01:54:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V11-003",
+      "q_id": "Q-V11-003",
+      "question": "FP 覆盖率门禁阈值",
+      "selected": "A",
+      "options": ["A: 100%", "B: 90%", "C: 配置项"],
+      "reasoning": "对齐 S4 §4.3.1 + v10 OBJ 覆盖率档位——FP 是 OBJ 的最小可测单元，未覆盖等同于未覆盖风险点。",
+      "decided_at": "2026-07-10T01:54:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V11-004",
+      "q_id": "Q-V11-004",
+      "question": "未覆盖 FP 处理方式",
+      "selected": "A",
+      "options": ["A: skip_reason", "B: 强制阻断", "C: warning"],
+      "reasoning": "复用 v10 OBJ 的 5 类 skip_reason 表（no_test_needed / merged / manual_only / deprecated / unknown）——保持一致性。",
+      "decided_at": "2026-07-10T01:54:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V11-005",
+      "q_id": "Q-V11-005",
+      "question": "现有 38 个 TC 映射策略",
+      "selected": "B",
+      "options": ["A: 沿用现有", "B: 全部重审", "C: 沿用现有 + 补缺"],
+      "reasoning": "用户明确 '现有的不一定对'——Phase 4 round-robin 分配 FP 不保证与 TC 实际验证业务匹配，必须逐条重审。",
+      "decided_at": "2026-07-10T01:54:00+08:00",
+      "decided_by": "user"
+    }
+  ]
+}

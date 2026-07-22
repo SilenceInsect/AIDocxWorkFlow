@@ -1,0 +1,15 @@
+chore: 全量备份 — workflow_assets + resource + knowledge/project_local + governance + goal-log-db + sync_logs
+
+新增以下被主仓 .gitignore 排除的资产：
+
+- workflow_assets/（404K）：游戏道具商城系统 S1-S6 过程资产
+- resource/（56K）：原始需求文档 v3.01_raw.docx + sample_requirements.md
+- knowledge/project_local/（88K）：项目级知识库（AMRD / goal_loop / 游戏道具商城经验）
+- governance/（4.0M）：方案迭代档（v6-v36 治理方案 + design_iter INDEX）
+- .goal-log-db/（1.3M）：目标快照数据库
+- .cursor/sync_logs/（272K）：代码图 / 字段 / 索引同步录制 jsonl
+- CHANGELOG.md（56K）：本地版本日志
+
+本仓库为「全量备份仓」，.gitignore 逆向配置（默认全收，仅排除构建产物）。
+
+Co-authored-by: Cursor <cursoragent@cursor.com>

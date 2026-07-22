@@ -1,0 +1,50 @@
+{
+  "story_id": "BIZ-003-001",
+  "objs": [
+    {
+      "obj_id": "OBJ-011",
+      "obj_name": "VIP折扣",
+      "scene": "VIP会员折扣计算",
+      "input": "VIP等级、原价",
+      "normal_flow": "获取VIP等级 → 计算折扣 → 展示折后价格",
+      "exception_flow": "同时有促销 → 取最优价",
+      "feature_points": [
+        {
+          "fp_id": "FP-011-01",
+          "fp_name": "VIP1折扣",
+          "fp_desc": "VIP1享95折"
+        },
+        {
+          "fp_id": "FP-011-02",
+          "fp_name": "VIP2折扣",
+          "fp_desc": "VIP2享9折"
+        },
+        {
+          "fp_id": "FP-011-03",
+          "fp_name": "VIP3折扣",
+          "fp_desc": "VIP3享85折"
+        },
+        {
+          "fp_id": "FP-011-04",
+          "fp_name": "最优价计算",
+          "fp_desc": "不与促销叠加，取最优价"
+        }
+      ]
+    },
+    {
+      "obj_id": "OBJ-012",
+      "obj_name": "VIP专属可见性",
+      "scene": "VIP专属道具可见性控制",
+      "input": "玩家VIP等级、道具VIP要求",
+      "normal_flow": "校验VIP等级 → 达到要求则展示购买入口",
+      "exception_flow": "未达到VIP要求 → 隐藏购买入口",
+      "feature_points": [
+        {
+          "fp_id": "FP-012-01",
+          "fp_name": "VIP专属展示",
+          "fp_desc": "VIP专属道具仅对VIP玩家可见"
+        }
+      ]
+    }
+  ]
+}

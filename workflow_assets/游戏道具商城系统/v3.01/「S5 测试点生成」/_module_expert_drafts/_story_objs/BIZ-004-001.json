@@ -1,0 +1,70 @@
+{
+  "story_id": "BIZ-004-001",
+  "objs": [
+    {
+      "obj_id": "OBJ-013",
+      "obj_name": "限时打折",
+      "scene": "限时打折促销",
+      "input": "促销活动ID、道具ID、时间段",
+      "normal_flow": "活动时间内 → 展示折扣价格 → 结算时应用折扣",
+      "exception_flow": "活动时间外 → 恢复原价",
+      "feature_points": [
+        {
+          "fp_id": "FP-013-01",
+          "fp_name": "折扣展示",
+          "fp_desc": "指定时间段内展示打折价格"
+        },
+        {
+          "fp_id": "FP-013-02",
+          "fp_name": "折扣计算",
+          "fp_desc": "结算时应用折扣"
+        }
+      ]
+    },
+    {
+      "obj_id": "OBJ-015",
+      "obj_name": "新手礼包",
+      "scene": "新注册玩家优惠",
+      "input": "玩家注册时间、购买记录",
+      "normal_flow": "注册7天内 → 可购买新手礼包1次",
+      "exception_flow": "已购买过 → 隐藏购买入口",
+      "feature_points": [
+        {
+          "fp_id": "FP-015-01",
+          "fp_name": "新手资格校验",
+          "fp_desc": "新注册玩家7天内可购买"
+        },
+        {
+          "fp_id": "FP-015-02",
+          "fp_name": "限次控制",
+          "fp_desc": "仅可购买1次"
+        }
+      ]
+    },
+    {
+      "obj_id": "OBJ-020",
+      "obj_name": "促销管理",
+      "scene": "促销活动CRUD",
+      "input": "运营操作、活动配置",
+      "normal_flow": "创建/修改活动 → 配置生效 → 玩家参与",
+      "exception_flow": "结束活动 → 配置失效",
+      "feature_points": [
+        {
+          "fp_id": "FP-020-01",
+          "fp_name": "活动创建",
+          "fp_desc": "创建促销活动"
+        },
+        {
+          "fp_id": "FP-020-02",
+          "fp_name": "活动修改",
+          "fp_desc": "修改促销活动配置"
+        },
+        {
+          "fp_id": "FP-020-03",
+          "fp_name": "活动结束",
+          "fp_desc": "结束促销活动"
+        }
+      ]
+    }
+  ]
+}

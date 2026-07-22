@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "version": "v10",
+    "title": "S2→S6 OBJ 链接强制 + 跨阶段字段溯源闭环",
+    "created_at": "2026-07-10T01:38:00+08:00",
+    "created_by": "AIDocxWorkFlow",
+    "status": "启动版 / current 已切",
+    "execution_mode": "governance-first-then-code"
+  },
+  "decisions": [
+    {
+      "id": "D-V10-001",
+      "q_id": "Q-V10-001",
+      "question": "S6 TC 与 S2 OBJ 链接覆盖率阈值",
+      "options": ["A: 90%", "B: 100%", "C: 配置项"],
+      "selected": "B",
+      "reasoning": "对齐 S4 异常路径覆盖率档位（v3 PLAN §4.3.1 = 1.0 严格档位）；OBJ 是测试覆盖率的最小单元，未引用 OBJ 等同于未覆盖。",
+      "decided_at": "2026-07-10T01:35:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V10-002",
+      "q_id": "Q-V10-002",
+      "question": "落地路径",
+      "options": ["A: governance 优先", "B: 约束优先", "C: 代码优先"],
+      "selected": "A",
+      "reasoning": "DNA 准则 1 + 准则 3：约束/知识/实现 改动按治理优先走；先有 PLAN 才有约束，先有约束才有代码。",
+      "decided_at": "2026-07-10T01:35:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V10-003",
+      "q_id": "Q-V10-003",
+      "question": "L3 门禁记录位置",
+      "options": ["A: 新增 postflight_gate 项", "B: 新建 obj_linkage_gate.json", "C: 扩展 coverage_ledger"],
+      "selected": "A",
+      "reasoning": "postflight_gate 已是 S6 完整性门禁主载体；新增 item 而非新文件，避免分散管理。",
+      "decided_at": "2026-07-10T01:35:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V10-004",
+      "q_id": "Q-V10-004",
+      "question": "OBJ 未引用处理方式",
+      "selected": "A: skip_reason 标注",
+      "reasoning": "参考 S4 §4.3.1 未覆盖叶子节点处理：deprecated / out_of_scope / low_risk / manual_test / unknown 五类；OBJ 沿用同表但精简。",
+      "decided_at": "2026-07-10T01:38:00+08:00",
+      "decided_by": "design_iter.py"
+    },
+    {
+      "id": "D-V10-005",
+      "q_id": "Q-V10-005",
+      "question": "范围（仅 S6 还是全链路）",
+      "selected": "C: S6 + S7 双层",
+      "reasoning": "S6 生成 + S7 审查双层覆盖：S6 守生成，S7 守反向校验（每 OBJ 至少 1 TC 引用 + 每 FP 至少 1 TC 覆盖）。",
+      "decided_at": "2026-07-10T01:38:00+08:00",
+      "decided_by": "design_iter.py"
+    }
+  ]
+}

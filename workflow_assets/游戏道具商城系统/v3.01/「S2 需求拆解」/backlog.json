@@ -1,0 +1,330 @@
+{
+  "meta": {
+    "req_name": "游戏道具商城系统",
+    "stage": "S2",
+    "version": "v3.01",
+    "created_at": "2026-07-22T13:20:00+08:00",
+    "created_by": "AIDocxWorkFlow",
+    "quality_level": "HIGH",
+    "exit_permission_source": "S1.5 (simulated)"
+  },
+  "release": {
+    "id": "REL-2606-MAIN-01",
+    "type": "MAIN",
+    "cycle": "大版本",
+    "window": "2026-07 上线窗口",
+    "owner": "主策/主测"
+  },
+  "summary": {
+    "epic_count": 8,
+    "story_count": 14,
+    "object_count": 22,
+    "feature_point_count": 68,
+    "fallback_stories_generated": 0,
+    "fallback_rules_total": 0
+  },
+  "epics": [
+    {
+      "epic_id": "CONFIG-001",
+      "title": "商城道具配置管理",
+      "module": "CONFIG",
+      "scale": "MEDIUM",
+      "domain": "道具数据配置",
+      "related_systems": ["商城系统", "道具系统"],
+      "release_window": "2026-07",
+      "owner": "策划",
+      "risk_level": "P1",
+      "stories": [
+        {
+          "story_id": "CONFIG-001-001",
+          "title": "商城首页道具配置",
+          "user_story": "作为系统，我希望配置商城首页展示的道具，以便玩家浏览和购买",
+          "user_role": "系统",
+          "precondition": "道具数据已配置在数值表中",
+          "input_data": "道具ID、数量、价格、分类",
+          "acceptance_criteria": [
+            "[开发验收] 首页加载后展示道具列表",
+            "[测试验收] 道具按销量排序展示前10个",
+            "[策划数值验收] 数值表与展示一致"
+          ],
+          "scope_module": ["CONFIG", "UI"],
+          "risk": {"level": "P1", "depends": []},
+          "expected_output": "道具列表展示",
+          "offline_verify": true,
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "epic_id": "UI-001",
+      "title": "商城前端交互界面",
+      "module": "UI",
+      "scale": "MEDIUM",
+      "domain": "玩家交互界面",
+      "related_systems": ["商城系统", "前端系统"],
+      "release_window": "2026-07",
+      "owner": "前端",
+      "risk_level": "P1",
+      "stories": [
+        {
+          "story_id": "UI-001-001",
+          "title": "商城首页展示",
+          "user_story": "作为玩家，我希望浏览商城首页，以便查看热门道具和分类导航",
+          "user_role": "玩家",
+          "precondition": "玩家已登录",
+          "input_data": "页面加载请求",
+          "acceptance_criteria": [
+            "[开发验收] 页面正常加载",
+            "[测试验收] 分类导航切换正常",
+            "[策划数值验收] 展示内容与配置一致"
+          ],
+          "scope_module": ["UI", "CONFIG"],
+          "risk": {"level": "P1", "depends": []},
+          "expected_output": "商城首页展示",
+          "offline_verify": false,
+          "source": "original"
+        },
+        {
+          "story_id": "UI-001-002",
+          "title": "道具详情页展示",
+          "user_story": "作为玩家，我希望查看道具详情，以便了解道具属性和价格",
+          "user_role": "玩家",
+          "precondition": "玩家已登录，已选择道具",
+          "input_data": "道具ID",
+          "acceptance_criteria": [
+            "[开发验收] 详情页展示完整信息",
+            "[测试验收] 购买数量选择器正常",
+            "[策划数值验收] 属性展示与配置一致"
+          ],
+          "scope_module": ["UI", "CONFIG"],
+          "risk": {"level": "P1", "depends": []},
+          "expected_output": "道具详情页展示",
+          "offline_verify": false,
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "epic_id": "BIZ-001",
+      "title": "道具购买流程",
+      "module": "BIZ",
+      "scale": "HEAVY",
+      "domain": "付费购买",
+      "related_systems": ["商城系统", "支付系统", "道具系统", "邮件系统"],
+      "release_window": "2026-07",
+      "owner": "服务端",
+      "risk_level": "P0",
+      "stories": [
+        {
+          "story_id": "BIZ-001-001",
+          "title": "游戏币购买道具",
+          "user_story": "作为玩家，我希望使用游戏币购买道具，以便获得虚拟道具",
+          "user_role": "玩家",
+          "precondition": "玩家已登录，余额充足",
+          "input_data": "道具ID、购买数量、支付密码",
+          "acceptance_criteria": [
+            "[开发验收] 购买成功，道具到账",
+            "[测试验收] 到账时间≤1000ms",
+            "[策划数值验收] 扣款金额与配置一致"
+          ],
+          "scope_module": ["BIZ", "CONFIG"],
+          "risk": {"level": "P0", "depends": []},
+          "expected_output": "道具到账、余额扣减、邮件通知",
+          "offline_verify": false,
+          "source": "original"
+        },
+        {
+          "story_id": "BIZ-001-002",
+          "title": "人民币购买道具",
+          "user_story": "作为玩家，我希望使用人民币购买道具，以便获得虚拟道具",
+          "user_role": "玩家",
+          "precondition": "玩家已登录，已绑定支付方式",
+          "input_data": "道具ID、购买数量、支付方式",
+          "acceptance_criteria": [
+            "[开发验收] 支付成功，道具到账",
+            "[测试验收] 到账时间≤1000ms",
+            "[策划数值验收] 订单金额与配置一致"
+          ],
+          "scope_module": ["BIZ", "LINK"],
+          "risk": {"level": "P0", "depends": []},
+          "expected_output": "道具到账、订单生成",
+          "offline_verify": false,
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "epic_id": "BIZ-002",
+      "title": "订单管理",
+      "module": "BIZ",
+      "scale": "MEDIUM",
+      "domain": "订单查询",
+      "related_systems": ["商城系统", "订单系统"],
+      "release_window": "2026-07",
+      "owner": "服务端",
+      "risk_level": "P1",
+      "stories": [
+        {
+          "story_id": "BIZ-002-001",
+          "title": "订单列表查询",
+          "user_story": "作为玩家，我希望查看购买订单，以便了解购买历史",
+          "user_role": "玩家",
+          "precondition": "玩家已登录",
+          "input_data": "查询时间范围、筛选条件",
+          "acceptance_criteria": [
+            "[开发验收] 订单列表正常展示",
+            "[测试验收] 30天内订单完整展示",
+            "[策划数值验收] 订单数据与数据库一致"
+          ],
+          "scope_module": ["BIZ", "UI"],
+          "risk": {"level": "P1", "depends": []},
+          "expected_output": "订单列表展示",
+          "offline_verify": false,
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "epic_id": "BIZ-003",
+      "title": "VIP专属商城",
+      "module": "BIZ",
+      "scale": "MEDIUM",
+      "domain": "会员权益",
+      "related_systems": ["商城系统", "VIP系统"],
+      "release_window": "2026-07",
+      "owner": "服务端",
+      "risk_level": "P0",
+      "stories": [
+        {
+          "story_id": "BIZ-003-001",
+          "title": "VIP折扣计算",
+          "user_story": "作为VIP玩家，我希望享受折扣优惠，以便节省购买成本",
+          "user_role": "玩家",
+          "precondition": "玩家已是VIP会员",
+          "input_data": "VIP等级、原价",
+          "acceptance_criteria": [
+            "[开发验收] VIP折扣正确计算",
+            "[测试验收] 折扣不与促销叠加",
+            "[策划数值验收] 折扣比例与配置一致"
+          ],
+          "scope_module": ["BIZ", "CONFIG"],
+          "risk": {"level": "P0", "depends": []},
+          "expected_output": "折扣价格展示",
+          "offline_verify": false,
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "epic_id": "BIZ-004",
+      "title": "促销活动",
+      "module": "BIZ",
+      "scale": "MEDIUM",
+      "domain": "运营活动",
+      "related_systems": ["商城系统", "活动系统"],
+      "release_window": "2026-07",
+      "owner": "策划",
+      "risk_level": "P1",
+      "stories": [
+        {
+          "story_id": "BIZ-004-001",
+          "title": "限时打折促销",
+          "user_story": "作为玩家，我希望参与限时打折，以便享受优惠价格",
+          "user_role": "玩家",
+          "precondition": "促销活动已开始",
+          "input_data": "道具ID、时间段",
+          "acceptance_criteria": [
+            "[开发验收] 打折价格正确展示",
+            "[测试验收] 时间段外恢复原价",
+            "[策划数值验收] 折扣与配置一致"
+          ],
+          "scope_module": ["BIZ", "CONFIG"],
+          "risk": {"level": "P1", "depends": []},
+          "expected_output": "折扣价格展示",
+          "offline_verify": false,
+          "source": "original"
+        },
+        {
+          "story_id": "BIZ-004-002",
+          "title": "满减活动",
+          "user_story": "作为玩家，我希望参与满减活动，以便享受满减优惠",
+          "user_role": "玩家",
+          "precondition": "促销活动已开始",
+          "input_data": "订单金额",
+          "acceptance_criteria": [
+            "[开发验收] 满减金额正确计算",
+            "[测试验收] 门槛边界正确处理",
+            "[策划数值验收] 满减规则与配置一致"
+          ],
+          "scope_module": ["BIZ", "CONFIG"],
+          "risk": {"level": "P1", "depends": []},
+          "expected_output": "满减后价格",
+          "offline_verify": false,
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "epic_id": "BIZ-005",
+      "title": "后台管理",
+      "module": "BIZ",
+      "scale": "MEDIUM",
+      "domain": "运营管理",
+      "related_systems": ["商城系统", "后台系统"],
+      "release_window": "2026-07",
+      "owner": "运营",
+      "risk_level": "P1",
+      "stories": [
+        {
+          "story_id": "BIZ-005-001",
+          "title": "道具上下架管理",
+          "user_story": "作为运营，我希望管理道具上下架，以便控制商城商品",
+          "user_role": "运营",
+          "precondition": "运营已登录后台",
+          "input_data": "道具ID、操作类型",
+          "acceptance_criteria": [
+            "[开发验收] 上下架操作成功",
+            "[测试验收] 立即生效≤5分钟",
+            "[策划数值验收] 操作日志完整记录"
+          ],
+          "scope_module": ["BIZ", "LOG"],
+          "risk": {"level": "P1", "depends": []},
+          "expected_output": "上下架状态变更",
+          "offline_verify": false,
+          "source": "original"
+        }
+      ]
+    },
+    {
+      "epic_id": "SPECIAL-001",
+      "title": "退款规则",
+      "module": "SPECIAL",
+      "scale": "HEAVY",
+      "domain": "风控合规",
+      "related_systems": ["商城系统", "退款系统", "道具系统"],
+      "release_window": "2026-07",
+      "owner": "服务端",
+      "risk_level": "P0",
+      "stories": [
+        {
+          "story_id": "SPECIAL-001-001",
+          "title": "人民币订单退款",
+          "user_story": "作为玩家，我希望申请退款，以便退回已购买的道具",
+          "user_role": "玩家",
+          "precondition": "订单为人民币支付，购买后30天内",
+          "input_data": "订单ID、退款原因",
+          "acceptance_criteria": [
+            "[开发验收] 退款成功，道具扣回",
+            "[测试验收] 30天时限正确校验",
+            "[策划数值验收] VIP有效期重算正确"
+          ],
+          "scope_module": ["SPECIAL", "BIZ"],
+          "risk": {"level": "P0", "depends": []},
+          "expected_output": "退款完成、道具扣回、订单标记",
+          "offline_verify": false,
+          "source": "original"
+        }
+      ]
+    }
+  ]
+}

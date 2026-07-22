@@ -1,0 +1,62 @@
+{
+  "goal_id": "09cdc9e7-fc91-4a88-a391-51af56767806",
+  "raw_user_goal": "对游戏道具商城系统 v3.01 的 S5/S6 产物进行字段溯源合规验证与重生成",
+  "accept_criteria": [
+    "AC-1: S5 test_points.json 通过 check_field_completion.py S5 字段检查（obj_name/fp_name/feature_point_ref MUST），退出码0",
+    "AC-2: S6 test_cases.json 通过 check_field_completion.py S6 字段检查（obj_name/fp_name/feature_point_ref链路完整），退出码0",
+    "AC-3: S5 覆盖率 ledger 验证：OBJ 覆盖率=1.0，FP 覆盖率=1.0，S3 UI 引用覆盖率=1.0（使用 coverage_validator.py）",
+    "AC-4: S6 OBJ 覆盖率=1.0，FP 覆盖率=1.0（使用 coverage_validator.py）",
+    "AC-5: 新 S5 test_points.json 写回原路径，备份旧文件到 .bak",
+    "AC-6: 新 S6 test_cases.json 写回原路径，备份旧文件到 .bak",
+    "AC-7: §11 grep v\\d+ 在产物文件中0命中（Python数据字面量除外）"
+  ],
+  "task_queue": [
+    {
+      "id": "T1",
+      "title": "修S6 SKILL.md准出标准：每TC单预期",
+      "status": "pending"
+    },
+    {
+      "id": "T2",
+      "title": "重生成87 TC：每TC单expected_results项",
+      "status": "pending"
+    }
+  ],
+  "loop_round": 4,
+  "last_audit": {
+    "file": "governance/design_iter/plans/v17/audit_4.md"
+  },
+  "last_review": {
+    "file": "governance/design_iter/plans/v17/review_4.md"
+  },
+  "latest_artifact": "governance/design_iter/plans/v17/CONVERGED.md",
+  "status": "achieved",
+  "token_budget": {
+    "used": 32000,
+    "limit": 80000,
+    "updated_at": "2026-07-18T23:30:00+08:00"
+  },
+  "value_criteria": [
+    "AC-1: S5 test_points.json 通过 check_field_completion.py S5 字段检查（obj_name/fp_name/feature_point_ref MUST），退出码0",
+    "AC-2: S6 test_cases.json 通过 check_field_completion.py S6 字段检查（obj_name/fp_name/feature_point_ref链路完整），退出码0",
+    "AC-3: S5 覆盖率 ledger 验证：OBJ 覆盖率=1.0，FP 覆盖率=1.0，S3 UI 引用覆盖率=1.0（使用 coverage_validator.py）",
+    "AC-4: S6 OBJ 覆盖率=1.0，FP 覆盖率=1.0（使用 coverage_validator.py）",
+    "AC-5: 新 S5 test_points.json 写回原路径，备份旧文件到 .bak",
+    "AC-6: 新 S6 test_cases.json 写回原路径，备份旧文件到 .bak",
+    "AC-7: §11 grep v\\d+ 在产物文件中0命中（Python数据字面量除外）"
+  ],
+  "process_criteria": [],
+  "value_ratio": 1.0,
+  "severity_label": "MAJOR",
+  "follow_up_items": [],
+  "goal_signature": "",
+  "out_of_scope_md": "",
+  "audit_stability": {},
+  "efficiency_stats": {
+    "rounds_to_convergence": 3,
+    "first_pass_rate": 0.33,
+    "blocker_residual_rate": 0.0,
+    "last_updated": "2026-07-18T23:30:00+08:00"
+  },
+  "parallel_executor_hints": {}
+}

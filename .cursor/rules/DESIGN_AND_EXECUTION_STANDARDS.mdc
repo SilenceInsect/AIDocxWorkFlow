@@ -1,0 +1,897 @@
+---
+description: 全局执行约束与跨阶段决策逻辑。AIDocxWorkFlow 所有阶段共享，贯穿 S1→S2→S4→S5→S6→S7→S8 全链路。
+alwaysApply: true
+---
+
+# AIDocxWorkFlow 全局执行约束与跨阶段决策
+
+> **适用对象**：所有阶段
+> **模块定义**：[`.cursor/MODULES.md`](./MODULES.md)（项目级唯一真相源）
+> **各阶段规范**：[`.cursor/rules/`](.)STAGE_S*.mdc（阶段完整定义，含必读材料 + push 块 + 质量门禁）
+> **各阶段技能**：[`.cursor/skills/`](.)aidocx-*/SKILL.md（阶段执行入口）
+
+---
+
+## 维护规范
+
+| 职责 | 文件 |
+|------|------|
+| 模块定义/边界/枚举/种子 TP / O_boundary | `.cursor/MODULES.md` + `knowledge/public/module_templates/<MODULE>/` |
+| 阶段规范/必读材料/push 块/质量门禁/产出格式 | `.cursor/rules/STAGE_S*.mdc` |
+| 技能操作/执行入口/必读材料清单/push 块 | `.cursor/skills/aidocx-*/SKILL.md` |
+| 本文件 | 跨阶段判决/跨模块规则/is_assumed/全局违规认定 |
+
+### 0.1 版本控制分层原则
+
+> **本节是项目级 Git 资产分类的 SSOT**——每类资产列**具体路径** + **对应 `.gitignore` 行号** + **强制验证命令**。仅写抽象名词（"过程资产""项目级知识库"）的条款**作废**，必须可机械对照。
+
+#### 0.1.1 资产分类表（路径 + `.gitignore` 模式锚点）
+
+> **锚点选择**：本表用 **`.gitignore` 模式文本**（如 `*.jsonl` / `knowledge/project_local/` / `feedback_logs/`）作为锚点，**不用行号**——
+>
+> - 行号会随 `.gitignore` 任意编辑漂移，今天第 91 行明天可能第 95 行
+> - 模式文本是 `.gitignore` 文件本身的语义内容，**人本可审查**：肉眼 grep 一行即可对照
+> - 自动化验证用 `git check-ignore -v`（输出 `.gitignore:N:<模式>  <路径>`），行号只是机器附带输出
+>
+> **本表同步铁律**：改 `.gitignore` 后**必须**重跑 `grep -nF "<模式>" .gitignore` 验证锚点仍在；若改模式文本，本表同步改；若删模式，删表行。
+
+| 资产类别 | 具体路径 | Git 归属 | `.gitignore` 模式锚点 | 验证命令 |
+|---------|---------|---------|----------------------|---------|
+| **功能代码** | `ai_workflow/*.py`（非 pycache） | 入 | 无显式模式（依赖默认） | `git check-ignore ai_workflow/test.py` → NOT IGNORED |
+| **测试代码** | `tests/*.py` | 入 | 无显式模式 | 同上 |
+| **规则治理资产** | `.cursor/rules/*.mdc` / `.cursor/skills/*/SKILL.md` / `.cursor/MODULES.md` / `.cursor/hooks/*.py` | 入 | 无显式模式 | 同上 |
+| **公共知识库** | `knowledge/public/**`（**仅 `.json` / `.md` 等非录制类**）| 入 | 无显式模式（依赖默认 + `*.jsonl` 反向排除） | `git check-ignore knowledge/public/test_point_library/tp_library.db` → NOT IGNORED |
+| **过程录制 jsonl** | **所有 `*.jsonl` 文件**——包括 `feedback_logs/*.jsonl` / `workflow_assets/**/*.jsonl` / `knowledge/project_local/**/*.jsonl` | **不入** | `*.jsonl` | `git check-ignore -v knowledge/public/goal_loop/x.jsonl` → `.gitignore:N:*.jsonl  ...`（即使在 public/ 下也命中） |
+| **项目级知识库** | `knowledge/project_local/**` | **不入** | `knowledge/project_local/` | `git check-ignore -v knowledge/project_local/foo.md` → `.gitignore:N:knowledge/project_local/  ...` |
+| **本地输入材料** | `resource/<req_name>/**` | **不入** | `resource/` | `git check-ignore -v resource/foo.md` → `.gitignore:N:resource/  ...` |
+| **单次需求过程资产** | `workflow_assets/<req_name>/<version>/「S*」/**` | **不入** | `workflow_assets/*` | `git check-ignore -v workflow_assets/foo/v1.0/test.md` → `.gitignore:N:workflow_assets/*  ...` |
+| **阶段上下文包** | `workflow_assets/**/stage_context.md` / `stage_context.json` / `read_ack.json` | **不入** | `workflow_assets/**/*.stage_context.md` / `workflow_assets/**/stage_context.json` / `workflow_assets/**/read_ack.json` | `git check-ignore -v workflow_assets/foo/v1.0/「S5」/stage_context.md` → `.gitignore:N:workflow_assets/**/stage_context.md  ...` |
+| **运行反馈日志** | `feedback_logs/**` + `*.log` | **不入** | `feedback_logs/` + `*.log` | `git check-ignore -v feedback_logs/foo.log` → `.gitignore:N:feedback_logs/  ...` |
+| **治理档** | `governance/**`（方案/INDEX/归档） | **不入** | `governance/` | `git check-ignore -v governance/foo.md` → `.gitignore:N:governance/  ...` |
+| **CHANGELOG** | `CHANGELOG.md`（本地迭代历史） | **不入** | `CHANGELOG.md` | `git check-ignore -v CHANGELOG.md` → `.gitignore:N:CHANGELOG.md  ...` |
+| **Goal loop 过程资产** | `.goal-log-db/` + `workflow_assets/goals/` | **不入** | `.goal-log-db/` + `workflow_assets/goals/` | `git check-ignore -v .goal-log-db/foo.db` → `.gitignore:N:.goal-log-db/  ...` |
+| **本地 secrets / 配置** | `.env` / `.env.local` / `secrets.json` / `.cursor/private/` | **不入** | `.env` / `.env.local` / `secrets.json` / `.cursor/private/` | `git check-ignore -v .env` → `.gitignore:N:.env  ...` |
+| **构建/缓存产物** | `__pycache__/` / `*.pyc` / `.pytest_cache/` / `dist/` / `build/` 等 | **不入** | `__pycache__/` / `*.pyc` / `*.egg-info/` / `.pytest_cache/` 等 | `git check-ignore -v ai_workflow/__pycache__/x.cpython-39.pyc` → `.gitignore:N:__pycache__/  ...` |
+
+#### 0.1.2 强制验证条款
+
+**任何新文件/目录创建前**：
+
+1. **判定资产类别**（对照 0.1.1 表）——边界不清**必须**先询问，不允许先落盘后补解释
+2. **运行 `git check-ignore -v <路径>` 验证预期行为**：
+   - 应入 Git → 命令应输出 `NOT IGNORED`
+   - 应不入 Git → 命令应输出 `.gitignore:<行号>:<模式锚点>  <路径>`
+   - **人本可审查检查点**：输出的 `<模式锚点>` 字段**必须**与 0.1.1 表该行"`.gitignore` 模式锚点"列文本**完全一致**（grep -F 验证）
+3. **若命令输出与预期不符** → **必须**先修复 `.gitignore` 或 §0.1.1 表（保持两者同步），再创建文件
+4. **若文件已落盘且行为不符**：
+   - 应入 Git 但被忽略 → 改 `.gitignore` 排除该路径
+   - 应不入 Git 但未忽略 → 改 `.gitignore` 加入该路径，**或** `git rm --cached <路径>` 解除跟踪
+   - **两类操作均需**在 commit message 说明理由
+5. **改 `.gitignore` 后必须**：
+   - 重跑 `grep -nF "<模式锚点>" .gitignore` 确认 0.1.1 表所有行模式锚点仍在
+   - 若模式文本改了 → 同步改 0.1.1 表
+   - 若删模式 → 删 0.1.1 表行
+
+#### 0.1.3 知识库入库审批（公共库强约束）
+
+> **本节定义两类主体的写入权限边界**——`knowledge/public/module_templates/` 是**核心公共知识库**，
+> 写权限**不平等**：通用 Agent 与模块专家 Agent 权限不同。
+>
+> **模块专家 Agent 定义**（8 模块 = 8 个专家，**v34 B1 已显式落地为 skill**）：
+> - **资产库位置**：`.cursor/skills/<module>-expert/SKILL.md`（项目内，与 `aidocx-s6-test-cases/` 平级，纳入 git）
+> - **8 个专家 skill**：`config-expert` / `ui-expert` / `biz-expert` / `aux-expert` / `link-expert` / `special-expert` / `log-expert` / `hint-expert`
+> - **索引**：`/Users/gleon/.cursor/skills/_module-experts/README.md`（项目内路径 `.cursor/skills/_module-experts/README.md`）
+> - **每个专家绑定**：自己模块的 `module_templates/<MY_MODULE>/` + `module_templates/<MY_MODULE>.md`
+> - **模块专家身份当前通过 skill metadata 字段显式建模**（`metadata.role: module-expert` + `metadata.module: <MODULE>`），
+>   可被 Cursor 主 agent 通过 `/<module>-expert` 命令加载
+> - **本质约束**：写正式库前**必须**经"路径前缀校验 + 模块归属判定"，不可由通用 agent 自决
+
+**两类主体权限对照**：
+
+| 主体 | `module_templates/<我的模块>/` | `module_templates/<他模块>/` | 跨模块（同时动 ≥ 2 模块）|
+|------|------------------------------|----------------------------|---------------------------|
+| **通用 Agent**（默认） | ❌ 仅写 `_candidates/` | ❌ 仅写 `_candidates/` | ❌ 仅写 `_candidates/` |
+| **模块专家 Agent**（×8） | ✅ **可直接写正式库** | ⚠️ 视为通用 Agent——仅写 `_candidates/` | ⚠️ 视为通用 Agent——仅写 `_candidates/` |
+| **人工** | ✅ 可直接写 | ✅ 可直接写 | ✅ 可直接写 |
+
+**强约束**（违反 = 方案失败，见 `AGENTS.md` 结构性反模式）：
+
+- **必须**写入候选区（`_candidates/`）或候选文件 **除非** 模块专家 Agent 写自己模块正式库
+- **必须**经人工审核后才能入公共库 **除非** 模块专家 Agent 写自己模块正式库（**但仍要 PR/review 留痕**）
+- **违反 = 方案失败**（见 `AGENTS.md` 结构性反模式）
+
+**`module_templates/_common_structure.md` / `_decision_tree.md` 公共文件**：
+
+- 这两份是**跨模块公共文件**（非"任一模块私有"），**任何 agent 都不得直接写**——只能写候选，人工审
+- 例外：8 个模块专家**联合**调整（视为跨模块）——仍走候选
+
+**边界自检流程**（写正式库前**必须**执行）：
+
+1. 我（agent）属于哪个主体？（通用 / 模块专家）
+2. 我要写的文件**确切路径**是什么？（精确到 `module_templates/<MODULE>/`）
+3. 路径里的 `<MODULE>` = 我的模块 ID？还是别的？
+4. **若不相等 → 降级为通用 Agent 权限**——仅写 `_candidates/`
+5. **若相等且我是该模块专家 → 可写正式库**，但需在 commit message 标注 `[模块专家直写]`
+
+#### 0.1.4 铁律
+
+只要资产绑定某次具体需求、某轮具体执行、某个具体项目的私有经验、或包含私人过程记录，**必须**落在忽略区；只有可复用、可审查、面向整个项目的公共知识资产才允许版本化。
+
+---
+
+**已识别违规清单（截至本节重写时）**：
+
+| 违规内容 | 状态 |
+|---------|------|
+| `knowledge/project_local/.review_queue/s6/` 3 个文件**已被跟踪**（commit 39897ff "入库工作区全部 WIP"） | 需 `git rm --cached` 处理（**待人工裁决**，本节不动历史） |
+| `knowledge/public/goal_loop/antipattern_cases.jsonl` 位于 public/ 但内容是反模式录制 | **已修复**——移到 `knowledge/project_local/goal_loop/` |
+| `.gitignore` 旧版"jsonl 精确路径 3 行"（91-93 行）将 jsonl 排除在 `*.jsonl` 一刀切外 | **已修复**——恢复 `*.jsonl` 全杀（第 91 行 1 行），所有过程录制 jsonl 一律不入 git |
+| `.gitignore` 第 83-87 行 `!review_queue/` `!s6/` 强制入 Git 与本节文字矛盾 | **已修复**——删除 5 条 `!` 规则 |
+| 阶段上下文包（`stage_context.*` / `read_ack.json`）无显式忽略行 | **已修复**——第 86-88 行加入精确匹配 |
+| **AGENTS.md** §"Git 分类铁律" 仍写 `knowledge/public/`，未区分录制类 | **待修复**（本次只动了 §0.1 + `.gitignore`；AGENTS.md 需同步） |
+
+> **违规清单行号说明**：上表中行号（如 "91-93 行"）是**事件历史描述**——记录"当时哪几行出问题"，属于已固化的事后说明，**与 §0.1.1 表锚点策略无关**。§0.1.1 表的"`.gitignore` 模式锚点"列**严格用模式文本**（如 `*.jsonl`），不用行号。
+
+---
+
+## 1. 分模块（Module Boundaries）
+
+### 1.1 模块定义原则
+
+- **单一职责**：每个模块负责一个明确的业务领域
+- **边界清晰**：模块间通过标准化接口交互，不直接依赖内部实现
+- **可组合性**：模块可独立调用，也可串联形成完整流程
+
+### 1.2 标准模块分类
+
+| 模块标识 | 业务领域 | 典型产出 | 依赖模块 |
+|---------|---------|---------|---------|
+| `req` | 需求工程 | 终版需求.md、requirement_objects | — |
+| `backlog` | 迭代管理 | backlog.md、backlog.json | req |
+| `flow` | 业务流程 | business_flow.md、flowchart | backlog |
+| `proto` | 原型设计 | prototype.md、prototype.json | backlog |
+| `tp` | 测试点 | test_points.json | backlog、flow |
+| `tc` | 测试用例 | test_cases.json（公共默认）+ test_cases.md/xlsx（项目级导出） | tp |
+| `review` | 质量评审 | review_report.md | tc |
+| `iterate` | 持续改进 | iteration.md、module_templates | review |
+
+### 1.3 模块间依赖规则
+
+```
+req → backlog → flow
+                → proto
+                → tp → tc → review → iterate
+```
+
+- 上游模块为下游提供输入，不可逆流
+- 模块可跳过（人工介入），但必须显式记录
+- 跨模块调用必须通过标准化接口文件（JSON/Markdown）
+
+### 1.4 模块版本管理
+
+- 每个模块产出独立版本号：`v1.0`、`v1.1`、`v2.0`
+- 大版本变更：需求范围重大调整
+- 小版本变更：局部修正、补充
+- 版本继承：下游模块需记录所依赖的上游版本
+
+---
+
+## 2. 全阶段行为准则（Stage-wide Behavior）
+
+### 2.1 通用执行流程
+
+```
+输入审查 → 材料提取 → 质量门禁 → 产出生成 → 失败报告（如需）
+```
+
+### 2.2 输入审查规则
+
+| 检查项 | 失败条件 | 处理方式 |
+|-------|---------|---------|
+| 文件存在性 | 依赖文件缺失 | 生成 `fail_report_S*.md`，停止执行 |
+| 格式有效性 | JSON 解析失败、非 UTF-8 编码 | 生成失败报告，停止执行 |
+| 内容完整性 | 必填字段缺失 | 返回人工补全请求 |
+| 语义正确性 | 评分 < 阈值 | 进入澄清流程或生成失败报告 |
+
+### 2.3 质量门禁（Quality Gate）
+
+> 🚨 **强制阅读指令（MANDATORY）**：本节是**快捷参考**（quick reference），**非规则定义**。
+> - **规则定义唯一真相源（SSOT）**：[§4.3 配置常量](#43-质量阈值常量)
+> - **本表不可独立编辑**。任何阈值变更**必须**先修改 §4.3，再回写本表同步。
+> - **阶段执行前必须**先读 §4.3，再读对应 `STAGE_S*.mdc` 的细化定义。
+
+| 阶段 | 门禁类型 | 判定规则（仅逻辑） | 三步自问例外条款 |
+|-----|---------|------------------|------------------|
+| S1 | 评分门禁 | 总分达到配置阈值则进入澄清，否则生成失败报告 | 低于阈值时执行三步自问（见 `STAGE_S1_REVIEW.mdc` 判决规则） |
+| S1.5 | 字段门禁 | 所有 P0 项填写完整则通过，否则阻塞 | P0 项漏填时执行三步自问（见 `STAGE_S1.5 Clarification.mdc` §2） |
+| S2 | 精度门禁 | 拆解精度达到配置阈值 | 未达精度时执行三步自问（见 `STAGE_S2_BREAKDOWN.mdc` 输入审查） |
+| S3 | 结构门禁 | 阶段要求的产出类别全部齐备且 Mermaid 语法合法 | 无例外 |
+| S4 | 结构门禁 + 覆盖率门禁 | 阶段要求的产出类别全部齐备、风险点 ID 唯一且异常路径覆盖率达到配置阈值 | 显式标注未覆盖原因 |
+| S5 | 指导建议 + 覆盖率门禁 | 每 Story TP 数按配置指导值灵活调整，UI/BIZ 引用覆盖率达到配置阈值 | 指导值可按业务风险灵活调整 |
+| S6 | 完整性门禁 + 双层覆盖率门禁 | 必填字段填写率、OBJ 覆盖率与 FP 覆盖率均达到配置阈值 | 低于配置阈值时执行三步自问（见 `aidocx-s6-test-cases/SKILL.md` §1.6） |
+| S7 | 覆盖率门禁 | 不设置硬阈值；脚本输出数字，LLM 按业务实际判断 | 无硬阈值，无例外 |
+
+> **三步自问例外条款说明**：当硬性门禁未通过时，允许 LLM 经"三步自问"决策树论证后带理由放行。
+> 详见各阶段规则文件对应章节。放行理由必须备案到 `bypass_log.json`（路径：`workflow_assets/<req_name>/「S{n} 阶段」/<version>/bypass_log.json`）。
+
+### 2.4 失败报告规范
+
+所有阶段必须遵循以下失败报告模板：
+
+```markdown
+# S* 阶段失败报告
+
+## 基本信息
+- **需求名称**：[req_name]
+- **阶段**：S* [阶段名称]
+- **执行时间**：[timestamp]
+- **失败原因**：[enum: INPUT_MISSING | FORMAT_INVALID | QUALITY_FAILED | PROCESS_ERROR]
+
+## 失败详情
+[具体错误描述]
+
+## 修复建议
+1. [具体操作步骤]
+2. [...]
+
+## 原始输入摘要
+[文件路径、大小、关键字段]
+```
+
+### 2.4.1 三步自问旁路备案格式（bypass_log.json）
+
+当 LLM 经"三步自问"论证后对某个硬性门禁带理由放行时，必须在阶段产出目录写入备案文件：
+
+```json
+{
+  "meta": {
+    "req_name": "<req_name>",
+    "stage": "S{n}",
+    "version": "<version>",
+    "bypass_count": 1,
+    "logged_at": "<ISO timestamp>"
+  },
+  "bypassed_gates": [
+    {
+      "gate_name": "<gate_name>",
+      "gate_threshold": "<threshold>",
+      "actual_value": "<actual>",
+      "three_step_answers": {
+        "Q1": {
+          "question": "该字段/指标在本业务场景下是否实际存在？",
+          "answer": "<存在/不存在>",
+          "reasoning": "<简述依据>"
+        },
+        "Q2": {
+          "question": "上游材料是否提供了该字段/指标的来源信息？",
+          "answer": "<有/无>",
+          "reasoning": "<简述依据>"
+        },
+        "Q3": {
+          "question": "该缺失是否影响后续阶段的可执行性或产出完整性？",
+          "answer": "<影响/不影响>",
+          "reasoning": "<简述依据>"
+        }
+      },
+      "bypass_decision": "PASS_WITH_BYPASS",
+      "bypass_reason": "<三步自问后的放行理由>"
+    }
+  ]
+}
+```
+
+> **备案要求**：
+> - Q1/Q2 任一回答"存在"或"有" → 不得放行，必须回 LLM 迭代
+> - 仅有 Q1="不存在" 且 Q2="无" 且 Q3="不影响" → 才可放行
+> - `bypass_reason` 字段必须填有实质理由，禁止空填或占位
+
+### 2.4.2 例外率监控
+
+> **来源**：外部方案 §4.5.2
+
+**例外率计算公式**：
+
+```
+单项目例外率 = 触发三步自问的门禁项数（分子）/ 该项目经过的所有门禁项总数（分母） × 100%
+```
+
+**10 项门禁分母（动态计算）**：
+
+| 阶段 | 门禁项 | 计数 |
+|------|--------|------|
+| S1 | 总分 ≥ 如 §4.3 S1_MIN_SCORE 配置所示（评分门禁） | 1 项 |
+| S1.5 | P0 填写率 100%（字段门禁） | 1 项 |
+| S2 | 拆解精度 ≥ 如 §4.3 配置所示（精度门禁） | 1 项 |
+| S4 | 4 类产出 100% + 异常覆盖率 100% | 2 项 |
+| S5 | UI 引用覆盖率 + BIZ 引用覆盖率 | 2 项 |
+| S6 | 字段填写率 ≥ 如 §4.3 配置所示 + OBJ 覆盖率 + FP 覆盖率 | 3 项 |
+| **合计** | | **10 项** |
+
+**动态分母规则**：不走 S3 则 UI 覆盖率不计入分母（实际分母 = 10 - 未触发门禁数）
+
+**预警规则**：
+
+| 预警等级 | 阈值 | 触发动作 |
+|----------|------|----------|
+| 🟡 黄色预警 | 例外率 > 如 §4.3 配置所示（> 2 项门禁走例外） | S7 输出提示，人工关注 |
+| 🔴 红色预警 | 例外率 > 40%（> 4 项门禁走例外） | 建议暂停，重新评估需求质量 |
+
+**统计维度**：
+
+- **单项目维度**：每个项目的例外率
+- **阶段维度**：哪个阶段的门禁最常被 bypass（识别规则不合理信号）
+- **时间维度**：跨版本例外率趋势
+
+**bypass_log.json 扩展字段**：
+
+在 `meta` 中新增：
+
+```json
+"stats": {
+  "exception_rate": "如 §4.3 BYPASS_EXCEPTION_RATE_WARNING 配置所示",
+  "bypass_count": 2,
+  "total_gates": 10,
+  "gate_details": [
+    {"gate": "S5_UI_COVERAGE", "bypassed": true},
+    {"gate": "S6_FIELD_COMPLETION", "bypassed": false}
+  ],
+  "warning_level": "YELLOW"
+}
+```
+
+
+---
+
+### 2.5 版本号规则
+
+- **初始版本**：`v1.0`
+- **修正版本**：`v1.1`、`v1.2`（格式修正、内容补充）
+- **大版本**：`v2.0`（需求范围变更、重新执行全流程）
+- **版本记录**：每个输出目录包含 `version_history.md`
+
+### 2.6 目录结构规范
+
+> **v8 主轴变更**：目录从"先阶段再版本"改为"**先版本再阶段**"——
+> 与 `resource/<req_name>/<version>_raw.docx` 路径模式对齐，方便"看某版本全过程产物"。
+
+```
+workflow_assets/
+ <req_name>/                              ← 需求名称（如 "游戏道具商城系统"）
+ <version>/                              ← 版本号（v1.0 / v2.1 / v3.0 ...）
+ 「S1 需求评审」/                        ← 阶段名（中文书名号）
+ raw/                                    ← 原始物料（用户上传的 .docx/.doc 原文件，保留不改）
+ extracted/                              ← 提取加工后的物料（Markdown + OCR + 重命名图片）
+ review_report.md                        ← S1 评审报告
+ review_report.json
+ clarification_checklist.md              ← 待确认问题清单（人工填写）
+ 终版需求.md                              ← S1 草稿 + S1.5 完善后的最终需求
+ requirement_objects.md/json              ← 需求对象结构化表示
+ 「S2 需求拆解」/
+ ...
+```
+
+---
+
+## 3. 设计准则（Design Guidelines）
+
+### 3.1 代码结构原则
+
+| 原则 | 说明 | 违反处理 |
+|-----|------|---------|
+| **DRY** | Don't Repeat Yourself | 重复代码 > 3 处 → 重构为共享函数 |
+| **KISS** | Keep It Simple, Stupid | 超过 50 行函数 → 拆分 |
+| **YAGNI** | You Aren't Gonna Need It | 预留功能无调用 → 删除 |
+| **单一出口** | 函数只在一个点返回 | 多返回点需评审 |
+
+### 3.2 命名规范
+
+| 类型 | 规范 | 示例 |
+|-----|------|------|
+| 文件名 | `snake_case` | `test_points_generator.py` |
+| 类名 | `PascalCase` | `TestPointGenerator` |
+| 函数名 | `snake_case` | `generate_test_points()` |
+| 常量 | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT = 3` |
+| 配置项 | `snake_case` | `output_dir` |
+| JSON 键 | `snake_case` | `"test_point_id"` |
+| Markdown 标题 | `# Title Case` | `# 需求评审报告` |
+
+### 3.3 错误处理规范
+
+```python
+# 标准错误处理模式
+try:
+    result = execute_operation()
+except ValidationError as e:
+    log_error(f"Validation failed: {e}")
+    raise StageExecutionError(stage="S*", reason="validation_failed")
+except FileNotFoundError as e:
+    log_error(f"Required file missing: {e}")
+    raise InputMissingError(file=str(e))
+except Exception as e:
+    log_error(f"Unexpected error: {e}")
+    raise
+```
+
+### 3.4 日志规范（Pipeline 代码执行日志）
+
+> **适用范围**：本节是**代码执行层面**的日志标准，供 `ai_workflow/` 各阶段的 Python Pipeline 脚本使用。
+> **与 LOG 模块的区别**：
+> - **本节（Pipeline Logging）**：记录 AI Pipeline 代码的执行路径、输入输出、异常追踪
+> - **MODULES.md 中的 LOG（日志/审计）**：业务层面的日志需求（如"操作日志记录哪些字段"），用于 S5 生成测试点
+> 两者不在同一层次，不会产生混淆。
+
+| 级别 | 使用场景 | 格式 |
+|-----|---------|------|
+| `DEBUG` | 详细执行路径、变量值 | `DEBUG: Processing item {id}, value={value}` |
+| `INFO` | 阶段开始/结束、关键决策点 | `INFO: S5 started, input={file}` |
+| `WARNING` | 可恢复错误、降级处理 | `WARN: Missing optional field {field}, using default` |
+| `ERROR` | 操作失败、需要人工介入 | `ERROR: Failed to parse JSON at line {n}` |
+
+### 3.5 配置管理
+
+- 所有可配置项集中于 `config.py` 或环境变量
+- 硬编码阈值 → 配置常量
+- 路径使用 `Path` 对象而非字符串拼接
+- 敏感信息（API Key）使用环境变量，不写入代码
+
+### 3.6 测试规范
+
+| 组件类型 | 测试要求 |
+|---------|---------|
+| 工具函数 | 单元测试，覆盖边界条件 |
+| 解析器 | 格式容错测试（空文件、畸形输入） |
+| 生成器 | 集成测试，输入标准样本，验证输出格式 |
+| 阶段入口 | 端到端测试，验证完整流程 |
+
+### 3.7 大文件改动 SOP
+
+> **触发**：v6.2 §八 给 scan_module_definitions.py 加 self-test 时，**第一次 Edit 失败**——把 self_test 函数体留成无 `def` 关键字的散段到文件末尾，Python 语法错（NameError: self_test not defined）。最终 Write 完整重写才修复。
+>
+> **根因**：StrReplace 用 `if __name__ == "__main__"` 块作 anchor，把函数定义**留在 `__main__` 之后**——Python 加载模块时不执行 `__main__` 块，`self_test()` 引用在 module-level 不存在。
+>
+> **关联**：open_questions.md Q-402 + q_decision_table.md §十。
+
+**SOP（顺序执行）**：
+
+1. **Read 全文** — 改动前先 Read 整个文件，**确认文件总行数 ≤ 自己能完全 review 的范围**（经验值 ≤ 400 行）
+2. **判断路径**：
+   - 文件 ≤ 400 行 → **Write 完整重写**（首选）
+   - 文件 > 400 行 → StrReplace + **额外验证**（见下）
+3. **StrReplace 额外验证**（> 400 行时）：
+   - 检查 old_string 是否含 `def xxx(` —— 若含，**新文件里 `def xxx(` 必须出现在引用 `xxx()` 之前**（Python 定义先于引用）
+   - 用 `python3 -m py_compile <file>` 验证语法（**强制**）
+   - 用 `python3 <file> --self-test` 验证行为（**强制**）
+4. **Write 后必须**：
+   - `python3 -m py_compile <file>`（**强制**）
+   - 重读文件验证函数定义齐全（**强制**）
+
+**违反处理**：
+
+- **跳过 py_compile 验证** = **违规**（直接认错）
+- **跳过 self-test 验证** = **违规**
+- **自以为 "Edit 成功 = 文件正确"** = **违规**（v6.2 实战教训：Edit 返回 OK，但函数体成了散段）
+
+**豁免**：
+
+- 纯文档（.md / .mdc）改动不适用本 SOP——不涉及 Python 语法
+- 小文件（≤ 50 行）改动 SOP 可简化：只 Read + Write + 1 个验证
+
+---
+
+## 4. 全局定义（Global Definitions）
+
+### 4.1 枚举定义
+
+#### 4.1.1 阶段状态（StageStatus）
+
+```python
+class StageStatus(Enum):
+    PENDING = "pending"          # 等待执行
+    RUNNING = "running"         # 执行中
+    PASSED = "passed"           # 通过
+    FAILED = "failed"           # 失败
+    SKIPPED = "skipped"         # 跳过（人工介入）
+    BLOCKED = "blocked"         # 阻塞（等待前置条件）
+```
+
+#### 4.1.2 失败原因（FailureReason）
+
+```python
+class FailureReason(Enum):
+    INPUT_MISSING = "input_missing"      # 输入文件缺失
+    FORMAT_INVALID = "format_invalid"      # 格式无效
+    QUALITY_FAILED = "quality_failed"      # 质量不达标
+    PARSE_ERROR = "parse_error"            # 解析错误
+    PROCESS_ERROR = "process_error"        # 处理过程错误
+    TIMEOUT = "timeout"                   # 执行超时
+```
+
+#### 4.1.3 优先级（Priority）
+
+```python
+class Priority(Enum):
+    P0 = "p0"   # 阻塞性问题，必须修复
+    P1 = "p1"   # 重要缺陷，建议修复
+    P2 = "p2"   # 一般问题，可选修复
+    P3 = "p3"   # 轻微问题，忽略即可
+```
+
+#### 4.1.4 建议类型（SuggestionType）
+
+```python
+class SuggestionType(Enum):
+    MUST_FIX = "must_fix"       # 必修（影响功能）
+    SHOULD_FIX = "should_fix"   # 应改（影响体验）
+    COULD_FIX = "could_fix"     # 可改（优化建议）
+```
+
+### 4.2 数据结构定义
+
+#### 4.2.1 通用元数据（CommonMeta）
+
+> **版本规则（增量迭代）**：
+> - `version` 标识**同一需求文档**的迭代版本，**初始版本为 `v1.0`**
+> - 后续同一需求文档可创建新版本（如 `v2.0`/`v2.1`），表示"商城优化2.1"等增量变更
+> - **版本语义**：
+>   - `vN.0`：需求范围大幅调整（如新增模块、重构核心流程）→ **全量重生成**
+>   - `vN.M (M≥1)`：增量优化/补丁 → **仅生成变更点**（改动点拆解 + 增量 TP/TC）
+> - **流转规则**：
+>   - S1 评审时需识别"自上一版本（vN.M-1）以来的**改动点**（diff）"，写入 `requirement_objects.json#changelog`
+>   - S2 拆解：复用历史版本的 Story，新增"vN.M 改动 Story"挂到对应 Epic
+>   - S3-S7：基于 `changelog` 过滤，只对**新增/变更的 Story** 产生 TP/TC
+>   - S8：跨版本对比，识别新增缺陷模式
+> - **目录结构**：`workflow_assets/<req_name>/<version>/「S2 需求拆解」/...`（不同版本独立目录）
+
+```json
+{
+  "meta": {
+    "req_name": "需求名称",
+    "stage": "S5",
+    "stage_name": "测试点生成",
+    "version": "v1.0",
+    "created_at": "<ISO 8601 时间戳>",
+    "created_by": "AIDocxWorkFlow",
+    "dependencies": {
+      "S2": "v1.0",
+      "S4": "v1.0"
+    }
+  }
+}
+```
+
+#### 4.2.2 执行上下文（ExecutionContext）
+
+```python
+@dataclass
+class ExecutionContext:
+    req_name: str
+    stage: StageStatus
+    version: str
+    input_dir: Path
+    output_dir: Path
+    config: Dict[str, Any]
+    logger: Logger
+    metadata: CommonMeta
+```
+
+### 4.3 质量阈值常量（v27 SSOT 唯一源）
+
+> **v27 B1 修订**：本节是项目**阈值常量的唯一真相源**（SSOT）。所有具体阈值数字必须从本节读。修改阈值只改本节；其他章节（§2.3 等）改为"读 §4.3"索引。
+>
+> **本节与 §2.3 关系**：§2.3 是判定逻辑速查表；本节是阈值常量 SSOT。两者职责分离。
+
+| 常量 | 值 | 说明 | 统计公式 |
+|------|------|------|----------|
+| `S1_MIN_SCORE` | 7.0 | S1 通过最低评分 | `总分 = Σ(维度权重 × 维度得分)` <br> 完整性(25%) + 清晰度(25%) + 一致性(20%) + 可测试性(20%) + 可行性(10%) |
+| `S2_MIN_ACCURACY` | 0.90 | S2 Epic 拆解最低精度 | `精度 = (Epic 正确拆解数) / (Epic 总数)` |
+| `S4_ANOMALY_COVERAGE` | 1.0 | S4 异常路径覆盖率（必须 100%，未覆盖部分需显式标注原因） | `覆盖率 = (S5 TP 引用叶子数) / (S4 产出叶子总数)` |
+| `S5_MIN_TP_PER_STORY` | ≥ 6（指导值） | S5 每 Story 测试点数量建议值（实际按业务风险灵活调整） | `每 Story TP 数 = Σ(Story_i 的 TP 总数) / Story 总数` |
+| `S5_OB J_COVERAGE` | 1.0 | S5 OBJ 覆盖率（必须 100%，） | `覆盖率 = TP 引用的 OBJ 数 / S2 OBJ 总数` |
+| `S5_FP_COVERAGE` | 1.0 | S5 FP 覆盖率（必须 100%，） | `覆盖率 = TP 引用的 FP 数 / S2 FP 总数` |
+| `S5_S3_REF_COVERAGE` | 1.0 | S5 UI 模块 S3 引用覆盖率（必须 100%，） | `覆盖率 = TP 引用的 UI 节点数 / prototype.md UI 节点总数` |
+| `S5_S4_REF_COVERAGE` | 1.0 | S5 BIZ 模块 S4 引用覆盖率（必须 100%，） | `覆盖率 = TP 引用的 scenario 数 / §4 层 scenario 总数` |
+| `S6_FIELD_COMPLETION_RATE` | ≥ 90% | S6 必填字段填写率 | `填写率 = 已填字段数 / 必填字段总数` |
+| `S6_OBJ_COVERAGE` | 1.0 | S6 OBJ 覆盖率 | `覆盖率 = TC 引用的 OBJ 数 / S2 OBJ 总数` |
+| `S6_FP_COVERAGE` | 1.0 | S6 FP 覆盖率 | `覆盖率 = TC 引用的 FP 数 / S2 FP 总数` |
+| `S8_MIN_SUGGESTIONS` | 3 | S8 最少可执行建议数 | `可执行建议数 = 审查报告中有明确执行路径的建议条数` |
+
+> ⚠️ **S5_MIN_TP_PER_STORY 已废除（v33 VC2）**：`≥ 6` 从本常量表移除，被 `S5_SCC_SOFT_LOWER_FACTOR` 取代（见 §4.3.2）。
+
+| `S5_SCC_SOFT_LOWER_FACTOR` | 0.8 | S5 每 Story TP 数软下限系数 | `软下限 = 理论TP数 × 0.8` |
+| `S5_TP_TYPE_FACTOR_POSITIVE` | 1.5 | POSITIVE 类 TP 类型系数 | `理论TP数 = SCC × TP_TYPE_FACTOR` |
+| `S5_TP_TYPE_FACTOR_BOUNDARY` | 1.0 | BOUNDARY 类 TP 类型系数 | 同上 |
+| `S5_TP_TYPE_FACTOR_NEGATIVE` | 1.0 | NEGATIVE 类 TP 类型系数 | 同上 |
+| `S5_TP_TYPE_FACTOR_EXCEPTION` | 0.5 | EXCEPTION 类 TP 类型系数 | 同上 |
+
+| `BYPASS_EXCEPTION_RATE_WARNING` | 0.20（> 20% → 🟡） | bypass 例外率黄色预警阈值 | `例外率 = bypass_count / total_gates` |
+| `BYPASS_EXCEPTION_RATE_CRITICAL` | 0.40（> 40% → 🔴） | bypass 例外率红色预警阈值 | `例外率 = bypass_count / total_gates` |
+| `BYPASS_TOTAL_GATES` | 10 | 门禁分母基准（动态，详见下方注） | S1(1) + S1.5(1) + S2(1) + S4(2) + S5(2) + S6(3) |
+| `S5_UI_NODE_COVERAGE` | 1.0 | S5 UI TP ui_node_refs 覆盖率（必须 100%，未覆盖节点需 skip_reason）| `覆盖率 = len(TP.ui_node_refs ∪ prototype.ui_nodes) / prototype.ui_nodes 总数` |
+| `S5_DENSITY_OBJ_COVERAGE` | 1.0 | S5 per-OBJ 4类型齐全率（必须 100%，未达标需 skip_reason）| `density = 4类型齐全OBJ数 / OBJ总数` |
+
+> **v30 B2 口径修订**：实际分母 = `BYPASS_TOTAL_GATES - 未触发门禁数`。不走 S3 则 S5_UI_COVERAGE 门禁不计入；不走 S1.5 则 bypass 不计入；未触发门禁不计入分子分母。分母≠10 的情况示例：仅走 S6（分母=3），跳过 S1/S1.5/S2/S4/S5 时 bypass 例外率分母=3。
+>
+> **v30 B4 口径修订**：异常路径覆盖率 `S4_ANOMALY_COVERAGE = 1.0` 维持（有效风险必须 100% 处置）；分母重构为"适用风险叶子数"（仅含跳过 skip_reason = `out_of_scope` / `deprecated` 的叶子），已在 `governance/design_iter/plans/v28/current/v28_dt_b2_b4.md` 评估，尚未进入本规则正文。
+
+> **动态分母**：不走 S3 则 UI 覆盖率不计入（实际分母 = 10 - 未触发门禁数）。
+
+> ⚠️ **S7 硬阈值已废除（v2.0）**：`S7_COVERAGE_THRESHOLD = 0.85` 和 `S7_STRUCTURE_THRESHOLD = 0.90` 从本常量表中移除。S7 无硬阈值，脚本输出数字，LLM 按业务实际判断。
+
+| `AIDOCX_S3_MODE` | `lightweight` | S3 模式：`lightweight` = 页面清单+核心流图；`depth` = 完整 UI 节点清单+交互状态机 | 用户强制 / LLM 智能判定（UI 占比 > 30%） |
+| `AIDOCX_S3_UI_THRESHOLD` | 0.30 | UI 占比触发阈值 | `ui_ratio = UI Story 数 / 总 Story 数` |
+
+### 4.3.1 异常路径覆盖率统计公式
+
+> ⚠️ **风险警示**：未覆盖的异常路径可能在生产环境造成更高成本的风险（如资金损失、合规问题、用户体验崩坏）。因此覆盖率目标为 **1.0（100%）**，未覆盖部分必须显式记录原因，由业务方决策是否接受风险。
+
+**统计流程**：
+
+```
+S4 产出异常树叶子节点（格式：S4-{EpicID}-X.Y.Z）
+        ↓
+S5 生成 TP 时引用 s4_reference / exception_leaf
+        ↓
+S7 审查员 B 校验覆盖率
+```
+
+**计算公式**：
+
+```
+异常路径覆盖率 = S5 TP 引用的异常树叶子节点数 / S4 产出的异常树叶子节点总数
+```
+
+**示例**：
+
+| 指标 | 值 |
+|-----|---|
+| S4 产出叶子节点 | 20 个 |
+| S5 引用叶子节点 | 18 个 |
+| 未覆盖叶子节点 | 2 个（需显式标注原因） |
+| 异常路径覆盖率 | 18/20 = 0.90 |
+| 阈值要求 | 1.0（100%） |
+| 判定结果 | 未达标，需补充或记录原因 |
+
+**未覆盖节点处理规则**：
+
+1. **显式标注**：在 S5 test_points.json 中，未覆盖的叶子节点标记为 `covered: false` + `skip_reason`
+2. **原因分类**：
+   - `deprecated`：该路径已被废弃
+   - `out_of_scope`：明确不在本期需求范围
+   - `low_risk`：业务评估为低风险，选择性跳过
+   - `manual_test`：仅人工测试，不纳入 TP
+   - `unknown`：S5 阶段无法理解该异常，需回溯 S4 澄清
+3. **S7 审查**：审查员 B 验证未覆盖节点是否均有合理的 `skip_reason`
+
+### 4.3.2 故事复杂度系数（SCC）
+
+> **v33 VC2 新增**：从 v31 §2.5 草案迁移至 SSOT，替代旧约束 `S5_MIN_TP_PER_STORY ≥ 6`（已废除）。
+
+**核心公式**：
+
+```
+SCC = |actors| × |states| × |timings| × |boundaries| × |exceptions|
+理论 TP 数 = SCC × TP_TYPE_FACTOR
+软下限 = 理论 TP 数 × 0.8
+```
+
+**TP_TYPE_FACTOR 映射**（常量见 §4.3）：
+
+| test_point_type | 系数 | 说明 |
+|----------------|------|------|
+| POSITIVE | 1.5 | 正常路径权重最高 |
+| BOUNDARY | 1.0 | 边界值 |
+| NEGATIVE | 1.0 | 负面验证 |
+| EXCEPTION | 0.5 | 异常路径 |
+
+**维度说明**：
+
+| 维度 | 来源 | 简单 | 复杂 |
+|------|------|------|------|
+| actors（行为主体）| `requirement_objects.json#objects[].scene` 中主体角色 | 1 | ≥ 3 |
+| states（对象状态）| `requirement_objects.json#objects[].feature_points[].normal_flow` 中的状态节点 | 1~2 | ≥ 5 |
+| timings（时序变体）| `backlog.json#stories[].acceptance_criteria[]` 步骤数 + 时序关键词（零/跨日/并发）| 1 | ≥ 3 |
+| boundaries（边界条件）| `requirement_objects.json#objects[].feature_points[].input` 中数值范围 | 1~4 | ≥ 4 |
+| exceptions（异常分支）| `requirement_objects.json#objects[].feature_points[].exception_flow[]` + S4 `business_flow.json#exception_tree_leaves[]` | 1 | ≥ 5 |
+
+**使用规则**：
+
+1. 对每个 Story，先估算 5 个维度的值
+2. 计算 SCC = 5 维度连乘
+3. 确定主 test_point_type，计算理论 TP 数
+4. **若实际 TP 数 < 软下限** → `assumption_basis` 说明"缺少 {维度} 维度 TP"
+5. 不设硬上限（复杂 Story 可以 SCC ≥ 100，对应 150+ 理论 TP）
+
+**示例**（商城道具购买 Story）：
+
+```
+actors=2（玩家+系统）× states=5 × timings=3 × boundaries=4 × exceptions=5
+= SCC=600
+→ 理论 TP（POSITIVE）= 600 × 1.5 = 900
+→ 软下限 = 900 × 0.8 = 720
+```
+
+**与其他阈值的关系**：
+
+| 旧约束 | 状态 | 替代 |
+|--------|------|------|
+| `S5_MIN_TP_PER_STORY = ≥ 6` | **废除**（v33 VC2）| 被 SCC 软下限取代 |
+| `≤ 50 TP/Story` 硬上限 | **废除**（v31 已废）| 无上限 |
+
+### 4.3.3 per-OBJ 4类型齐全率（density-OBJ）
+
+> **v33 VC3-L4 新增**：补充 v31 OBJ 覆盖率（集合维度）的密度维度。
+
+**覆盖对象**：每 OBJ 的 4 类型 TP（POSITIVE / BOUNDARY / NEGATIVE / EXCEPTION）
+
+**4 类型说明**：
+
+| 类型 | 含义 | 典型场景 |
+|------|------|---------|
+| POSITIVE | 正常路径验证 | 余额充足时购买成功 |
+| BOUNDARY | 边界值验证 | 数量=99（最大购买数）|
+| NEGATIVE | 错误/无效输入验证 | 输入非法道具ID |
+| EXCEPTION | 异常分支验证 | 余额不足时订单失败 |
+
+**示例**（v3.01 样本）：
+
+| 指标 | 值 |
+|---|---|
+| OBJ 总数 | 36 |
+| 4 类型齐全 OBJ | 8 |
+| density | 8/36 = 22.2% |
+| 缺 NEGATIVE 的 OBJ | 28 |
+| 缺 BOUNDARY 的 OBJ | 12 |
+
+**阈值**: `S5_DENSITY_OBJ_COVERAGE = 1.0`
+**未达标**: `skip_reason` 显式标注（`low_risk` / `out_of_scope` / `deprecated`）
+
+**与其他覆盖率的关系**：
+
+| 维度 | 公式 | v3.01 基线 |
+|------|------|-----------|
+| OBJ 覆盖率（集合）| 有 TP 的 OBJ / OBJ 总数 | 36/36 = 100% |
+| density-OBJ（密度）| 4类型齐全 OBJ / OBJ 总数 | 8/36 = 22.2% |
+
+### 4.3.4 UI TP 控件级覆盖率（ui_node_coverage）
+
+> **v33 VC3-L3 新增**：UI TP 引用具体 prototype 控件 ID，实现机器可校验的 UI 控件覆盖率。
+
+**覆盖对象**：UI 模块 TP 的 `ui_node_refs` 字段
+
+**字段格式**（S5 test_points.json 新增字段）：
+
+```json
+{
+  "tp_id": "UI-001-001-TP-001",
+  "module": "UI",
+  "test_point_type": "POSITIVE",
+  "description": "商城首页加载完成，验证热门道具展示",
+  "ui_node_refs": [
+    "page_001_node_hot_item_list",
+    "page_001_node_search_box"
+  ]
+}
+```
+
+**覆盖率公式**：
+
+```
+ui_node_coverage = len(TP.ui_node_refs ∪ prototype.ui_nodes) / prototype.ui_nodes 总数
+```
+
+**示例**（v3.01 样本）：
+
+| 指标 | 值 |
+|---|---|
+| prototype.ui_nodes 总数 | 73 |
+| TP.ui_node_refs 并集 | 0（当前无引用）|
+| ui_node_coverage | 0/73 = 0% |
+
+**阈值**: `S5_UI_NODE_COVERAGE = 1.0`
+**未达标**: `covered: false` + `skip_reason`（同 §4.3.1 异常路径规则）
+
+**S6 TC 间接引用**：S6 衍生 TC 时，`steps[].action` 可引用控件 ID：
+
+```json
+{
+  "steps": [
+    {"action": "点击 [page_001_node_hot_item_list] 热门道具第1个卡片"},
+    {"action": "验证 [page_001_node_price_label] 显示价格"}
+  ]
+}
+```
+
+### 4.4 文件命名规范
+
+| 文件类型 | 命名模式 | 示例 |
+|---------|---------|------|
+| 原始需求 | `<req_name>_raw.<ext>` | `商城系统_raw.docx` |
+| 提取文本 | `extracted_text.md` | — |
+| 评审报告 | `review_report.md/json` | — |
+| 澄清清单 | `clarification_checklist.md` | — |
+| 终版需求 | `终版需求.md` | — |
+| 准出许可 | `exit_permission.json` | — |
+| Backlog | `backlog.md/json` | — |
+| 流程图 | `business_flow.md/json` | — |
+| 原型 | `prototype.md/json` | — |
+| 测试点 | `test_points.json` | — |
+| 测试用例 | `test_cases.json`（公共默认） / `test_cases.md,xlsx`（项目级导出） | — |
+| 失败报告 | `fail_report_S*.md` | `fail_report_S5.md` |
+| 版本历史 | `version_history.md` | — |
+
+### 4.5 目录层级常量
+
+> **v8 变更**：目录主轴从"先阶段再版本"改为"先版本再阶段"——
+> `workflow_assets/<req_name>/<version>/「S{n}」/...`
+> 详细说明见 §2.6。`STAGE_PATTERNS` 只定义**阶段名常量**，路径拼接顺序由调用方决定。
+
+```python
+ROOT_DIR = Path("workflow_assets")
+STAGE_PATTERNS = {
+    "S1": "「S1 需求评审」",
+    "S1.5": "「S1.5 业务澄清」",
+    "S2": "「S2 需求拆解」",
+    "S2.5": "「S2.5 迭代规划」",
+    "S3": "「S3 原型导出」",
+    "S4": "「S4 流程图导出」",
+    "S5": "「S5 测试点生成」",
+    "S6": "「S6 测试用例生成」",
+    "S7": "「S7 用例审查」",
+    "S8": "「S8 自迭代」",
+}
+
+# 标准路径拼接（v8+）
+def stage_dir(req_name: str, version: str, stage: str) -> Path:
+    """workflow_assets/<req_name>/<version>/「S{n} 阶段名」"""
+    return ROOT_DIR / req_name / version / STAGE_PATTERNS[stage]
+```
+
+### 4.6 标准化字段映射
+
+| 业务字段 | JSON 键 | Markdown 锚点 |
+|---------|---------|--------------|
+| 测试点 ID | `test_point_id` | `# TP-{ID}` |
+| 用例 ID | `test_case_id` | `# TC-{ID}` |
+| Story ID | `story_id` | `## Story-{ID}` |
+| Epic ID | `epic_id` | `# Epic-{ID}` |
+| 模块标识 | `module` | `### [模块]` |
+| 优先级 | `priority` | `> 优先级: P0` |
+
+---
+
+## 5. 跨阶段判决规则（Cross-Stage Decisions）
+
+### 5.1 阶段跳转规则
+
+```
+S1 PASS (≥ 如 §4.3 S1_MIN_SCORE 配置所示) → S1.5 澄清流程
+S1 FAIL (< 如 §4.3 S1_MIN_SCORE 配置所示) → fail_report_S1 → 等待人工介入
+S1.5 P0 全部填写 → exit_permission.can_proceed = true → S2
+S2 执行 → S3/S4/S5 并行可选
+S5 → S6 → S7
+S7 review_report 账本无 uncovered/partial → 流程结束
+S7 review_report 账本存在 uncovered/partial → S8 自迭代
+```
+
+### 5.2 is_assumed 标记规则
+
+当上游材料缺失关键信息时：
+
+1. 标记 `is_assumed: true`
+2. 记录假设内容到 `assumption_log.md`
+3. 在下游产出中明确标注
+4. S7 审查时重点验证假设合理性
+
+### 5.3 全局违规认定
+
+以下行为视为全局违规：
+
+| 违规类型 | 描述 | 处理方式 |
+|---------|------|---------|
+| 硬编码阈值 | 阈值未集中管理 | 需重构到 `config.py` |
+| 跨模块直接调用 | 未通过标准化接口 | 需重构解耦 |
+| 忽略失败报告 | 未生成 `fail_report_*` | 需补全 |
+| 版本号混乱 | 未遵循版本规范 | 需规范化 |
+| 路径硬编码 | 未使用 `Path` 对象 | 需重构 |
+
+---

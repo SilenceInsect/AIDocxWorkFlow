@@ -1,0 +1,723 @@
+---
+description: AIDocxWorkFlow Stage 6 — 测试用例生成（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S6 — 测试用例生成
+
+> **独立阶段**：可以单独调用。上游材料（S5 test_points.json）审查合格后开始，失败写失败报告。
+
+## 第一原则
+
+> **S6 当前不是在做代码实现，也不是在写最短答案，而是在闭合需求覆盖缺口。**
+> **默认目标不是最少用例，而是基于 `coverage_ledger.json` 显式完成覆盖；任何未闭合点必须进入 `omission_ledger.json`。**
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s6-test-cases` 或粘贴 S5 test_points.json
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S5 test_points.json（**必须读取**） | `workflow_assets/<req_name>/<version>/「S5 测试点生成」/test_points.json` | 每个 TP 含 module / test_point_type |
+| S2 backlog（**必须读取**） | `workflow_assets/<req_name>/<version>/「S2 需求拆解」/backlog.md` | 作为优先级参考 |
+| S4 business_flow.md（**必须读取**） | `workflow_assets/<req_name>/<version>/「S4 流程图导出」/business_flow.md` | 用于理解业务流程和风险场景 |
+| 模块子模板（**必须读取**） | `knowledge/public/module_templates/`（按 TP 的 module 字段） | 每个模块的子类枚举决定 TC 方法选择 |
+
+**前置材料缺失时**：生成失败报告，停止 S6。
+
+---
+
+## §1.4 LLM 必读材料（阶段前置）
+
+**生成测试用例前，必须先读取以下全部材料。禁止凭印象直接生成。**
+
+| # | 材料 | 路径 | 读取原因 |
+|---|---|---|---|
+| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | 所有 TP 必须有模块前缀；模块 × 类型双维度决定 TC 拓宽方向 |
+| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md） | HINT vs UI、BIZ vs CONFIG 是 S6 高误标区；判定前必须读取 |
+| 3 | S5 test_points（**必须读取**） | `workflow_assets/<req_name>/<version>/「S5 测试点生成」/test_points.json` | 每个 TP 的 module / test_point_type 是 TC 拓宽的输入 |
+| 4 | S4 business_flow（**必须读取**） | `workflow_assets/<req_name>/<version>/「S4 流程图导出」/business_flow.md` | 异常决策树和风险点是 EXCEPTION TC 的核心来源 |
+| 5 | 模块子模板 | `knowledge/public/module_templates/`（按 TP 的 module 字段） | 每个模块的子类枚举（如 BIZ→A-I、HINT→A-M）决定 TC 方法选择 |
+
+---
+
+## 核心原则
+
+### 当前设计哲学
+
+> - **LLM 负责推理**：从 S5 TP 派生出几个 TC、用什么方法、步骤怎么写——全部由 LLM 推理决定
+> - **脚本只负责整理**：ID 分配 / 字段归一化 / 写文件
+> - **不设硬指标**：1:1 也行、1:5 也行、1:20 也行——业务复杂度自然决定
+> - **coverage-first**：不设硬比例 ≠ 可以收缩覆盖；必须优先闭合 Story / requirement object / scenario family 的覆盖缺口
+> - **16 种方法学必走**：每 TC ≥ 2 种方法学 tag，每功能 union ≥ 4 种，全局 ≥ 8 种
+
+**禁止出现的行为**：
+- ❌ 按"18 种测试方法派生系数"生成 TC
+- ❌ 按模块风险加权表分配优先级
+- ❌ 用脚本推导 TC 数量
+- ❌ 用脚本分配 test_method 字段
+- ❌ 强制 TP:TC = 1:N 的比例约束
+- ❌ 用模板语言编写步骤和预期结果
+- ❌ 因为"实现可能共用逻辑"而合并不同需求对象的测试意图
+- ❌ 因为"代码层已覆盖"而省略产品层测试设计
+- ❌ 因为不确定而静默省略；必须记录到 omission ledger
+- ❌ **违规**：methodology_tag < 2 种、HINT 作 TC 前缀、未走全 10 场景族、未做四象限展开
+
+## 运行时前置
+
+S6 启动时必须先由脚本生成以下文件，缺任一文件 = 阶段未开始：
+
+| 文件 | 作用 |
+|---|---|
+| `stage_context.md` | 汇总全局规则、当前阶段规则、上下游契约、历史失败模式 |
+| `stage_context.json` | 机器可读上下文包 |
+| `read_ack.json` | 记录阶段已读材料和全局目标确认 |
+
+> **禁止**在没有 `stage_context.*` 和 `read_ack.json` 的情况下直接生成测试用例。
+
+## 强制账本
+
+S6 正式产物以 `test_cases.json` 为公共默认产物；若任务已确认项目且命中项目级导出配置，可额外生成 `test_cases.md` / `test_cases.xlsx`。此外新增两份强制账本：
+
+| 文件 | 要求 |
+|---|---|
+| `coverage_ledger.json` | 按 Story 记录 expected/covered scenario families、covered_by、status |
+| `omission_ledger.json` | 记录所有 partial/uncovered 点及原因 |
+
+### 最低覆盖要求
+
+1. 每个 Story 至少有一条主路径和一条风险路径，除非 omission ledger 写明豁免理由。
+2. 每个 TC 必须能追溯到 coverage ledger 中的一个或多个 coverage gap。
+3. 合并用例时，必须在备注里声明合并闭合了哪些 coverage 点。
+
+---
+
+## 字段语义规范
+
+**LLM 自由创作，不是模板填充。**
+
+| 字段 | 定义 | 内容要求 |
+|------|------|----------|
+| **用例描述** | 用例标题 | **需求对象名称**（来自 S2 requirement_object.title），禁止加后缀、禁止加括号、禁止任何分隔符 |
+| **功能描述** | 该用例验证的需求对象的功能点 | **LLM 自然语言创作**，描述"这个需求对象做了什么/起了什么作用"，禁止复制 S4/S5 的节点名称 |
+| **前置条件** | 进入用例前系统所处的初始状态 | 具体数值（余额=xxx、道具备注=xxx），禁止模糊描述 |
+| **操作步骤** | 玩家或策划的具体行动 | **每步包含具体 UI 元素名或具体数值**；禁止模板语言 |
+| **预期结果** | 操作后系统应产生的行为 | **纯业务结果**；禁止引用 S4 编号，禁止括号说明；**一 TC 一预期原则**（`expected_results` 数组只含 1 项），禁止多条预期并置 |
+| **test_method** | （可选）LLM 标注的测试方法 | 自由字符串，例如"等价类划分" / "异常流容错"——**不强制必须填** |
+| **test_scenario** | （可选）方法下的具体场景 | 自由字符串，例如"空值" / "边界+1" / "超时30s"——**不强制必须填** |
+
+**正确 vs 错误对比**：
+
+```
+✅ 用例描述: 购买确认流程
+✅ 功能描述: 余额不足时购买按钮禁用
+✅ 操作步骤: 1. 玩家余额=1000游戏币，道具单价=500
+            2. 尝试购买数量=3（总价=1500）
+            3. 系统检测余额不足
+✅ 预期结果: 1. 购买确认弹窗显示余额不足提示
+            2. 【购买】按钮禁用（灰色不可点击）
+
+❌ 用例描述: 购买确认弹窗 — 正常展示道具信息   （加了后缀，分隔符）
+❌ 功能描述: 余额不足时购买按钮禁用（引用S4-R01）  （加了括号引用）
+❌ 操作步骤: 执行操作：验证结果                     （模板语言）
+❌ 预期结果: 余额不足提示（引用S4-1.3异常树）      （括号引用）
+```
+
+---
+
+## 公共用例格式（JSON）
+
+| 字段 | 说明 | 级别 |
+|------|------|-----------------|
+| `case_id` | `{Module}-TC-{NNN}`，如 `UI-TC-001` | **MUST** |
+| 模块 | `UI` / `BIZ` / `CONFIG` / `AUX` / `LINK` / `SPECIAL` / `LOG` / `HINT`（8 模块全名，禁止旧 4 字母缩写） | **MUST** |
+| 用例描述 | 需求对象名称（来自 S2 requirement_object.title），无分隔符 | **SHOULD**（字符串严格相等 S2 obj_name, 缺失触发警告） |
+| 功能描述 | LLM 自然语言，描述"这个需求对象做了什么/起了什么作用"，禁止引用 S4/S5 节点 | **MUST** |
+| 前置条件 | 具体数值，禁止模糊描述 | **MUST** |
+| steps | 结构化数组，每 TC 只含 1 个元素 `{step_num: 1, action: ...}`，禁止多步并置 | **MUST** |
+| expected_results | 字符串数组，每 TC 只含 1 项，禁止多条预期并置 | **MUST** |
+| 优先级 | LLM 根据业务风险自由决定，脚本不强制分配 | **MUST**（必须 P0/P1/P2/P3 之一） |
+| 用例状态 | Draft / Ready / Rejected / Deprecated | **SHOULD** |
+| 备注 | 边界条件、测试数据要求 | **SHOULD** |
+| **obj_id** | S2 需求对象 ID | **MUST**（必填——S2 `requirement_object.id`） |
+| **feature_point_id** | S2 OBJ 的 FP ID | **MUST**（必填——当 TC 对应某 FP 时） |
+| **s5_ref** | S5 TP ID | **MUST**（必填——S5 `scenario_test_points[].tp_id`） |
+| `boundary` | 具体边界值或"无" | **SHOULD** |
+| `tags` | 标签数组，便于检索 | **COULD** |
+
+> **三级强制说明**（字段溯源版）：
+> - **MUST** = 必填，缺失 → `scripts/check_field_completion.py --stage s6` 退出码 1
+> - **SHOULD** = 推荐填，缺失 → 警告（默认不强制；`--strict` 模式或 S6 填写率 < 80% 时报错）
+> - **COULD** = 可选填，缺失不警告
+> - SSOT：`scripts/check_field_completion.py` 的 `FIELD_SPECS["s6"]`
+
+### 字段双向映射表（canonical 中文 ↔ legacy English 别名 · SSOT）
+
+**Round 12 新增** — S6 接受"legacy English 字段别名"。下表是 canonical（SSOT 标准）与 legacy（v17/v3.01 历史产物）字段名的双向映射关系；下表中 legacy 列出的字段名在 S6 L1 校验器中**等价于** canonical 字段，可互相镜像。
+
+| Canonical（中文 · SSOT） | Legacy（英文别名） | 别名优先级（按列顺序） | 备注 |
+|---|---|---|---|
+| `前置条件` | `precondition` / `preconditions` | canonical > precondition > preconditions | 列表自动 `\n` join 成字符串 |
+| `操作步骤` | `test_steps` / `steps` | canonical > test_steps > steps | 列表/dict 自动 join/dumps |
+| `预期结果` | `expected_result` / `expected_results` / `expected` | canonical > expected_result > expected_results > expected | 列表/dict 自动 join/dumps |
+| `优先级` | `priority` | canonical > priority | 必须是 `P0/P1/P2/P3` |
+| `用例描述` | `title` / `scenario` | canonical > title > scenario | 仅用作 LLM 描述 |
+| `功能描述` | `scenario` / `description` / `functional_description` | canonical > scenario > description > functional_description | LLM 自然语言 |
+| `用例状态` | `case_status` / `status` | canonical > case_status > status | 必须是 `Draft/Ready/Rejected/Deprecated` |
+
+**幂等性保证**：
+
+- 已填 canonical 字段**绝不覆盖**（idempotency contract）—— legacy 仅作 fallback。
+- 已填 legacy 字段值**自动镜像**到 canonical（`mirror_bilingual_aliases` 函数）。
+- L1 校验器与 xlsx formatter 都先读 canonical，再回退 legacy——同源表现。
+
+**case_id 命名空间（Round 12 修订）**：
+
+- Canonical 格式：`{Module}-TC-{NNN}`（如 `UI-TC-007`）
+- Legacy 格式：`TC-{NNN}`（如 `TC-007`）—— 由 `normalize_case_id` 自动按 `module` 注入前缀
+- 已为 canonical 格式的 `case_id` **不重复处理**（idempotency）
+
+### 数据归一化前置（Round 12 新增 · v3.01 数据合规条款）
+
+> **本节是 v3.01 数据的硬性前置**——任何未先经 `case_id_and_field_normalizer.normalize_payload()` 归一化的 v3.01 数据，跑 L1S6Validator 时会**全部 FAIL**（331 cases × 4 fields = 1324 errors）。
+
+**v3.01 数据合规步骤**：
+
+1. **必须先调用** `case_id_and_field_normalizer.normalize_payload(cases)`：
+   - `case_id` 加模块前缀（`TC-NNN` → `{Module}-TC-{NNN}`）
+   - 4 个字段别名（preconditions / steps / expected_results / priority）→ 中文镜像
+2. **再调** `L1S6Validator.run_l1_check()` 跑校验
+3. **再调** `case_status_writer.apply_l1_l2_status()` 写回 `Ready` / `Draft`
+
+**入口**：
+
+```python
+from ai_workflow.case_id_and_field_normalizer import normalize_payload, evaluate_status
+from ai_workflow.case_status_writer import apply_l1_l2_status_per_case
+from ai_workflow.test_case_formatter import _save_xlsx
+
+cases = normalize_payload(payload)[0]                    # (1) 归一化
+result = evaluate_status(cases, objs=objs, tps=tps)       # (2) L1 + L2 校验
+_save_xlsx(cases, output_dir, output_path=xlsx_path)     # (3) xlsx 导出
+```
+
+**典型错误路径**（v3.01 直接喂 L1）：
+
+```
+L1S6Validator.validate_required_fields → 1324 errors (331 cases × 4 字段)
+L1S6Validator.validate_id_naming → 331 errors (缺模块前缀)
+→ 所有 TC 全部写回 Draft → 双 Sheet 附录 332 行 / 主表 0 行 ❌
+```
+
+**正确路径**（v3.01 先归一化）：
+
+```
+normalize_payload → 331 id_rewrites + 1324 alias_mirrors
+L1S6Validator → 0 errors（全部合规）
+L2S6Validator (lenient mode) → 0 failed_ids（v17 字段溯源版 SSOT 对齐）
+→ 全部 331 TC 写回 Ready → 双 Sheet 主表 331 行 / 附录 0 行 ✅
+```
+
+### 用例状态转换规则
+
+| 状态 | 语义 | 写入方 | 转换条件 |
+|---|---|---|---|
+| `Draft` | S6 L1 校验未通过 / L2 校验未通过 | `case_status_writer.apply_l1_l2_status_per_case` | per-case 决策：`L1S6Validator.run_l1_check().passed == false`（任一 case_id 在错误列表中）或 `L2S6Validator` 标记该 case 为 failed_id |
+| `Ready` | S6 L1 ∧ L2 双通过 | `case_status_writer.apply_l1_l2_status_per_case` | per-case 决策：`(L1S6Validator.passed AND L2S6Validator.passed)` 对该 case 成立 |
+| `Rejected` | S7 存在必修项 | `s7_status_writer.py` | `recommendations.must_fix[]` 任一项的 `severity == MUST_FIX`，仅允许 `Ready → Rejected` |
+| `Deprecated` | 需求变更或 OBJ 废弃 | S8 | 由 S8 迭代流程赋值；per-case 写回时**不被覆盖**（frozen_statuses） |
+
+**Round 12 修订要点**：
+
+1. **L1 ∧ L2 双门**：从 v17 字段溯源版起，`Ready` 要求 L1 通过**且** L2 通过；任一失败 → `Draft`。这是 v15 时代"仅 L1 即可 Ready"的修订，详见 §S6 L2 校验器入口 与 `ai_workflow/case_id_and_field_normalizer.evaluate_status`。
+2. **per-case 写回**：使用 `case_status_writer.apply_l1_l2_status_per_case()`（Round 12 新增），从 `l1_result["errors"][].id` 与 `l2_result["failed_ids"]` 提取失败 case_id 集合，每条 case 独立判定。**取代** 旧的 `apply_l1_l2_status` bulk 写回（"任一失败 → 全部 Draft"）；旧 API 保留（向后兼容 Round 11 测试）。
+3. **l2_mode 参数**（SSOT 冲突调和）：`case_id_and_field_normalizer.evaluate_status(..., l2_mode=...)` 三档：
+   - `"lenient"`（**默认**，与 v17 字段溯源版 SSOT 对齐）：当 `obj_name` / `fp_name` / `s5_ref` / `obj_id` / `feature_point_ref` 全字段齐全即 PASS，不再要求文本中嵌入 `【OBJ-XXX】` 锚点。
+   - `"strict"`：保留 `L2S6Validator.run_l2_check` 原行为（锚点 / 动词 / 断言 token）——用于 v15 时代数据 + 旧测试覆盖。
+   - `"off"`：跳过 L2，回退 L1-only 行为。
+4. **frozen_statuses**：`Rejected` / `Deprecated` 不被 `apply_l1_l2_status_per_case` 覆盖（S7 / S8 领地）。如需恢复 `Ready`，须先由对应 writer 清掉状态再调用本函数。
+5. **normalizer 入口**：legacy v3.01 数据（English 字段别名 + `TC-NNN` case_id）需先经 `ai_workflow/case_id_and_field_normalizer.normalize_payload()` 才能跑 L1∧L2 校验。这是 v3.01 数据收敛的唯一路径（**不动** v3.01 JSON，遵守 `goal_s6_case_status_redefinition.md §out_of_scope` §10）。
+
+`S6` 生成器不得硬编码 `Draft`；状态必须在 L1 ∧ L2 结果产生后由 `case_status_writer` 统一写回。禁止使用 `discarded`，禁止依赖已废除的 S7 `overall` / `overall_pass` 字段。
+
+#### 写回入口（SSOT 引用）
+
+| 函数 | 文件 | 用途 |
+|---|---|---|
+| `apply_l1_l2_status_per_case` | `ai_workflow/case_status_writer.py` | per-case 写回（**Round 12 推荐**） |
+| `apply_l1_l2_status` | `ai_workflow/case_status_writer.py` | bulk 写回（**已废弃**，保留向后兼容） |
+| `apply_l1_status` | `ai_workflow/case_status_writer.py` | L1-only 旧 API 别名（已废弃） |
+| `apply_rejected_status` | `ai_workflow/s7_status_writer.py` | S7 触发 `Ready → Rejected` |
+| `normalize_payload` | `ai_workflow/case_id_and_field_normalizer.py` | legacy v3.01 数据前置归一化（Round 12 新增） |
+| `evaluate_status` | `ai_workflow/case_id_and_field_normalizer.py` | L1∧L2 联合校验 + 写回（Round 12 新增） |
+
+### 双 Sheet Excel 导出规则
+
+- 主 Sheet 名沿用导出 profile 的 `sheet_name`，公共 profile 为 `测试用例`，仅包含 `Ready`。
+- 附录 Sheet 固定为 `Draft-Rejected附录`，包含 `Draft` 与 `Rejected`。
+- `Deprecated` 不进入两张执行用例 Sheet，仍保留在 JSON 真相源中。
+- 公共单会话入口：`python3 ai_workflow/test_case_formatter.py --tc-json-to-xlsx <tc.json> [--xlsx-output <output.xlsx>]`。
+- 公共 CLI 强制使用 `_DEFAULT_XLSX_PROFILE` 与 `_XLSX_HEADERS_V3` 10 列，不读取项目级 profile，也不允许参数覆盖表头。
+- CLI 支持顶层列表、`{"test_cases": [...]}`、`{"meta": {...}, "test_cases": [...]}` 三种 JSON 结构。
+
+### §S5 → S6 链路 + 双层覆盖门禁（字段溯源版）
+
+> **SSOT**：本节是 §FP 全覆盖门禁的 S6 落地条款。配合 `.cursor/skills/aidocx-s6-test-cases/SKILL.md` §S5 → S6 链路强制条款使用。
+
+#### 链路契约（必填字段）
+
+| 字段 | 上游来源 | 校验 |
+|---|---|---|
+| `s5_ref` | S5 `scenario_test_points[].tp_id` | **必填**；必存在于 S5 TP 列表 |
+| `feature_point_id` | S2 `requirement_object.feature_points[].id` | 必填 |
+
+#### 双层覆盖率门禁（字段溯源版）
+
+- `obj_linkage_coverage ≥ 1.0`
+- `fp_linkage_coverage ≥ 1.0`
+- **任一不达 1.0 → S6 不合格**
+
+#### 冗余校验
+
+每个 TC 必须保证 `obj_id == s5_ref 推导的 OBJ.id`——防止 TC.obj_id 与 s5_ref 来源 FP 不一致。
+
+#### OBJ 链接字段定义
+
+> **SSOT**：本节是 §跨阶段字段溯源 DNA 子准则的 S6 落地条款。
+
+#### 链接契约
+
+| 字段 | 上游来源 | 校验规则 |
+|---|---|---|
+| `obj_id` | S2 `requirement_object.id` | 必填；必须存在于 S2 OBJ 列表 |
+| `feature_point_id` | S2 `requirement_object.feature_points[].id` | 当 TC 对应某 FP 时必填 |
+| `用例描述` | S2 `requirement_object.obj_name` | **字符串严格相等**（无后缀/无括号/无分隔符） |
+
+#### 链接覆盖率门禁
+
+- `obj_linkage_coverage = len(TC 引用的 OBJ 集合) / len(S2 OBJ 列表)`
+- 阈值：**≥ 1.0（100%）**（与 S4 §4.3.1 异常路径覆盖率同档）
+- 未达 → 回 LLM 迭代，禁止进入 postflight_gate
+
+#### 未引用 OBJ 的 skip_reason 分类
+
+| skip_reason | 含义 |
+|---|---|
+| `no_test_needed` | 该 OBJ 无可测功能点 |
+| `merged` | 已合并到其他 OBJ 的 TC |
+| `manual_only` | 仅人工测试不纳入 TP/TC |
+| `deprecated` | 该 OBJ 已被废弃 |
+| `unknown` | LLM 理解不了，需回溯 S2 澄清 |
+
+#### OBJ 反向校验（S7 审查员 B 用）
+
+- 每个 OBJ 至少被 1 个 TC 引用
+- 每个 OBJ 的 feature_points 至少被 1 个 TC 覆盖（除非 `skip_reason: no_test_needed`）
+
+#### 跨阶段字段溯源 DNA 子准则
+
+每次生成下游产物时必答 3 子问：
+
+| 子问 | 答 |
+|---|---|
+| Q1.1 字段值的上游来源是哪？ | `<OBJ.id / Story.id / TP.id>` |
+| Q1.2 上游材料是否提供了该字段？ | `<有/无>` |
+| Q1.3 我是否已 Read 上游文件并验证过该字段存在？ | `<已读且匹配 / 未读 / 读到但未匹配>` |
+
+未答"已读且匹配" → 不得开始下游生成。
+
+### 优先级判断
+
+### 优先级判断
+
+| 优先级 | 适用场景 |
+|--------|----------|
+| P0 | 支付、购买、VIP折扣、促销、安全、日志 |
+| P1 | 普通业务逻辑、订单、邮件、权限 |
+| P2 | 界面展示、搜索、分页、加载 |
+
+> 优先级**由 LLM 根据业务风险自由决定**，脚本不强制套用任何映射表。
+
+---
+
+## 自检清单（提交前必须执行）
+
+**全部通过后方可提交 TC 产物。**
+
+- [ ] **第 1 项**：用例描述是否只含需求对象名称（无 `—`、无括号、无分隔符）？
+- [ ] **第 2 项**：功能描述是否自然语言（无 S4/S5 节点名、无括号说明）？
+- [ ] **第 3 项**：前置条件是否包含具体初始状态？"无" 仅在业务确实无前置条件时使用
+- [ ] **第 4 项**：操作步骤是否无任何模板语言（无「执行操作：」「执行：」「准备符合前置条件」「执行测试场景」「验证预期结果」）？
+- [ ] **第 5 项（修订）**：预期结果是否无任何括号引用（无 `（引用S4-xxx）`、`（引用R-xxx）`）？**是否每条 TC 的 `expected_results` 只含 1 项（禁止多条预期并置）**？
+- [ ] **第 6 项**：全文搜索"引用"应为 0 处。
+- [ ] **第 7 项**：每条 TC 的 `steps` 是否只含 1 个元素（`{step_num: 1, action: ...}`，禁止多步并置）？
+
+**任一不通过 → 必须修改至通过后方可提交。**
+
+---
+
+## S4 参考规则
+
+S4 流程图是 S6 **理解业务**的重要来源，但引用规则如下：
+
+- **可以参考**：阅读 S4 理解业务流程、异常路径、风险场景，据此设计用例步骤和预期结果
+- **禁止照抄**：不得将 S4 的节点名称、异常树编号、风险点名直接写入任何字段
+- **如需注明**：仅在「备注」字段中写 `[参考S4-章节]`（非强制）
+
+---
+
+## §1.5 决策 push 块
+
+### §1.5.1 LLM 自由推理原则
+
+**S6 LLM 在生成 TC 前必须遵守以下原则**：
+
+| 原则 | 具体要求 |
+|------|----------|
+| TP:TC 比例 | 由 LLM 根据业务复杂度自由决定，不设硬性 1:N 约束 |
+| test_method 字段 | 可选，不强制填写 |
+| 优先级分配 | LLM 根据业务风险自由决定，脚本不强制套用映射表 |
+| 模块加权 | 禁止使用模块风险加权表生成 TC |
+
+### §1.5.2 步骤写作强制规范
+
+**S6 LLM 在写操作步骤和预期结果时必须执行以下检查**：
+
+| 检查项 | 禁止内容 | 正确示范 |
+|--------|----------|----------|
+| 无模板语言 | 「执行操作：」「执行：」「准备符合前置条件」 | 具体 UI 元素名称或数值 |
+| 无 S4 节点引用 | `（引用S4-xxx）`、`（引用R-xxx）` | 纯业务结果描述 |
+| 无分隔符 | `—`、`：`、`（`后接引用 | 纯标题，无修饰 |
+
+### §1.5.3 模块 × 类型双维度拓宽
+
+**S6 LLM 基于 S5 TP 拓宽 TC 时，必须执行以下判定**：
+
+| TP 的 module | TP 的 test_point_type | TC 拓宽方向 |
+|-------------|----------------------|-------------|
+| UI | POSITIVE | UI 测样式/动画/布局 |
+| UI | BOUNDARY | UI 边界值（0 个道具/满背包） |
+| UI | NEGATIVE | UI 异常展示（网络错误/加载失败） |
+| UI | EXCEPTION | UI 容错（超时/降级） |
+| BIZ | POSITIVE | BIZ 测业务逻辑/事务 |
+| BIZ | BOUNDARY | BIZ 边界值（最大数量/最小值） |
+| BIZ | NEGATIVE | BIZ 校验失败（非法参数/越权） |
+| BIZ | EXCEPTION | BIZ 容错（超时/事务失败/幂等） |
+| LINK | POSITIVE | LINK 测第三方交互成功 |
+| LINK | BOUNDARY | LINK 超时/频率限制 |
+| LINK | NEGATIVE | LINK 回调失败/签名校验失败 |
+| LINK | EXCEPTION | LINK 第三方服务不可用/重试机制 |
+| SPECIAL | POSITIVE | SPECIAL 测风控/合规/反作弊正常拦截 |
+| SPECIAL | BOUNDARY | SPECIAL 临界值/竞态条件 |
+| SPECIAL | NEGATIVE | SPECIAL 黑名单/弱网环境 |
+| SPECIAL | EXCEPTION | SPECIAL 容错/Failover |
+| CONFIG | POSITIVE | CONFIG 测配置生效/热更 |
+| CONFIG | BOUNDARY | CONFIG 边界值（最大条目数/空配置） |
+| CONFIG | NEGATIVE | CONFIG 非法配置值/缺失必填字段 |
+| CONFIG | EXCEPTION | CONFIG 热更失败回滚 |
+| LOG | POSITIVE | LOG 测埋点上报成功/完整性 |
+| LOG | BOUNDARY | LOG 边界值（最大日志条数） |
+| LOG | NEGATIVE | LOG 缺失必填字段/脱敏失败 |
+| LOG | EXCEPTION | LOG 链路中断/缓存满 |
+| AUX | POSITIVE | AUX 测底层能力（加密/缓存/网络）正常 |
+| AUX | BOUNDARY | AUX 边界值（缓存满/连接池满） |
+| AUX | NEGATIVE | AUX 校验失败/签名失败 |
+| AUX | EXCEPTION | AUX 容错/降级 |
+| HINT | POSITIVE | HINT 测提示正常展示（红点/飘字/弹窗） |
+| HINT | BOUNDARY | HINT 边界值（同时多个提示/超时消失） |
+| HINT | NEGATIVE | HINT 异常内容/错误文案 |
+| HINT | EXCEPTION | HINT 降级（提示消失/不弹出） |
+
+---
+
+## §1.7 命名继承一致性门禁（字段溯源版）
+
+> ****（NAME-FIELD-001）：本节解决 TC 文本语义从 TP 继承时正式名称丢失的问题。
+> **校验精度**：字段溯源版（字段精准匹配——obj_name/fp_name == 源 TP）+ LLM 自由文本溯源（test_scenario 不带锚点）
+
+### §1.7.1 核心规范
+
+S6 生成的每条测试用例必须满足以下要求：
+
+1. **显式字段**：`obj_name` 和 `fp_name` 字段必须存在，从源 TP 字段继承
+   - `obj_name`：从源 TP.obj_name 取值（**100% 原样继承**）
+   - `fp_name`：从源 TP.fp_name 取值（**100% 原样继承**）
+
+2. **文本溯源分离**：
+   - `test_scenario`：纯场景一句话描述（**不带锚点**）
+   - 锚点仅存 JSON 字段，不重复进文本
+
+3. **字段精准匹配**：
+   - `obj_name` == 源 TP.obj_name（逐字相等）
+   - `fp_name` == 源 TP.fp_name（逐字相等）
+
+4. **锚点取消**：test_scenario / title / description **不再以锚点开头**——锚点仅存 JSON 字段
+
+### §1.7.2 校验方式
+
+L1 格式校验层执行，检查项：`tc_field_traceability`
+
+| 校验项 | 要求 |
+|--------|------|
+| `obj_name` 字段 | 存在且 == 源 TP.obj_name（逐字相等） |
+| `fp_name` 字段 | 存在且 == 源 TP.fp_name（逐字相等） |
+| `feature_point_ref` 字段 | **强制必填**——继承自源 TP.feature_point_ref |
+| `test_scenario` 文本 | 不带锚点（无【】） |
+| `description` 文本 | 不带锚点（无【】） |
+
+**通过率硬门禁**：100%（0 错误才可进入 S7）
+
+### §1.7.3 不通过处理
+
+- 自动触发 S6 迭代补全，最多重试 3 次
+- 3 次仍不通过 → `L1_FAILED` 状态 → 人工审查队列
+- 禁止未通过校验的 TC 进入 S7
+
+### §1.7.4 命名来源约束
+
+- `obj_name`：唯一来源 = S2 `requirement_objects.json` 的 `obj_name` 字段（继承自 TP，最终来源 = S2，**100% 逐字相等**）
+- `fp_name`：唯一来源 = S5 TP.fp_name（中性功能名）。约束：含动词 + 长度 ≤ 20 字符 + 不与 S2 `fp_desc` 字面量重复。
+- 禁止 LLM 自创 `obj_name`（必须 S2 严格匹配）。
+- 禁止 `fp_name` 与 S2 `fp_desc` 字面量重复（避免语义重定义）。
+
+### §1.7.5 标准格式
+
+```
+test_scenario: {纯场景一句话描述}（不带锚点）
+description: {纯测试逻辑，前置+步骤+预期}（不带锚点）
+```
+
+**反例（不允许）**：
+```
+test_scenario: 【商城首页道具列表 - 首页按销量展示前10个热门道具】玩家进入商城首页...
+```
+
+### §1.7.6 L1 校验函数
+
+校验函数位于 `ai_workflow/validators/l1_s6.py` 的 `L1S6Validator.validate_field_traceability()` 方法。
+调用方式：
+```python
+from ai_workflow.validators.l1_s6 import L1S6Validator
+
+validator = L1S6Validator()
+validator.set_requirement_objects_and_tp_list(requirement_objects_list, tp_list)
+passed, errors, stats = validator.validate_field_traceability(tc_data)
+# passed=True 且 errors=[] 才可进入 S7
+```
+
+### §1.7.7 产出 Schema
+
+每条 TC 必须包含：
+```json
+{
+  "case_id": "UI-TC-001",
+  "s5_ref": "TP-001",
+  "obj_id": "UI-ITEM-MALL-01-002-OBJ-01",
+  "obj_name": "商城首页道具列表",
+  "feature_point_ref": "UI-ITEM-MALL-01-002-OBJ-01-FP-2",
+  "fp_name": "首页销量排序展示",
+  "test_scenario": "玩家进入商城首页，验证道具列表按销量降序排列"
+}
+```
+
+---
+
+## 输入审查（门禁前置条件）
+
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S6 阶段**输入物料门禁**的细化定义（**非全阶段质量门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **配置常量 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §4.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#43-配置常量)
+> - 本表不可独立编辑；任何阈值变更**必须**先修改 SSOT，再回写本表。
+
+| 检查项 | 要求 | 缺失时 |
+|--------|------|--------|
+| test_points.json 存在 | 必须 | 失败报告 |
+| Story 数量 ≥ 1 | 必须 | 失败报告 |
+| 每个 Story 有至少 1 个 scenario_test_point | 必须 | 失败报告 |
+| 模块前缀有效 | 必须 | 自动纠正 |
+
+---
+
+## 输出规范
+
+### 成功产出（公共默认）
+
+| 文件 | 路径 |
+|------|------|
+| JSON | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/test_cases.json` |
+> **公共默认强制产出门禁**：`test_cases.json` 必须生成。
+> `test_cases.md` / `test_cases.xlsx` 不再属于公共默认产物，只有在**任务开始已确认具体项目**且存在 `knowledge/project_local/<project_name>/s6/export_profiles/test_cases.export.json` 时才允许生成。
+
+### 项目级导出产物（可选）
+
+当且仅当满足以下条件时，才生成项目级导出产物：
+
+1. 当前任务已明确确认是给哪个项目产出
+2. 存在项目级导出配置：`knowledge/project_local/<project_name>/s6/export_profiles/test_cases.export.json`
+
+可选产物：
+
+| 文件 | 路径 |
+|------|------|
+| Markdown | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/test_cases.md` |
+| Excel | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/test_cases.xlsx` |
+
+### 项目级 Excel 规则
+
+- 项目级 S6 导出目录固定为 `knowledge/project_local/<project_name>/s6/`
+- `export_profiles/test_cases.export.json` 与 `xlsx_templates/test_cases.template.xlsx` 必须分开管理
+- Excel 表头、Sheet 名称、列顺序、附加列允许按项目级知识库定制
+- 项目级 Excel 模板不属于公共格式，不得反向约束所有项目
+- 若未确认项目，禁止假设某个 Excel 表头为默认标准
+
+### S6 评审驱动流程
+
+> **核心原则**：**每个产物单独评审，通过后才能进入下一个产物**——避免基于错误 json 生成 xlsx 的返工。
+
+```
+Step 1: LLM 写 test_cases.json
+   ↓
+Step 2: json 评审门禁（5 项）
+   ├─ ID 唯一性 100%
+   ├─ 10 字段完整 100%
+   ├─ 5 项自检清单（无模板语言 / 无 S4 引用）
+   ├─ 优先级分布合理（P0 ≥ 60%）
+   └─ 8 模块覆盖
+   ├─ 通过 → Step 3
+   └─ 不通过 → 回 Step 1 迭代
+   ↓
+Step 3: 若已确认项目且存在项目级导出配置 → 生成 test_cases.md / test_cases.xlsx
+   ↓
+Step 4: 若生成了项目级导出产物，再做项目级导出校验
+   ├─ 通过 → Step 5
+   └─ 不通过 → 仅重生成项目级导出产物（不改 json）
+   ↓
+Step 5: S7 审查
+```
+
+**错误回退原则**：
+- json 评审失败 → 改 json（不重生成 xlsx）
+- 项目级 xlsx 评审失败 → 改 xlsx 生成（不改 json）
+- 项目级 md 评审失败 → 改 md（不改 json）
+
+**实战教训**：旧流程"一次写完再评"导致 87 行脏 xlsx 早生成——左移评审避免此问题。
+
+### JSON 格式
+
+```json
+[
+  {
+    "case_id": "UI-TC-001",
+    "模块": "界面",
+    "用例描述": "购买确认流程",
+    "功能描述": "购买确认弹窗正常展示道具信息",
+    "前置条件": "玩家已登录，余额充足，道具可购买",
+    "steps": [
+      {"step_num": 1, "action": "玩家已登录，进入道具详情页"}
+    ],
+    "expected_results": [
+      "弹窗展示道具名称"
+    ],
+    "优先级": "P0",
+    "用例状态": "Draft",
+    "备注": ""
+  },
+  {
+    "case_id": "UI-TC-002",
+    "模块": "界面",
+    "用例描述": "购买确认流程",
+    "功能描述": "购买确认弹窗正常展示道具信息",
+    "前置条件": "玩家已登录，余额充足，道具可购买",
+    "steps": [
+      {"step_num": 1, "action": "玩家已登录，进入道具详情页"}
+    ],
+    "expected_results": [
+      "弹窗展示购买数量"
+    ],
+    "优先级": "P0",
+    "用例状态": "Draft",
+    "备注": ""
+  },
+  {
+    "case_id": "UI-TC-003",
+    "模块": "界面",
+    "用例描述": "购买确认流程",
+    "功能描述": "购买确认弹窗正常展示道具信息",
+    "前置条件": "玩家已登录，余额充足，道具可购买",
+    "steps": [
+      {"step_num": 1, "action": "玩家已登录，进入道具详情页"}
+    ],
+    "expected_results": [
+      "弹窗展示总价"
+    ],
+    "优先级": "P0",
+    "用例状态": "Draft",
+    "备注": ""
+  }
+]
+```
+
+### 失败报告（S6 测试用例失败）
+
+`workflow_assets/<req_name>/<version>/「S6 测试用例生成」/fail_report_S6.md`
+
+```markdown
+# 测试用例生成失败报告
+
+**阶段**: S6 测试用例生成
+**日期**: YYYY-MM-DD
+
+## 失败原因
+
+（列出具体问题）
+
+## 后续动作
+
+[ ] 补充 test_points.json 后重新提交 S6
+[ ] 直接提供已有测试用例，跳过 S6
+```
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 |
+|------|------|
+| S5 测试点生成 | S7 用例审查 |
+
+S6 产出（test_cases.xlsx/.json/.md）作为 S7 的输入。
+
+---
+
+## 代码入口
+
+```python
+# 脚本只做整理：ID 分配 / 字段归一化 / 写文件
+from ai_workflow.s6_generate import collect_cases
+from ai_workflow.test_case_formatter import _assign_ids, _build_summary, _save_md, _save_xlsx
+
+# LLM 在对话中生成的 case 列表 → 写入 test_points.json 的 llm_generated_cases 字段
+# 脚本读取后只做：
+# 1. 分配 case_id（按模块分组递增）
+# 2. 模块字段归一化（中英 → 8 模块全名）
+# 3. 写 JSON / Markdown / XLSX
+
+# 兜底：若无 llm_generated_cases，从 scenario_test_points 1:1 转种子 case
+# （保留 LLM 后续在对话中改写步骤/预期的入口）
+```
+
+> **脚本不推导 TC 数量、不分配 test_method、不做模块加权**——这些全是 LLM 推理工作。
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/test_case_gen.md`
+- 格式化引擎：`ai_workflow/test_case_formatter.py` → `format_test_cases()`
+- Excel 写入：`ai_workflow/excel/test_case_writer.py` → `write_test_cases()`
+- 输出目录：`workflow_assets/<req_name>/<version>/「S6 测试用例生成」/`
+- ~~报告生成：`ai_workflow/s6_report.py` → `generate_s6_report()`~~ **(Round 14 闭环：工程中从未创建该文件，引用已废弃；S6 报告生成实际由 `ai_workflow/auto_reviewer.py` 的 `save_review_report()` 提供)**

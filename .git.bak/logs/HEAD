@@ -1,0 +1,8 @@
+0000000000000000000000000000000000000000 befadc101f21629e6b14d77ceee41a5839ae2fd7 SilenceInsect <Gleon_13232685312@163.com> 1784715451 +0800	clone: from /Users/gleon/AIDocxWorkFlow-origin.git
+befadc101f21629e6b14d77ceee41a5839ae2fd7 c93ffddea1974e671114fcc96023996fa834e2d5 SilenceInsect <Gleon_13232685312@163.com> 1784715794 +0800	commit: chore: 全量备份仓 — 反向 .gitignore（默认全收，仅排除构建产物）
+c93ffddea1974e671114fcc96023996fa834e2d5 5ceeb5eac1c4bd70d496801171580fb41a0d6c7e SilenceInsect <Gleon_13232685312@163.com> 1784715800 +0800	rebase (start): checkout origin/main
+5ceeb5eac1c4bd70d496801171580fb41a0d6c7e 7b61c93ff9a68bfb348db900fe5695ab83dbc926 SilenceInsect <Gleon_13232685312@163.com> 1784715852 +0800	commit: chore: 全量备份仓 — 反向 .gitignore（默认全收，仅排除构建产物）
+7b61c93ff9a68bfb348db900fe5695ab83dbc926 7b61c93ff9a68bfb348db900fe5695ab83dbc926 SilenceInsect <Gleon_13232685312@163.com> 1784715852 +0800	rebase (finish): returning to refs/heads/main
+7b61c93ff9a68bfb348db900fe5695ab83dbc926 64b525ed2c4a51b6969b042f9a397efd07029fc4 SilenceInsect <Gleon_13232685312@163.com> 1784715912 +0800	commit: chore: 全量备份 — workflow_assets + resource + knowledge/project_local + governance + goal-log-db + sync_logs
+64b525ed2c4a51b6969b042f9a397efd07029fc4 64b525ed2c4a51b6969b042f9a397efd07029fc4 SilenceInsect <Gleon_13232685312@163.com> 1784716416 +0800	reset: moving to origin/main
+64b525ed2c4a51b6969b042f9a397efd07029fc4 64b525ed2c4a51b6969b042f9a397efd07029fc4 SilenceInsect <Gleon_13232685312@163.com> 1784716434 +0800	reset: moving to HEAD

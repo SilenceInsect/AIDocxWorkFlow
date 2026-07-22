@@ -1,0 +1,199 @@
+---
+description: AIDocxWorkFlow Stage 3 — 原型导出（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S3 — 原型导出（必产阶段）
+
+> **⭐ 必产阶段**：S3 是 S5/S6 生成测试用例的 UI 节点锚点，**不可跳过**。
+> **独立阶段**：可以单独调用。上游材料（S2 backlog）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s3-prototype` 或粘贴 S2 backlog
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S2 backlog.md | `workflow_assets/<req_name>/<version>/「S2 需求拆解」/backlog.md` | 存在且含有效 Epic/Story |
+
+**材料缺失时**：生成失败报告，停止 S3。
+
+---
+
+## 核心任务
+
+根据 S2 的 Epic/Story 列表，生成：
+
+1. **文本原型**：每个 Story 对应的页面原型（含关键 UI 元素、状态变化）
+2. **Mermaid 页面流图**：页面之间的导航关系
+
+### 原型内容要求
+
+每个 Story 需描述：
+
+| 要素 | 内容 |
+|------|------|
+| 页面名称 | 明确的页面/面板名称 |
+| 关键UI元素 | 按钮、输入框、显示区、指示器 |
+| 布局描述 | 从上到下或从左到右 |
+| 状态变化 | 默认、加载中、错误、成功、禁用 |
+| 测试隔离点 | 需要特殊状态（如登录态、冷却时间） |
+
+### Mermaid 页面流图
+
+```mermaid
+flowchart TD
+    ShopHome["商城首页"] --> Category["分类页"]
+    Category --> ItemDetail["道具详情页"]
+    ItemDetail --> Confirm["确认订单页"]
+    Confirm --> PaySuccess["支付成功"]
+```
+
+每个 Epic 至少 1 个完整页面流。
+
+### 与 S5/S6 的衔接
+
+> ⭐ **S3 是 S5 测试点生成的前置依赖**：
+> - S5 需要引用 S3 prototype.md 中的 **UI 节点 ID**
+> - UI 节点 ID 格式：`{page_id}-{node_type}-{node_seq}`（例：`P-002-button-01`）
+> - S5 生成的测试用例中 `s3_reference` 字段引用对应 UI 节点
+> - **S3 不可跳过**（即使 lightweight 模式，也需提供页面清单和基本节点描述）
+
+---
+
+## 输入审查（门禁前置条件）
+
+> **🚨 强制阅读指令（MANDATORY）**：本节是 S3 阶段**输入物料门禁**的细化定义（**非全阶段门禁**）。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)
+> - **本表是 S3 阶段独有门禁**，**全阶段门禁表**（速查）见 SSOT §2.3。
+> - 本表不可独立编辑；任何阈值变更**必须**先修改 SSOT，再回写本表。
+
+| 检查项 | 要求 |
+|--------|------|
+| backlog.md 存在 | 必须 |
+| Epic 数量 ≥ 1 | 必须 |
+| Story 有 acceptance_criteria | 允许为空但标注 |
+
+---
+
+## 输出规范
+
+### 成功产出
+
+`workflow_assets/<req_name>/<version>/「S3 原型导出」/prototype.md`
+
+```markdown
+# {需求名称} — 页面原型
+
+## 页面结构
+
+### 1. {页面名称} ({PageID})
+**关键UI元素**: 按钮A、输入框B、显示区C
+**布局**: 从上到下：A → B → C
+**状态**: 默认、加载中（骨架屏）、空分类提示
+
+### 2. ...
+
+## 页面流
+
+```mermaid
+flowchart TD
+    ...
+```
+```
+
+### 失败报告（S3 原型失败）
+
+`workflow_assets/<req_name>/<version>/「S3 原型导出」/fail_report_S3.md`
+
+```markdown
+# 原型导出失败报告
+
+**阶段**: S3 原型导出
+**日期**: YYYY-MM-DD
+**上游 backlog**: {Epic数} Epic, {Story数} Story
+
+---
+
+## 失败原因
+
+（列出具体问题）
+
+---
+
+## 后续动作
+
+[ ] 补充 backlog 后重新提交 S3
+[ ] 提供已有原型文件，跳过 S3
+```
+
+---
+
+## §1.4 LLM 必读材料（阶段前置）
+
+> **强制**：S3 执行前必须先读取以下全部材料。禁止凭印象直接生成原型。
+
+|| # | 材料 | 路径 | 读取原因 |
+||---|---|---|---|
+|| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | 判断 UI/HINT 模块归属；原型页面归属哪个模块 |
+|| 2 | S2 backlog | `workflow_assets/<req_name>/<version>/「S2 需求拆解」/backlog.md` | 原型生成的对象 |
+|| 3 | 全阶段质量门禁 SSOT | `.cursor/rules/DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3 | 速查 |
+
+---
+
+## §1.5 决策 push 块
+
+### §1.5.1 S3 页面节点 ID 命名规则（Q-541）
+
+> **强制**：S3 原型中每个页面节点必须使用 `PAGE-{EpicID}-{NN}` 格式命名。
+> ```
+> 例如：PAGE-EPIC-1-01, PAGE-EPIC-2-03
+> ```
+> **命名规则**：
+> - `PAGE-`：页面节点固定前缀
+> - `{EpicID}`：所属 Epic 的 ID（如 `EPIC-1`、`BIZ-01`）
+> - `-{NN}`：两位数字序号（01, 02, ...）
+>
+> **为什么必须有此格式**：S4 流程图会引用 S3 的 PAGE-XXX 节点——S3 不定义命名规则，S4 无法正确引用。
+
+### §1.5.2 S3 页面流图节点命名必须与原型页面一一对应
+
+> **强制**：Mermaid 页面流图中每个节点名必须与原型中的页面标题严格对应。
+> - 原型页面标题：`### 1. 商城首页 (PAGE-EPIC-1-01)`
+> - 页面流图节点：`ShopHome["商城首页"]`
+> - **禁止**在页面流图中使用 S4 的风险节点 ID（R-XX / BIZ-XX 等）
+
+### §1.5.3 S3 原型不对 S5/S6 产出负责
+
+> **强制**：S3 原型是 S5 测试点的可选参考（UI/HINT TP 的页面元素描述）。
+> 若 S5 TP 质量不理想，不要归因于 S3 原型——回溯到 S2 backlog 和 S4 流程图分析。
+
+---
+
+## 与其他阶段的衔接
+
+| 上游 | 下游 | S3 产出作用 |
+|------|------|------------|
+| S2 需求拆解 | S4 流程图（强依赖 PAGE-XXX 节点命名）| 页面流节点命名来源 |
+| S2 需求拆解 | S5 测试点（可选参考）| UI/HINT TP 的页面元素描述参考 |
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.conversation_skills import save_stage3_output
+save_stage3_output(version, breakdown, raw_output, req_name)
+```
+
+---
+
+## 关联文件
+
+- Prompt 模板：`ai_workflow/prompts/prototype_export.md`
+- 保存逻辑：`ai_workflow/conversation_skills.py` → `save_stage3_output()`
+- 输出目录：`workflow_assets/<req_name>/<version>/「S3 原型导出」/`

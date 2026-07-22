@@ -1,0 +1,420 @@
+{
+  "goal_id": "f8b97986-f015-47f3-a84d-4796506da3b7",
+  "raw_user_goal": "S6 用例状态字段重定义（Draft/Ready/Rejected/Deprecated）+ 双 Sheet xlsx 导出 + 单会话公共 xlsx 入口",
+  "value_criteria": [
+    [
+      "BLOCKER",
+      "[改动1] ai_workflow/s6_generate.py:74 删硬编码 Draft，由 case_status_writer.py 统一处理"
+    ],
+    [
+      "BLOCKER",
+      "[改动2] ai_workflow/test_case_formatter.py 双 Sheet 输出（Ready 主表 + Draft/Rejected 附录）"
+    ],
+    [
+      "BLOCKER",
+      "[改动3] 新增 ai_workflow/case_status_writer.py：L1 PASS → Ready；L1 FAIL → Draft；Draft→Ready 转换日志可追溯"
+    ],
+    [
+      "BLOCKER",
+      "[改动4] 新增 ai_workflow/s7_status_writer.py：review_report.recommendations.must_fix[] 任一 MUST_FIX → Ready 转 Rejected"
+    ],
+    [
+      "BLOCKER",
+      "[改动5] STAGE_S6_TEST_CASES.mdc 枚举扩为 Draft/Ready/Rejected/Deprecated + 状态转换规则段 + 双 Sheet 导出规则"
+    ],
+    [
+      "BLOCKER",
+      "[改动6] STAGE_S7_REVIEW.mdc 加用例状态字段不可改声明 + 引用 Ready 转换表"
+    ],
+    [
+      "BLOCKER",
+      "[改动7] aidocx-s6-test-cases/SKILL.md 同步枚举 + 写回流程 + 双 Sheet 说明"
+    ],
+    [
+      "BLOCKER",
+      "[改动8] aidocx-s7-review/SKILL.md 加状态不可改声明 + Rejected 触发条件"
+    ],
+    [
+      "BLOCKER",
+      "[改动9] CHANGELOG.md 落版本条目 + 引用 goal_s6_case_status_redefinition.md"
+    ],
+    [
+      "BLOCKER",
+      "[改动10] 新增 CLI 子命令 --tc-json-to-xlsx：输入 tc.json，输出双 Sheet xlsx，强制公共 _DEFAULT_XLSX_PROFILE（不依赖项目级配置）"
+    ],
+    [
+      "BLOCKER",
+      "[改动10.1] xlsx 表头 = 公共 _XLSX_HEADERS_V3（10 列）—— 不可被 CLI 参数覆盖"
+    ],
+    [
+      "MAJOR",
+      "[改动10.2] CLI 必须支持 3 种 tc.json schema：顶层 list / {test_cases: [...]} / {meta, test_cases}"
+    ],
+    [
+      "MAJOR",
+      "[改动10.3] case_status_writer.py 含 self-test：L1 PASS → Ready / L1 FAIL → Draft"
+    ],
+    [
+      "MAJOR",
+      "[改动10.4] s7_status_writer.py 含 self-test：MUST_FIX → Ready 转 Rejected / 否则保持"
+    ],
+    [
+      "MAJOR",
+      "[改动10.5] CLI 含 self-test：3 种 schema × 双 Sheet round-trip openpyxl 校验"
+    ],
+    [
+      "MAJOR",
+      "[改动10.6] 拿当前 331 条 TC.json 跑一次端到端验证（status 写回 + xlsx 导出）"
+    ]
+  ],
+  "process_criteria": [
+    [
+      "MAJOR",
+      "单次响应 ≤ 3 文件改动（Q4=A-full 用户已授权批量改 9 文件；适用 DNA §9.1 红线越界审批）"
+    ],
+    [
+      "MAJOR",
+      "全部变更必须先 Read 后改（DNA §9.4）"
+    ],
+    [
+      "MAJOR",
+      "改完 Python 代码后 py_compile 必过 + self-test 必跑通"
+    ],
+    [
+      "MAJOR",
+      "写回链路需跑隔离测试（resource/test_s6_status/v1.0_raw.md，§4.x.5）"
+    ],
+    [
+      "MAJOR",
+      "不动 v3.01 现有产物（§8.5 MEDIUM 风险）"
+    ]
+  ],
+  "value_ratio": 1.0,
+  "severity_label": "GREEN",
+  "follow_up_items": [],
+  "goal_signature": "2b952de7d67003df",
+  "out_of_scope_md": "governance/design_iter/plans/v22/out_of_scope.md",
+  "audit_stability": {},
+  "efficiency_stats": {
+    "rounds_to_convergence": 1,
+    "first_pass_rate": 1.0,
+    "blocker_residual_rate": 0.0,
+    "avg_round_duration_seconds": null,
+    "last_updated": "2026-07-19T07:10:39.689825+00:00"
+  },
+  "task_queue": [
+    {
+      "id": "T-001",
+      "title": "[Plan] out_of_scope.md 禁区清单（4 枚举 + 触发条件锁定）",
+      "status": "done",
+      "artifact": "governance/design_iter/plans/v22/out_of_scope.md",
+      "parallelizable": false,
+      "depends_on": [],
+      "parallel_group": 1,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-002",
+      "title": "[Plan] 用户 Round 3 决策表锁定（goal_s6_case_status_redefinition.md）",
+      "status": "done",
+      "artifact": "governance/design_iter/current/goal_s6_case_status_redefinition.md",
+      "parallelizable": false,
+      "depends_on": [
+        "T-001"
+      ],
+      "parallel_group": 1,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-003",
+      "title": "[Plan] Round 5 前置验证：L2 不存在 → Q1 降级为 L1-only",
+      "status": "done",
+      "artifact": "governance/design_iter/current/goal_s6_case_status_redefinition.md §4.x.1",
+      "parallelizable": false,
+      "depends_on": [
+        "T-002"
+      ],
+      "parallel_group": 1,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-004",
+      "title": "[Plan] Round 5 前置验证：S7 overall 字段废除 → Q2 降级为 must_fix[] 检测",
+      "status": "done",
+      "artifact": "governance/design_iter/current/goal_s6_case_status_redefinition.md §4.x.2",
+      "parallelizable": false,
+      "depends_on": [
+        "T-002"
+      ],
+      "parallel_group": 1,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-005",
+      "title": "[Plan] 创建 Goal snapshot",
+      "status": "done",
+      "artifact": ".goal-log-db/active/<goal_id>/snapshot.json",
+      "parallelizable": false,
+      "depends_on": [
+        "T-001"
+      ],
+      "parallel_group": 1,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-101",
+      "title": "[改动1] s6_generate.py:74 删 Draft 硬编码",
+      "status": "done",
+      "artifact": "ai_workflow/s6_generate.py",
+      "parallelizable": true,
+      "depends_on": [
+        "T-005"
+      ],
+      "parallel_group": 2,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-102",
+      "title": "[改动3] 新增 case_status_writer.py + self-test",
+      "status": "done",
+      "artifact": "ai_workflow/case_status_writer.py",
+      "parallelizable": true,
+      "depends_on": [
+        "T-005"
+      ],
+      "parallel_group": 2,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-103",
+      "title": "[改动4] 新增 s7_status_writer.py + self-test",
+      "status": "done",
+      "artifact": "ai_workflow/s7_status_writer.py",
+      "parallelizable": true,
+      "depends_on": [
+        "T-005"
+      ],
+      "parallel_group": 2,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-104",
+      "title": "[改动2] test_case_formatter.py 双 Sheet 输出 + CLI --tc-json-to-xlsx",
+      "status": "done",
+      "artifact": "ai_workflow/test_case_formatter.py",
+      "parallelizable": false,
+      "depends_on": [
+        "T-102",
+        "T-103"
+      ],
+      "parallel_group": 3,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-201",
+      "title": "[改动5] STAGE_S6_TEST_CASES.mdc 扩枚举 + 转换表 + 双 Sheet 规则",
+      "status": "done",
+      "artifact": ".cursor/rules/STAGE_S6_TEST_CASES.mdc",
+      "parallelizable": false,
+      "depends_on": [
+        "T-104"
+      ],
+      "parallel_group": 4,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-202",
+      "title": "[改动6] STAGE_S7_REVIEW.mdc 加状态不可改声明 + 转换表引用",
+      "status": "done",
+      "artifact": ".cursor/rules/STAGE_S7_REVIEW.mdc",
+      "parallelizable": true,
+      "depends_on": [
+        "T-104"
+      ],
+      "parallel_group": 4,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-203",
+      "title": "[改动7] aidocx-s6-test-cases/SKILL.md 同步枚举 + 写回流程",
+      "status": "done",
+      "artifact": ".cursor/skills/aidocx-s6-test-cases/SKILL.md",
+      "parallelizable": true,
+      "depends_on": [
+        "T-201"
+      ],
+      "parallel_group": 5,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-204",
+      "title": "[改动8] aidocx-s7-review/SKILL.md 加状态不可改声明",
+      "status": "done",
+      "artifact": ".cursor/skills/aidocx-s7-review/SKILL.md",
+      "parallelizable": true,
+      "depends_on": [
+        "T-202"
+      ],
+      "parallel_group": 5,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-205",
+      "title": "[改动9] CHANGELOG.md 落版本条目",
+      "status": "done",
+      "artifact": "CHANGELOG.md",
+      "parallelizable": true,
+      "depends_on": [
+        "T-104"
+      ],
+      "parallel_group": 4,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-301",
+      "title": "[隔离测试] 创建 resource/test_s6_status/v1.0_raw.md + 端到端跑 status 写回",
+      "status": "done",
+      "artifact": "resource/test_s6_status/v1.0_raw.md",
+      "parallelizable": false,
+      "depends_on": [
+        "T-104"
+      ],
+      "parallel_group": 6,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-302",
+      "title": "[端到端验证] 拿 v3.01 331 条 TC.json 跑 xlsx CLI（不动产物体）",
+      "status": "done",
+      "artifact": "workflow_assets/test_s6_status/v1.0/「S6 测试用例生成」/test_cases_v301.xlsx",
+      "parallelizable": false,
+      "depends_on": [
+        "T-104"
+      ],
+      "parallel_group": 6,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-401",
+      "title": "audit_1.md 价值/过程验收 + 反模式扫描",
+      "status": "done",
+      "artifact": ".goal-log-db/active/f8b97986-f015-47f3-a84d-4796506da3b7/audit_1.md",
+      "parallelizable": false,
+      "depends_on": [
+        "T-201",
+        "T-202",
+        "T-203",
+        "T-204",
+        "T-205",
+        "T-301",
+        "T-302"
+      ],
+      "parallel_group": 7,
+      "subagent_budget_used": 0
+    },
+    {
+      "id": "T-402",
+      "title": "review_1.md 缺陷根因 + 修复方案",
+      "status": "done",
+      "artifact": ".goal-log-db/active/f8b97986-f015-47f3-a84d-4796506da3b7/review_1.md",
+      "parallelizable": false,
+      "depends_on": [
+        "T-401"
+      ],
+      "parallel_group": 8,
+      "subagent_budget_used": 0
+    }
+  ],
+  "parallel_executor_hints": {
+    "estimated_total_tasks": 17,
+    "parallelizable_count": 7,
+    "groups": [
+      {
+        "group_id": 1,
+        "tasks": [
+          "T-001",
+          "T-002",
+          "T-003",
+          "T-004",
+          "T-005"
+        ],
+        "can_parallel": false,
+        "note": "Plan 阶段已完成"
+      },
+      {
+        "group_id": 2,
+        "tasks": [
+          "T-101",
+          "T-102",
+          "T-103"
+        ],
+        "can_parallel": true,
+        "note": "代码改动并行"
+      },
+      {
+        "group_id": 3,
+        "tasks": [
+          "T-104"
+        ],
+        "can_parallel": false,
+        "note": "双 Sheet xlsx 改动依赖 status 写回器"
+      },
+      {
+        "group_id": 4,
+        "tasks": [
+          "T-201",
+          "T-202",
+          "T-205"
+        ],
+        "can_parallel": true,
+        "note": "约束档并行"
+      },
+      {
+        "group_id": 5,
+        "tasks": [
+          "T-203",
+          "T-204"
+        ],
+        "can_parallel": true,
+        "note": "技能档并行"
+      },
+      {
+        "group_id": 6,
+        "tasks": [
+          "T-301",
+          "T-302"
+        ],
+        "can_parallel": false,
+        "note": "端到端验证串行"
+      },
+      {
+        "group_id": 7,
+        "tasks": [
+          "T-401"
+        ],
+        "can_parallel": false,
+        "note": "审计收尾"
+      },
+      {
+        "group_id": 8,
+        "tasks": [
+          "T-402"
+        ],
+        "can_parallel": false,
+        "note": "复盘收尾"
+      }
+    ],
+    "estimated_rounds": 2,
+    "token_budget_per_subagent": 80000
+  },
+  "loop_round": 1,
+  "last_audit": "audit_1.md",
+  "last_review": "review_1.md",
+  "latest_artifact": "workflow_assets/test_s6_status/v1.0/「S6 测试用例生成」/test_cases.xlsx",
+  "status": "achieved",
+  "token_budget": {
+    "used": 0,
+    "limit": 200000,
+    "updated_at": "2026-07-19T07:01:00+00:00"
+  }
+}

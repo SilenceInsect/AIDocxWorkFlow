@@ -1,0 +1,107 @@
+{
+  "goal_id": "66727af9-fffd-4be3-965b-d63f78269530",
+  "raw_user_goal": "Round 17 Fix — xlsx 同 OBJ 合并 + 空行处理：主表同 OBJ 的用例描述、所属模块、关联需求三列纵向合并；移除 spacer；保持排序、背景、索引和附录；不修改 v3.01 test_cases.json；不 commit。",
+  "value_criteria": [
+    "V-001 [BLOCKER] 16 个 OBJ 的用例描述、所属模块、关联需求三列纵向合并，OpenPyXL 物理读取 48 个 merge regions",
+    "V-002 [BLOCKER] 主表无空行，行数为 88（1 header + 87 TC）",
+    "V-003 [BLOCKER] 5 色背景保持，obj_id 升序且同 OBJ 内 case_id 升序",
+    "V-004 [MAJOR] 用例描述索引保持 16 OBJ × 5 列，TC/Ready 均为 87",
+    "V-005 [MAJOR] Draft-Rejected附录保持 0 cases"
+  ],
+  "process_criteria": [
+    "P-001 [MAJOR] test_case_formatter.py 增加 self-test cases 7-9 且 --self-test 通过",
+    "P-002 [MAJOR] v3.01 test_cases.json 保持 338192 bytes 且 SHA-256 不变",
+    "P-003 [MAJOR] Round 16 workbook 备份保留为 test_cases_public.round16.bak.xlsx"
+  ],
+  "task_queue": [
+    {
+      "id": "T-001",
+      "title": "复用 Round 16 Read 链并核实 formatter 与源数据",
+      "status": "done",
+      "artifact": "governance/design_iter/plans/v17/audit_16.md"
+    },
+    {
+      "id": "T-002",
+      "title": "制定并落档合并与空行策略",
+      "status": "done",
+      "artifact": "governance/design_iter/current/goal_round17_merge_cells.md"
+    },
+    {
+      "id": "T-003",
+      "title": "修改 formatter 完成 OBJ 合并、spacer 移除与 self-test 7-9",
+      "status": "done",
+      "artifact": "ai_workflow/test_case_formatter.py"
+    },
+    {
+      "id": "T-004",
+      "title": "运行 py_compile、lint、formatter 与 export-driver self-test",
+      "status": "done",
+      "artifact": "ai_workflow/test_case_formatter.py"
+    },
+    {
+      "id": "T-005",
+      "title": "备份 Round 16 workbook 并重导 Round 17 workbook",
+      "status": "done",
+      "artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx"
+    },
+    {
+      "id": "T-006",
+      "title": "用 OpenPyXL 物理验证全部 workbook 验收项",
+      "status": "done",
+      "artifact": "governance/design_iter/plans/v17/audit_round17.md"
+    },
+    {
+      "id": "T-007",
+      "title": "生成并读取 Round 17 视觉预览 PNG",
+      "status": "done",
+      "artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.round17.visual.png"
+    },
+    {
+      "id": "T-008",
+      "title": "落 audit、review、snapshot 与 CONVERGED",
+      "status": "done",
+      "artifact": "governance/design_iter/plans/v17/CONVERGED_round17.md"
+    }
+  ],
+  "loop_round": 1,
+  "status": "achieved",
+  "value_ratio": 0.625,
+  "last_audit": "governance/design_iter/plans/v17/audit_round17.md",
+  "last_review": "governance/design_iter/plans/v17/review_round17.md",
+  "latest_artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx",
+  "audit_stability": {
+    "v_passed": 5,
+    "p_passed": 3,
+    "blocker_residual_count": 0,
+    "physical_merge_regions": 48,
+    "physical_main_rows": 88,
+    "physical_blank_rows": 0
+  },
+  "follow_up_items": [
+    "FU-A2 SSOT 拆约束对象（LLM 生成 vs 数据存储）继续留在 v3.02 治理",
+    "FU-A4 v3.01 数据 step/expected 错位继续留在 v3.02 prompt 治理",
+    "_sync_list_fields_after_merge 防御性兜底清理未进入本轮",
+    "source_case_ids 主表渲染未进入本轮",
+    "若需要逐行筛选、排序或复制，提供未合并的 machine-readable workbook 作为独立导出，不覆盖视觉版"
+  ],
+  "cleared_follow_up_items": [
+    "FU-B1 xlsx 视觉分组残留：spacer 已移除，3 个 OBJ 共享列已纵向合并"
+  ],
+  "decision_tasks": [
+    "DT-R17-001 关联需求列不存在：新增关联需求=obj_id 的 opt-in profile，不挪用功能描述",
+    "DT-R17-002 纵向合并与逐行操作冲突：选择用户要求的视觉审查优先，并记录限制",
+    "DT-R17-003 不创建新 Python 驱动：复用 run_round15_merge_export.py",
+    "DT-R17-004 Round 16 audit 的 FP 合计 50 为算术误报：Round 17 物理值和源 JSON meta 均为 49"
+  ],
+  "source_guard": {
+    "path": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases.json",
+    "bytes": 338192,
+    "sha256": "7d6359f81563d23c991cc8393f084ca436bcd0665979675fada207f93d4316ca",
+    "modified": false
+  },
+  "cross_goal_link": {
+    "previous_goal_id": "6d3edb03-352d-4a3f-921c-b880db0625f5",
+    "previous_converged": "governance/design_iter/plans/v17/CONVERGED_round16.md",
+    "relationship": "Round 17 closes the residual visual defect in Round 16 FU-B1 without reopening the data-generation goal"
+  }
+}

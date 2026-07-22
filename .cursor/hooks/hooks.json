@@ -1,0 +1,12 @@
+{
+  "$schema": "https://cursor.sh/cursor-hooks-schema.json",
+  "afterFileEdit": [
+    {
+      "command": ".cursor/hooks/knowledge_indexer_hook.py",
+      "timeout": 60,
+      "filters": {
+        "filePatterns": ["knowledge/public/module_templates/**/*.md"]
+      }
+    }
+  ]
+}

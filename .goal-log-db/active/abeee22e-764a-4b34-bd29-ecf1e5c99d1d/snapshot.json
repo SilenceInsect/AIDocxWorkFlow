@@ -1,0 +1,118 @@
+{
+  "goal_id": "abeee22e-764a-4b34-bd29-ecf1e5c99d1d",
+  "raw_user_goal": "/goal-loop 根据 UI 专家的搭建模式，搭建其他专家 [v36 阶段 1+2：模板提炼 + 样板验证 3 个专家]",
+  "value_criteria": [
+    "通用底座（8 节）从 ui-expert v5 提炼，落到 governance/design_iter/plans/v36/base_template.md",
+    "biz-expert 身份卡落档 .cursor/skills/biz-expert/_identity_card.md（含专家特色节）",
+    "aux-expert 身份卡落档 .cursor/skills/aux-expert/_identity_card.md（含专家特色节）",
+    "hint-expert 身份卡落档 .cursor/skills/hint-expert/_identity_card.md（含专家特色节）",
+    "每个身份卡通过 _identity_card.md 路径自检且通过 git commit",
+    "每个身份卡含 1 节反假设污染 + 1 节主动识别（v4/v5 通用底线）",
+    "后续 16 个专家的批量铺开不在本轮范围（明确分轮）",
+    "Round 1 完成标准：3 个样板专家身份卡可被 v36 阶段 3 直接复用模板"
+  ],
+  "process_criteria": [
+    "Round 内每轮产 audit_<round>.md + review_<round>.md",
+    "通用底座文档 ≥ 80 行",
+    "每个样板专家身份卡 ≥ 80 行",
+    "每轮 commit 信息遵循 [UI/BIZ/AUX/HINT-专家直写] 命名",
+    "无新增 v36 之外的治理方案变更"
+  ],
+  "value_ratio": 0.6154,
+  "severity_label": "MAJOR",
+  "follow_up_items": [
+    {
+      "description": "Round 2：用 v36 底座套 5 个模块专家（log/special/link/config/?）+ 2 个元工具（Reader/goal-loop）= 7 个身份卡",
+      "severity": "MAJOR",
+      "suggested_fix": "按 v36 base_template.md 8 节 + 各自特色节逐步建",
+      "source_round": 1,
+      "source_criterion": "通用底座 8 节提炼"
+    },
+    {
+      "description": "Round 3：9 个流程专家精简版身份卡（aidocx-s1~s8 + feedback-logger） + 9 触发器接入 S5/S6/S7",
+      "severity": "MAJOR",
+      "suggested_fix": "流程专家用精简版 6 节模板（跳过节 5 工具箱）+ 触发器路由在 S 阶段入口",
+      "source_round": 1,
+      "source_criterion": "模板可被 v36 阶段 3 复用"
+    }
+  ],
+  "goal_signature": "6685ecb7a15bf610",
+  "goal_signature_changelog": [],
+  "out_of_scope_md": "",
+  "audit_stability": {},
+  "efficiency_stats": {},
+  "task_queue": [],
+  "parallel_executor_hints": {},
+  "loop_round": 1,
+  "last_audit": {
+    "file": "audit_1.md",
+    "round": 1,
+    "verdicts": [
+      {
+        "criterion": "通用底座 8 节提炼",
+        "judgement": "PASS",
+        "evidence": "v36 base_template.md §2",
+        "reverse_challenge": "8 节够用吗？→ 是，从 ui-expert v5 14 节中提炼最稳公约数"
+      },
+      {
+        "criterion": "biz-expert 身份卡落档",
+        "judgement": "PASS",
+        "evidence": "95c0be4 commit，198 行",
+        "reverse_challenge": "3 卡太相似？→ 否，特色节差异化（FSM/五值/3 维）"
+      },
+      {
+        "criterion": "aux-expert 身份卡落档",
+        "judgement": "PASS",
+        "evidence": "95c0be4 commit，204 行",
+        "reverse_challenge": ""
+      },
+      {
+        "criterion": "hint-expert 身份卡落档",
+        "judgement": "PASS",
+        "evidence": "95c0be4 commit，225 行",
+        "reverse_challenge": ""
+      },
+      {
+        "criterion": "3 身份卡 path + commit + 行数 ≥ 80",
+        "judgement": "PASS",
+        "evidence": "198/204/225 行",
+        "reverse_challenge": ""
+      },
+      {
+        "criterion": "3 身份卡含底线 2 节（反假设污染 + 主动识别）",
+        "judgement": "PASS",
+        "evidence": "3 卡均含共鸣节 v36 必含",
+        "reverse_challenge": ""
+      },
+      {
+        "criterion": "范围分轮明确",
+        "judgement": "PASS",
+        "evidence": "v36 §4 落地步骤",
+        "reverse_challenge": ""
+      },
+      {
+        "criterion": "模板可被 v36 阶段 3 复用",
+        "judgement": "PASS",
+        "evidence": "3 卡章节顺序完全一致",
+        "reverse_challenge": "是否所有模块专家都能套？→ 待 Round 2 验证"
+      }
+    ]
+  },
+  "last_review": {
+    "file": "review_1.md",
+    "round": 1,
+    "summary": "Round 1 收敛：8/8 PASS，3 卡模板差异化成立，v36 base_template.md 修正 governance/ 不入 git 注释",
+    "fix_actions": [
+      "Round 2 启动前置清单（5 项已就绪）",
+      "Round 2 范围 = 5 模块 + 2 元工具（7 个身份卡）",
+      "Round 3 范围 = 9 流程专家 + 触发器接入"
+    ]
+  },
+  "latest_artifact": "governance/design_iter/plans/v36/base_template.md",
+  "status": "converged_with_followup",
+  "token_budget": {
+    "used": 0,
+    "limit": null,
+    "updated_at": "2026-07-21T18:41:02.270389+00:00"
+  }
+}

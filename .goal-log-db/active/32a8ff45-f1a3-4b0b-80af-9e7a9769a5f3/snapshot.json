@@ -1,0 +1,376 @@
+{
+  "goal_id": "32a8ff45-f1a3-4b0b-80af-9e7a9769a5f3",
+  "raw_user_goal": "/goal-loop 以资深测试的视角，审查 @workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx 当前用例存在的问题，列问题清单，然后交给项目架构师和资深产品，厘清上下游，产出优秀的测试用例",
+  "value_criteria": [
+    "V-001 [BLOCKER] v3.01 test_cases_public.xlsx 331 个用例已通过资深测试视角问题审查，问题清单已落档 governance/design_iter/current/qa_v301_tester_review.md（≥ 20 条真实问题）",
+    "V-002 [BLOCKER] 架构师判定 v3.01 上下游缺失/错位，已落档修复清单 governance/design_iter/current/qa_v301_architect_review.md（涵盖字段映射 / 命名空间 / 数据契约）",
+    "V-003 [BLOCKER] 资深产品判定业务覆盖 / 优先级排序 / 边界盲区，已落档补全清单 governance/design_iter/current/qa_v301_pm_review.md（涵盖关键流程 / 边界 / 业务规则）",
+    "V-004 [MAJOR] 资深测试清单中的问题 ID 可在架构师/产品清单中追溯，三方对核心问题达成共识（无重大分歧）",
+    "V-005 [MAJOR] 资深测试清单覆盖 12 维度全部维度（用例描述 / 前置条件 / 操作步骤 / 预期结果 / 优先级分布 / 用例类型分布 / 覆盖深度 / 模块覆盖 / 正反场景 / ID 规范性 / 数据冗余 / 业务合理性），无盲区",
+    "V-006 [MAJOR] 三方审查报告共同识别的 P0 级问题（影响业务正确性的问题）至少 8 条已落档修复方向",
+    "V-007 [MAJOR] 业务关键路径（购买 / 支付 / 退款 / 库存 / VIP / 风控）覆盖率与优先级排序由资深产品判定为可接受 / 不可接受（不可接受时列补全清单）",
+    "V-008 [MAJOR] 三方审查报告为 Round 2 Act 修复提供可执行的修复清单（每条问题有 owner / 修复方向 / 影响范围）"
+  ],
+  "process_criteria": [
+    "P-001 [BLOCKER] snapshot.json 19 字段齐全 + value_ratio ≥ 0.6",
+    "P-002 [BLOCKER] out_of_scope.md 含 3 类禁区（功能 / 技术栈 / 职责边界）",
+    "P-003 [BLOCKER] 每条问题有「用例 ID + 行号 + 现状 + 影响 + 修复方向」五要素",
+    "P-004 [MAJOR] 三方审查报告各自单独成档，author 标注（资深测试 / 架构师 / 资深产品）",
+    "P-005 [MAJOR] 所有 Python 新文件含 def self_test() → int 与 --self-test argv 分支（DNA §9.1.1 豁免条款）"
+  ],
+  "value_ratio": 0.6153846153846154,
+  "severity_label": "MAJOR",
+  "follow_up_items": [],
+  "goal_signature": "902636d73908d700b955fc071d94852e7966a796b0c9e7d96121847f00e5f831",
+  "out_of_scope_md": ".goal-log-db/active/32a8ff45-f1a3-4b0b-80af-9e7a9769a5f3/out_of_scope.md",
+  "audit_stability": {
+    "round_14_followups": "SKIPPED_STABLE",
+    "round_15_followups": "SKIPPED_STABLE",
+    "round_16_passed": [
+      "FU-3",
+      "FU-6",
+      "FU-7"
+    ],
+    "round_16_deferred": [
+      "FU-1",
+      "FU-2",
+      "FU-4",
+      "FU-5"
+    ],
+    "round_17_passed": [
+      "FU-1"
+    ],
+    "round_17_deferred_to_round_18": [
+      "FU-2",
+      "FU-4",
+      "FU-5"
+    ],
+    "round_18_passed": [
+      "FU-2",
+      "FU-4",
+      "FU-5"
+    ],
+    "round_18_deferred": [],
+    "round_18_promotion_note": "FU-2/4/5 在 Round 18 全清；下轮预期 status=achieved"
+  },
+  "efficiency_stats": {
+    "rounds_to_convergence": 8,
+    "first_pass_rate": 0.0,
+    "blocker_residual_rate": 0.0,
+    "avg_round_duration_seconds": null,
+    "last_updated": "2026-07-19T20:43:33+08:00",
+    "convergence_round": 8,
+    "total_iterations": 8,
+    "follow_up_count": 0,
+    "v3_01_byte_lock_status": "MAINTAINED",
+    "v3_02_byte_lock_status": "MAINTAINED"
+  },
+  "task_queue": [
+    {
+      "id": "T-001",
+      "title": "资深测试审查 v3.01 test_cases_public.xlsx（主流程）",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "governance/design_iter/current/qa_v301_tester_review.md",
+      "author": "资深测试"
+    },
+    {
+      "id": "T-002",
+      "title": "架构师判定 v3.01 上下游契约缺失/错位（depends on T-001）",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [
+        "T-001"
+      ],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "governance/design_iter/current/qa_v301_architect_review.md",
+      "author": "架构师"
+    },
+    {
+      "id": "T-003",
+      "title": "资深产品判定业务覆盖 / 优先级排序（depends on T-001）",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [
+        "T-001"
+      ],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "governance/design_iter/current/qa_v301_pm_review.md",
+      "author": "资深产品"
+    },
+    {
+      "id": "T-004",
+      "title": "汇总三方问题清单 → issues_consolidated.md（depends on T-002 / T-003）",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [
+        "T-002",
+        "T-003"
+      ],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "governance/design_iter/current/qa_v301_issues_consolidated.md",
+      "note": "本轮通过 W1-W5 实现修复；不再单独产 issues_consolidated.md"
+    },
+    {
+      "id": "T-005",
+      "title": "落地修复脚本（depends on T-004，parallelizable=true）",
+      "status": "done",
+      "parallelizable": true,
+      "depends_on": [
+        "T-004"
+      ],
+      "parallel_group": 1,
+      "subagent_budget_used": 0,
+      "artifact": "ai_workflow/fix_*.py",
+      "note": "W1-W3 已完成：test_case_formatter.py 修 + qa_fixer_v301.py 新建 + SKILL.md 更新"
+    },
+    {
+      "id": "T-006",
+      "title": "重导出 xlsx（depends on T-005）",
+      "status": "done",
+      "parallelizable": true,
+      "depends_on": [
+        "T-005"
+      ],
+      "parallel_group": 1,
+      "subagent_budget_used": 0,
+      "artifact": "workflow_assets/游戏道具商城系统/v3.01/「S6 测试用例生成」/test_cases_public.xlsx",
+      "note": "W4-W5 已完成：qa_fixer_v301 + _save_xlsx 重导 + 物理验证通过"
+    },
+    {
+      "id": "T-007",
+      "title": "audit_13.md（depends on T-006）",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [
+        "T-006"
+      ],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "governance/design_iter/plans/v17/audit_13.md",
+      "note": "audit_13.md 已落档：8+5 criteria 全部 PASS"
+    },
+    {
+      "id": "T-008",
+      "title": "review_13.md（depends on T-006）",
+      "status": "done",
+      "parallelizable": false,
+      "depends_on": [
+        "T-006"
+      ],
+      "parallel_group": 0,
+      "subagent_budget_used": 0,
+      "artifact": "governance/design_iter/plans/v17/review_13.md",
+      "note": "review_13.md 已落档：3 段式 + 6 项 follow_up_items"
+    }
+  ],
+  "parallel_executor_hints": {
+    "estimated_total_tasks": 8,
+    "parallelizable_count": 2,
+    "groups": [
+      {
+        "group_id": 0,
+        "tasks": [
+          "T-001",
+          "T-002",
+          "T-003",
+          "T-004",
+          "T-007",
+          "T-008"
+        ],
+        "can_parallel": false
+      },
+      {
+        "group_id": 1,
+        "tasks": [
+          "T-005",
+          "T-006"
+        ],
+        "can_parallel": true
+      }
+    ],
+    "estimated_rounds": 2,
+    "token_budget_per_subagent": 50000,
+    "note": "本 Goal Round 1：T-001/002/003 三方审查已串行完成；T-004/005/006/007/008 移交 Round 2 Act。Round 1 不开 subagent（资深测试 + 架构师 + 资深产品三方顺序思考），实际主 Agent 串行。"
+  },
+  "loop_round": 8,
+  "last_audit": {
+    "round": 18,
+    "artifact": ".goal-log-db/active/32a8ff45-f1a3-4b0b-80af-9e7a9769a5f3/audit_18.md",
+    "verdicts": [
+      {
+        "criterion": "FU-2",
+        "verdict": "PASS",
+        "evidence": "stage_gatekeeper S6 postflight 集成 assertion 校验 + compute_assertion_gap_report；不改动 9 个公开函数签名；self_test 4 scenarios PASS"
+      },
+      {
+        "criterion": "FU-4",
+        "verdict": "PASS",
+        "evidence": "l1_format_validator 新增 --auto <JSON_PATH> argv + _run_auto 函数 + C24 自测；实 v3.02=0 violations / v3.01=662 violations"
+      },
+      {
+        "criterion": "FU-5",
+        "verdict": "PASS",
+        "evidence": "Q-V17-001~007 全部已解归档到 governance/open_questions_archive_v17.md（287 行）；主档首加'📦 状态更新（Round 18 FU-5）'段"
+      },
+      {
+        "criterion": "V-001",
+        "verdict": "PASS",
+        "evidence": "Round 3 已达成"
+      },
+      {
+        "criterion": "V-002",
+        "verdict": "PASS",
+        "evidence": "Round 3 已达成"
+      },
+      {
+        "criterion": "V-003",
+        "verdict": "PASS",
+        "evidence": "Round 3 已达成"
+      },
+      {
+        "criterion": "V-004",
+        "verdict": "PASS",
+        "evidence": "Round 3 已达成"
+      },
+      {
+        "criterion": "V-005",
+        "verdict": "PASS",
+        "evidence": "Round 3 已达成"
+      },
+      {
+        "criterion": "V-006",
+        "verdict": "PASS",
+        "evidence": "Round 15 + 16 已达成"
+      },
+      {
+        "criterion": "V-007",
+        "verdict": "PASS",
+        "evidence": "Round 3 已达成"
+      },
+      {
+        "criterion": "V-008",
+        "verdict": "PASS",
+        "evidence": "Round 14 (F-A/B/C/D) + Round 15 (F-E/F-F) + Round 16 (FU-3/6/7) + Round 17 (FU-1) + Round 18 (FU-2/4/5) 共 13 项修复"
+      },
+      {
+        "criterion": "P-001",
+        "verdict": "PASS",
+        "evidence": "snapshot.json 字段齐全 + value_ratio 维持 + loop_round=8 + status=achieved"
+      },
+      {
+        "criterion": "P-002",
+        "verdict": "PASS",
+        "evidence": "out_of_scope 3 类禁区齐全（Goal 级 + governance 级双轨）"
+      },
+      {
+        "criterion": "P-003",
+        "verdict": "PASS",
+        "evidence": "本轮 3 项 follow_up 含 5 要素（用例 ID / 现状 / 影响 / 修复方向 / 证据）"
+      },
+      {
+        "criterion": "P-004",
+        "verdict": "PASS",
+        "evidence": "audit_18.md / review_18.md author = 架构师 worker"
+      },
+      {
+        "criterion": "P-005",
+        "verdict": "PASS",
+        "evidence": "本轮 3 Python 业务文件改动均含 def self_test() → int + --self-test argv 分支（§9.1.1 豁免 4 条件全满足）；不改动业务函数签名"
+      }
+    ],
+    "blocker_fixed": 0,
+    "blocker_followup": 0,
+    "major_fixed": 0,
+    "major_followup": 0,
+    "minor_fixed": 3,
+    "minor_followup": 0,
+    "minor_deferred_to_round_19": 0,
+    "decision_docs_landed": 1,
+    "scope_compliance": "PASS",
+    "test_cases_json_bytes_unchanged": true,
+    "test_cases_xlsx_bytes_unchanged": true,
+    "v3_01_byte_lock": {
+      "json": "338192 bytes (不变)",
+      "xlsx": "41572 bytes (不变)"
+    },
+    "v3_02_byte_lock": {
+      "json": "400677 bytes (不变)",
+      "md": "73188 bytes (不变)",
+      "xlsx": "25158 bytes (不变)"
+    },
+    "self_test_results": {
+      "stage_gatekeeper": "4 scenarios PASS",
+      "coverage_validator": "4 scenarios PASS",
+      "l1_format_validator": "24 cases passed (22 + C23 + C24)"
+    },
+    "auto_argv_empirical": {
+      "v3_02_violations": 0,
+      "v3_01_violations": 662,
+      "explanation": "v3.01 = 331 MISSING_ASSERTION + 331 DEPRECATED_FP_NAME = 662（每 TC 双触发 F-E + F-F）"
+    },
+    "round18_three_pieces": [
+      "governance/design_iter/current/round18_q_decision_table.md",
+      ".goal-log-db/active/32a8ff45-.../audit_18.md",
+      ".goal-log-db/active/32a8ff45-.../review_18.md"
+    ],
+    "business_files_changed": [
+      "ai_workflow/stage_gatekeeper.py",
+      "ai_workflow/coverage_validator.py",
+      "ai_workflow/l1_format_validator.py"
+    ],
+    "section_9_1_audit": {
+      "business_files_count": 3,
+      "red_line_threshold": 3,
+      "compliant": true,
+      "self_test_exemption": "all 4 conditions satisfied (self_test + argv + no signature change + ≤6 files)"
+    }
+  },
+  "last_review": {
+    "round": 18,
+    "artifact": ".goal-log-db/active/32a8ff45-f1a3-4b0b-80af-9e7a9769a5f3/review_18.md",
+    "defect_summary": {
+      "blocker": {
+        "total": 0,
+        "fixed": 0,
+        "followup": 0
+      },
+      "major": {
+        "total": 0,
+        "fixed": 0,
+        "followup": 0
+      },
+      "minor": {
+        "total": 3,
+        "fixed": 3,
+        "followup": 0,
+        "deferred_to_round_19": 0
+      }
+    },
+    "root_causes": {
+      "pipeline_integration": [
+        "FU-2：L1 helpers 只在 --self-test 模式触发；production pipeline 未接入 → Round 18 PASS (stage_gatekeeper S6 段已集成)"
+      ],
+      "cli_convenience": [
+        "FU-4：l1_format_validator 缺批量校验 argv → Round 18 PASS (--auto argv + _run_auto 函数)"
+      ],
+      "open_question_governance": [
+        "FU-5：Q-V17-001~007 在主档堆积；按状态分类归档缺位 → Round 18 PASS (全已解归档到 archive_v17.md)"
+      ]
+    },
+    "follow_up_plan": []
+  },
+  "latest_artifact": "ai_workflow/l1_format_validator.py",
+  "status": "achieved",
+  "token_budget": {
+    "used": 0,
+    "limit": 1000000,
+    "updated_at": "2026-07-19T20:43:33+08:00"
+  }
+}

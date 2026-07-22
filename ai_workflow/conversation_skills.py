@@ -1,0 +1,1611 @@
+#!/usr/bin/env python3
+"""AIDocxWorkFlow — AI 协作技能工厂
+
+每个函数生成对应阶段的 system_prompt、user_template 和 save 函数。
+AI 读取 prompt，生成内容后调用 save_* 函数写入文件。
+"""
+
+from __future__ import annotations
+
+import json, os, shutil, sys
+from pathlib import Path
+from typing import Any, Callable
+
+# ── goal-loop 集成（v33 Plan B）─────────────────────────────────────────────
+# lazy import 避免循环：goal_loop_runner / goal_snapshot 只在 goal != None 时加载
+
+def _run_goal_loop_pipeline(
+    stages: list[str],
+    req_name: str,
+    version: str,
+    project_name: str | None,
+    stage_callables: dict[str, Any] | None,
+    stop_on_failure: bool,
+    goal: str,
+    value_criteria: list[str],
+    token_limit: int,
+    max_rounds: int,
+) -> dict:
+    """§10 goal-loop 五段式驱动模式实现。
+
+    五段式：
+      1. Plan  → create_snapshot + GoalLoop.plan(task_queue)
+      2. Act   → 执行各 stage（调用 run_stage），记录 latest_artifact
+      3. Audit → 逐条对照 accept_criteria 判定 PASS/FAIL/UNKNOWN
+      4. Review→ 汇总缺陷 + 根因 + 修复方案
+      5. Iterate→ 收敛判定（全部 PASS → achieved；FAIL → 继续）
+
+    与 goal_loop_runner.py 的分工：
+      - 本函数负责 Act 阶段的 stage 执行和 snapshot 更新
+      - GoalLoop 状态机（plan/act/audit/review/iterate）由 goal_loop_runner.py 提供
+    """
+    # lazy import 避免模块级别循环
+    from ai_workflow.goal_loop_runner import GoalLoop, AuditVerdict, ReviewReport
+    from ai_workflow.goal_snapshot import create_snapshot, update_snapshot, load_snapshot
+
+    # ── 1. Plan：创建快照 + 生成 task_queue ──────────────────────────────
+    snap = create_snapshot(
+        raw_user_goal=goal,
+        value_criteria=value_criteria,
+        token_limit=token_limit,
+        severity_label="MAJOR",
+    )
+    goal_id = snap["goal_id"]
+    loop = GoalLoop(goal_id)
+
+    # task_queue 映射到 stages（每个 stage 一个 task）
+    task_queue = [
+        {
+            "id": f"T-{i+1:03d}",
+            "title": f"执行阶段 {s}",
+            "status": "pending",
+            "artifact": None,
+            "parallelizable": False,
+            "depends_on": [],
+        }
+        for i, s in enumerate(stages)
+    ]
+    loop.plan(task_queue)
+
+    # ── 2. Act：逐阶段执行 ──────────────────────────────────────────────
+    stage_callables = stage_callables or {}
+    results = []
+    halted = False
+    halt_reason = None
+
+    for i, stage in enumerate(stages):
+        if halted:
+            results.append({
+                "stage": stage,
+                "req_name": req_name,
+                "project_name": project_name,
+                "version": version,
+                "status": "SKIPPED",
+                "skip_reason": halt_reason or "upstream_stage_failed",
+            })
+            continue
+
+        loop.act()  # 推进首个 pending task → in_progress
+
+        stage_result = run_stage(
+            stage,
+            req_name,
+            version,
+            project_name=project_name,
+            stage_callable=stage_callables.get(stage),
+        )
+        results.append(stage_result)
+
+        # 更新 snapshot.latest_artifact（指向本阶段产物目录）
+        stage_dir = _stage_dir(req_name, stage, version)
+        loop.act(artifact_path=str(stage_dir))
+
+        if stop_on_failure and stage_result.get("status") != "PASS":
+            halted = True
+            halt_reason = f"upstream_{stage}_status={stage_result.get('status')}"
+
+    # ── 3. Audit：逐条对照 accept_criteria ─────────────────────────────
+    verdicts = []
+    for criterion in value_criteria:
+        # 按 criterion 关键词匹配最近的 stage 结果
+        matched = None
+        for r in reversed(results):
+            if r.get("status") == "PASS":
+                matched = r
+                break
+        if matched is not None:
+            verdicts.append(AuditVerdict(
+                standard=criterion,
+                evidence=f"stage={matched.get('stage')}, status={matched.get('status')}",
+                judgement="PASS",
+                reverse_challenge=f"若 {matched.get('stage')} 的产物文件被删除则此 PASS 失效——但文件存在",
+            ))
+        else:
+            failed = next((r for r in results if r.get("status", "").startswith("FAIL")), None)
+            verdicts.append(AuditVerdict(
+                standard=criterion,
+                evidence=f"所有阶段未全部 PASS，失败阶段: {failed.get('stage', 'N/A')}" if failed else "所有阶段均未执行",
+                judgement="FAIL",
+                reverse_challenge="若 stage_callable 提供更完整的实现则可能全部 PASS",
+            ))
+
+    loop.audit(verdicts, token_used_delta=0)
+
+    # ── 4. Review：汇总 ────────────────────────────────────────────────
+    defects = [
+        f"stage={r.get('stage')}, status={r.get('status')}"
+        for r in results
+        if r.get("status", "").startswith("FAIL")
+    ]
+    review = ReviewReport(
+        defects=[f"阶段执行失败: {d}" for d in defects] if defects else ["无缺陷"],
+        root_causes=["LLM 生成的 stage_callable 覆盖不足"] if defects else [],
+        fix_actions=["补充 stage_callable 实现"] if defects else [],
+    )
+    loop.review(review)
+
+    # ── 5. Iterate：收敛判定 ──────────────────────────────────────────
+    try:
+        final_snap = loop.iterate()
+    except Exception:
+        # iterate 抛异常（熔断等）时仍返回当前 snapshot
+        final_snap = load_snapshot(goal_id)
+
+    return {
+        "req_name": req_name,
+        "project_name": project_name,
+        "version": version,
+        "stop_on_failure": stop_on_failure,
+        "halted": halted,
+        "halt_reason": halt_reason,
+        "goal_id": goal_id,
+        "goal_status": final_snap["status"],
+        "goal_loop_round": final_snap["loop_round"],
+        "stages": results,
+    }
+
+# ── 路径常量 ───────────────────────────────────────────────────────────────
+
+_ROOT = Path(__file__).parent.parent.resolve()   # AIDocxWorkFlow/
+WF    = _ROOT / "workflow_assets"
+
+
+def _req_dir(req_name: str) -> Path:
+    return WF / req_name
+
+
+def _stage_dir(req_name: str, stage: str, version: str = "v1.0") -> Path:
+    mapping = {
+        "S1":   "「S1 需求评审」",
+        "S2":   "「S2 需求拆解」",
+        "S2.5": "「S2.5 迭代规划」",
+        "S3":   "「S3 原型导出」",
+        "S4":   "「S4 流程图导出」",
+        "S5":   "「S5 测试点生成」",
+        "S6":   "「S6 测试用例生成」",
+        "S7":   "「S7 用例审查」",
+        "S8":   "「S8 自迭代」",
+    }
+    # v23 防御:目录名两端 strip 任意空白字符,防止带空格的错误目录污染工程
+    safe_stage_name = mapping.get(stage, stage).strip()
+    # v8+ SSOT: 目录主轴 = 先版本再阶段 (workflow_assets/<req_name>/<version>/「S{n}」)
+    return _req_dir(req_name) / version / safe_stage_name
+
+
+def build_stage_runtime_context(
+    stage: str,
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    project_name: str | None = None,
+) -> dict:
+    """构建并保存阶段上下文包。"""
+    from ai_workflow.stage_context_builder import build_stage_context
+    return build_stage_context(stage, req_name, version, project_name=project_name, persist=True)
+
+
+def run_stage_preflight(
+    stage: str,
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    project_name: str | None = None,
+) -> dict:
+    """执行阶段前置门禁：构建 stage_context + 生成 read_ack + 输入存在性检查。"""
+    from ai_workflow.stage_gatekeeper import run_preflight_gate
+    return run_preflight_gate(stage, req_name, version, project_name=project_name, persist=True)
+
+
+def run_stage_postflight(
+    stage: str,
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    project_name: str | None = None,
+) -> dict:
+    """执行阶段后置门禁：校验必备产物并生成 coverage/omission ledger。"""
+    from ai_workflow.stage_gatekeeper import run_postflight_gate
+    return run_postflight_gate(stage, req_name, version, project_name=project_name, persist=True)
+
+
+def run_stage(
+    stage: str,
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    project_name: str | None = None,
+    *,
+    stage_callable=None,
+) -> dict:
+    """统一阶段编排入口。
+
+    约定：
+    1. 先 preflight
+    2. 再执行 stage_callable
+    3. 再 postflight
+
+    v8 实战决策：阶段开始前（preflight 之前）若检测到阶段目录存在且非空，
+    自动询问用户"是否删除旧产物"——决策返回 SKIPPED（保留）或 purge 后继续。
+    """
+    decision = _prompt_purge_existing(stage, req_name, version, project_name=project_name)
+    if decision["action"] in ("keep", "auto_keep"):
+        return _purge_decision_to_skip_result(
+            decision, stage, req_name, version, project_name
+        )
+
+    preflight = run_stage_preflight(stage, req_name, version, project_name=project_name)
+    result = {
+        "stage": stage,
+        "req_name": req_name,
+        "project_name": project_name,
+        "version": version,
+        "preflight": preflight,
+        "stage_result": None,
+        "postflight": None,
+        "runtime_gate": None,
+        "status": "FAIL_PRECHECK" if not preflight.get("passed", False) else "NEED_LLM_OUTPUT",
+    }
+    if not preflight.get("passed", False):
+        return result
+
+    from ai_workflow.stage_gatekeeper import run_runtime_consistency_gate
+    runtime_gate = run_runtime_consistency_gate(stage, req_name, version, phase="preflight")
+    result["runtime_gate"] = runtime_gate
+    if runtime_gate.get("blocked", False):
+        result["status"] = "FAIL_RUNTIME_GATE"
+        return result
+
+    if stage_callable is None:
+        return result
+
+    stage_result = stage_callable()
+    result["stage_result"] = stage_result
+    result["status"] = "PASS"
+
+    postflight = run_stage_postflight(stage, req_name, version, project_name=project_name)
+    result["postflight"] = postflight
+    if not postflight.get("passed", False):
+        result["status"] = "FAIL_POSTCHECK"
+    return result
+
+
+def run_pipeline(
+    stages: list[str],
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    project_name: str | None = None,
+    *,
+    stage_callables: dict[str, Any] | None = None,
+    stop_on_failure: bool = True,
+    # ── §10.1 goal-loop 驱动模式（v33 Plan B 新增）─────────────────
+    goal: str | None = None,
+    accept_criteria: list[str] | None = None,
+    token_limit: int = 200_000,
+    max_rounds: int = 5,
+) -> dict:
+    """顺序执行多个阶段，并在失败时按需中断。
+
+    v33 Plan B：当传入 goal 参数时，进入 goal-loop 五段式自治循环模式，
+    自动创建快照、执行阶段、逐条审计、收敛判定。
+    """
+    # ── §10.1 goal-loop 路由 ──────────────────────────────────────────
+    if goal is not None:
+        if not accept_criteria:
+            raise ValueError("goal-loop 模式需要 accept_criteria 参数")
+        return _run_goal_loop_pipeline(
+            stages, req_name, version, project_name,
+            stage_callables, stop_on_failure,
+            goal, accept_criteria, token_limit, max_rounds,
+        )
+    results = []
+    stage_callables = stage_callables or {}
+    halted = False
+    halt_reason = None
+    for stage in stages:
+        if halted:
+            results.append(
+                {
+                    "stage": stage,
+                    "req_name": req_name,
+                    "project_name": project_name,
+                    "version": version,
+                    "preflight": None,
+                    "stage_result": None,
+                    "postflight": None,
+                    "runtime_gate": None,
+                    "status": "SKIPPED",
+                    "skip_reason": halt_reason or "upstream_stage_failed",
+                }
+            )
+            continue
+
+        stage_result = run_stage(
+            stage,
+            req_name,
+            version,
+            project_name=project_name,
+            stage_callable=stage_callables.get(stage),
+        )
+        results.append(stage_result)
+        if stop_on_failure and stage_result.get("status") != "PASS":
+            halted = True
+            halt_reason = f"upstream_{stage}_status={stage_result.get('status')}"
+    return {
+        "req_name": req_name,
+        "project_name": project_name,
+        "version": version,
+        "stop_on_failure": stop_on_failure,
+        "halted": halted,
+        "halt_reason": halt_reason,
+        "stages": results,
+    }
+
+
+def _load_s7_report_paths(req_name: str, version: str = "v1.0") -> dict[str, str]:
+    stage_dir = _stage_dir(req_name, "S6", version)
+    return {
+        "review_report_json": str(stage_dir / "review_report.json"),
+        "review_snapshot_json": str(stage_dir / "review_snapshot.json"),
+        "review_report_md": str(stage_dir / "review_report.md"),
+        "review_snapshot_md": str(stage_dir / "review_snapshot.md"),
+    }
+
+
+def save_stage7_output(
+    req_name: str,
+    version: str = "v1.0",
+    project_name: str | None = None,
+    *,
+    output_dir: Path | str | None = None,
+) -> dict:
+    """生成并保存 S7 审查产物。"""
+    from ai_workflow.auto_reviewer import snapshot, save_review_report
+    from ai_workflow.stage_gatekeeper import run_preflight_gate, run_postflight_gate
+
+    if output_dir is None:
+        output_dir = WF / req_name / version / "「S7 用例审查」"
+    else:
+        output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    run_preflight_gate("S7", req_name, version, project_name=project_name, persist=True)
+    snap = snapshot(
+        test_cases_path=WF / req_name / version / "「S6 测试用例生成」" / "test_cases.json",
+        backlog_path=WF / req_name / version / "「S2 需求拆解」" / "backlog.json",
+        test_points_path=WF / req_name / version / "「S5 测试点生成」" / "test_points.json",
+        coverage_ledger_path=WF / req_name / version / "「S6 测试用例生成」" / "coverage_ledger.json",
+        omission_ledger_path=WF / req_name / version / "「S6 测试用例生成」" / "omission_ledger.json",
+    )
+    saved = save_review_report(snap, output_dir=output_dir, req_name=req_name, version=version)
+    saved["gate"] = run_postflight_gate("S7", req_name, version, project_name=project_name, persist=True)
+    return saved
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S2.5 — 迭代规划
+# ─────────────────────────────────────────────────────────────────────────────
+
+def make_stage2_5_skill(req_name: str = "游戏道具商城系统", version: str = "v1.0",
+                          project_config: dict | None = None) -> dict:
+    """生成 S2.5 迭代规划的 AI 协作技能。
+
+    Args:
+        req_name: 需求名称
+        version: 版本标识
+        project_config: 项目配置字典，字段见下方 schema
+    """
+    # 读取 backlog
+    bd_path = _stage_dir(req_name, "S2", version) / "backlog.json"
+    backlog_data = {}
+    if bd_path.exists():
+        with bd_path.open(encoding="utf-8") as f:
+            backlog_data = json.load(f)
+
+    epics   = backlog_data.get("epics", [])
+    summary = backlog_data.get("summary", {})
+
+    epic_list = "\n".join(
+        f"  [{e['id']}] {e['title']} (预计{e.get('estimated_weeks', '?')}周, {len(e['stories'])}个Story)"
+        for e in epics
+    )
+
+    # 项目配置 schema（若未传入则用空模板）
+    cfg = project_config or {}
+    config_summary = (
+        f"项目名：{cfg.get('req_name', req_name)}，"
+        f"版本：{cfg.get('version', version)}，"
+        f"排期：{cfg.get('schedule', {}).get('start_date', '?')} ~ {cfg.get('schedule', {}).get('end_date', '?')}，"
+        f"策划 {cfg.get('estimates', {}).get('planning_hours', '?')}h / "
+        f"前端 {cfg.get('estimates', {}).get('frontend_hours', '?')}h / "
+        f"后端 {cfg.get('estimates', {}).get('backend_hours', '?')}h / "
+        f"测试 {cfg.get('estimates', {}).get('qa_hours', '?')}h，"
+        f"团队：前端{cfg.get('team_size', {}).get('frontend', '?')}人·"
+        f"后端{cfg.get('team_size', {}).get('backend', '?')}人·"
+        f"测试{cfg.get('team_size', {}).get('qa', '?')}人"
+    )
+
+    system_prompt = """你是一个专业的游戏项目迭代规划工程师，擅长将需求 Epic 拆解为可执行的迭代计划（Sprint）。
+
+## 工作规范
+
+### 前置输入
+- Epic 列表（含估算工时、Story 数量、优先级）
+- 项目配置（项目名/版本/排期/各角色预估工时/团队规模）
+- 已知风险点
+
+### 项目配置参数（必须体现在报告中）
+
+| 参数 | 来源 |
+|------|------|
+| 项目名 | project_config.req_name |
+| 版本名 | project_config.version |
+| 排期开始/截止 | project_config.schedule |
+| 策划/前端/后端/测试预估工时 | project_config.estimates |
+| 团队规模 | project_config.team_size |
+| 迭代总工时（周） | project_config.iterations.total_weeks |
+
+### 输出要求（Markdown + JSON 双格式）
+
+#### 1. Markdown 文档（iteration_plan.md）
+
+```markdown
+# 迭代规划 — <项目名> <版本>
+
+## 迭代概览
+- 总 Epic 数：X
+- 总 Story 数：X
+- 总工时估算：X 周
+- 迭代轮数：X 轮
+
+## 1. 项目配置
+
+| 参数 | 数值 |
+|------|------|
+| 项目名 | ... |
+| 版本名 | v1.0 |
+| 排期开始 | YYYY-MM-DD |
+| 排期截止 | YYYY-MM-DD |
+| 策划预估工时 | N h |
+| 前端预估工时 | N h |
+| 后端预估工时 | N h |
+| 测试预估工时 | N h |
+| 团队规模 | 前端N人 · 后端N人 · 测试N人 |
+| 迭代总工时 | N 周 |
+
+## 2. 迭代目标
+
+- 目标1
+- 目标2
+
+## 3. 负载平衡
+
+| 成员 | 角色 | 任务数 | 总工时(h) | 迭代可用(h) | 状态 |
+|------|------|--------|-----------|-------------|------|
+| ... | 前端 | ... | ... | ... | 正常/过载/富余 |
+
+## 4. 里程碑
+
+| 里程碑 | 时间点 | 交付内容 | 通过标准 |
+|--------|--------|----------|----------|
+| M1 | Sprint 1 末 | ... | ... |
+
+## 5. 资源规划
+
+| 角色 | 人数 | 估算工时(h) |
+|------|------|-------------|
+| 前端 | N | ... |
+| 后端 | N | ... |
+| 测试 | N | ... |
+
+## 6. 风险与依赖
+
+| 风险 | 等级 | 缓解措施 |
+|------|------|----------|
+| ... | 高 | ... |
+```
+
+#### 2. JSON 数据（iteration_plan.json）
+
+```json
+{
+  "version": "v1.0",
+  "date": "<今天日期>",
+  "stage": "S2.5",
+  "req_name": "<项目名>",
+  "project_config": {
+    "req_name": "<项目名>",
+    "version": "v1.0",
+    "schedule": { "start_date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD" },
+    "estimates": {
+      "planning_hours": N,
+      "frontend_hours": N,
+      "backend_hours": N,
+      "qa_hours": N
+    },
+    "team_size": { "frontend": N, "backend": N, "qa": N },
+    "iterations": { "total_weeks": N, "total_hours_per_person": N }
+  },
+  "sprints": [
+    {
+      "sprint_id": "S1",
+      "title": "基础能力",
+      "goal": "...",
+      "epics": ["EPIC-ID-1"],
+      "story_ids": ["STORY-ID-1"],
+      "estimated_weeks": 2,
+      "milestone": "M1",
+      "risk_level": "low",
+      "risk_items": ["..."],
+      "deliverables": ["..."]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Alpha 发布",
+      "timing": "Sprint 1 末",
+      "deliverables": ["..."],
+      "pass_criteria": ["..."]
+    }
+  ],
+  "load_balance": [
+    {
+      "member": "...",
+      "role": "前端",
+      "task_count": N,
+      "total_hours": N,
+      "available_hours": N,
+      "status": "正常"
+    }
+  ],
+  "resource_plan": {
+    "frontend": N,
+    "backend": N,
+    "qa": N,
+    "total_hours": { "frontend": N, "backend": N, "qa": N }
+  },
+  "total_weeks": N,
+  "risks": [
+    {
+      "description": "...",
+      "severity": "high",
+      "mitigation": "..."
+    }
+  ]
+}
+```
+
+## 质量要求
+- 每个 Sprint 必须有明确的目标（goal）和交付物（deliverables）
+- Epic 的优先顺序参考 backlog.json 中的 priority_epics
+- 总工时不超过团队可用工时（参考 project_config 中的 estimates 和 team_size）
+- 里程碑需与业务价值对齐
+- 项目配置参数必须完整填入 project_config 字段
+"""
+    return {
+        "system_prompt": system_prompt,
+        "user_template": f"""## <项目名> — 迭代规划（S2.5）
+
+请基于以下信息制定迭代计划。
+
+### 项目配置
+{config_summary}
+
+### Epic 清单（共 {summary.get('epic_count', len(epics))} 个，{summary.get('story_count', 0)} 个 Story）
+{epic_list or "(Epic 数据加载失败，请从 backlog.json 读取)"}
+
+### 关键风险点（来自 S1.5）
+- 汇率换算精度：角分四舍五入，订单锁定汇率时机
+- 配置变更生效时机：VIP等级/促销/hot标签变更后实时生效
+- 折扣叠加边界：限时折扣+VIP折扣的最优价判定逻辑
+
+### 优先级 Epic（优先安排）
+{backlog_data.get('priority_epics', [])}
+
+请按以下步骤工作：
+1. 分析 Epic 间的依赖关系
+2. 基于 project_config 中的排期和工时约束，划分 Sprint（每轮 1-3 周，当前项目迭代节奏较快，{cfg.get('iterations', {}).get('total_weeks', '?')} 周内完成）
+3. 确定里程碑（M1: 核心购买流程可用, M2: 全功能可用, M3: 上线稳定）
+4. 计算各角色负载（前端{cfg.get('team_size', {}).get('frontend', '?')}人·后端{cfg.get('team_size', {}).get('backend', '?')}人·测试{cfg.get('team_size', {}).get('qa', '?')}人）
+5. 识别风险并提出缓解措施
+6. 输出 Markdown 文档和 JSON 数据到文件
+
+输出格式：先给 Markdown 计划，再给 JSON（纯 JSON，不含 markdown 代码块）。
+请将结果保存到 _STAGE_DIR_。
+""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S2.5", version))),
+    }
+
+
+def save_iteration_plan(req_name: str, plan_md: str, plan_json: dict | str,
+                         version: str = "v1.0",
+                         project_config: dict | None = None) -> dict:
+    """保存 S2.5 迭代规划结果。"""
+    d = _stage_dir(req_name, "S2.5", version)
+    d.mkdir(parents=True, exist_ok=True)
+
+    md_path = d / "iteration_plan.md"
+    json_path = d / "iteration_plan.json"
+    cfg_path = d / "project_config.json"
+
+    # 保存 Markdown
+    with md_path.open("w", encoding="utf-8") as f:
+        f.write(plan_md.strip())
+    print(f"[S2.5] Markdown → {md_path}")
+
+    # 保存 JSON
+    if isinstance(plan_json, str):
+        plan_json = json.loads(plan_json)
+    plan_json["version"] = version
+    plan_json["stage"] = "S2.5"
+    plan_json["req_name"] = req_name
+
+    with json_path.open("w", encoding="utf-8") as f:
+        json.dump(plan_json, f, ensure_ascii=False, indent=2)
+    print(f"[S2.5] JSON → {json_path}")
+
+    # 保存项目配置
+    if project_config:
+        cfg = project_config if isinstance(project_config, dict) else json.loads(project_config)
+        cfg["version"] = version
+        cfg["stage"] = "S2.5"
+        cfg["req_name"] = req_name
+        with cfg_path.open("w", encoding="utf-8") as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+        print(f"[S2.5] project_config.json → {cfg_path}")
+
+    return {"md": str(md_path), "json": str(json_path), "config": str(cfg_path)}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S3 — 原型导出
+# ─────────────────────────────────────────────────────────────────────────────
+
+def make_stage3_skill(
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    incremental_context: dict | None = None,
+) -> dict:
+    """生成 S3 页面原型导出的 AI 协作技能。"""
+    # 读取 S1 review_report.json 获取增量上下文
+    rr_path = _stage_dir(req_name, "S1", version) / "review_report.json"
+    inc_ctx = incremental_context or {}
+    if not inc_ctx and rr_path.exists():
+        try:
+            rr_data = json.loads(rr_path.read_text(encoding="utf-8"))
+            inc_ctx = rr_data.get("meta", {}).get("incremental_context", {})
+        except Exception:
+            pass
+    is_incremental = inc_ctx.get("is_incremental", False)
+    system_prompt = """你是一个专业的 UI/UX 原型设计师，擅长将需求转化为高保真页面原型描述和 Mermaid 页面流图。
+
+## 工作规范
+
+### 输入
+- Epic/Story 列表（来自 backlog.json）
+- 已有的业务流程图（来自 S4 business_flow.md，可选参考）
+
+### 输出要求
+
+#### 1. 页面原型描述（prototype.md）
+
+每个页面包含：
+- **页面名称** 和 **页面 ID**（格式：`PAGE-XXX`）
+- **入口来源**：用户从哪个页面跳转而来
+- **核心功能**：页面提供的主要功能
+- **布局结构**：文字描述页面布局（标题区、内容区、操作区）
+- **交互元素**：按钮、表单、数据列表等
+- **状态说明**：正常态、空数据态、加载态、错误态
+
+示例：
+```markdown
+## PAGE-001：商城首页
+
+- **入口来源**：玩家登录后自动进入
+- **核心功能**：展示道具分类、热门道具、搜索入口
+- **布局结构**：
+  - 顶部：Logo + 搜索栏 + 用户信息
+  - 左侧：分类导航栏（武器/时装/坐骑/消耗品/礼包）
+  - 主区域：热门道具推荐区（10个）+ 分类道具列表
+  - 底部：分页控件
+- **交互元素**：
+  - 搜索框（点击触发搜索，支持模糊匹配）
+  - 分类标签（点击切换分类，URL 参数变化）
+  - 道具卡片（点击跳转详情页）
+  - 分页器（切换页面）
+- **状态说明**：
+  - 空数据：无道具时显示"暂无道具"
+  - 加载中：骨架屏占位
+```
+
+#### 2. Mermaid 页面流图
+
+```mermaid
+flowchart TD
+    Start([玩家进入商城]) --> Home[商城首页]
+    Home --> Search[搜索页]
+    Home --> Category[分类列表页]
+    Home --> Hot[热门道具区]
+    Hot --> Detail[道具详情页]
+    Category --> Detail
+    Search --> Detail
+    Detail --> Confirm[购买确认弹窗]
+    Confirm --> Pay[支付页]
+    Pay --> Success[成功页]
+    Pay --> Fail[失败页]
+    Success --> Mail[邮件通知]
+```
+
+## 质量要求
+- 覆盖所有 UI 相关的 Epic（UI-SHOP, UI-DETAIL, BIZ-PURCHASE 中的购买流程页面）
+- 每个页面必须有唯一的 PAGE-ID
+- 页面流图必须与 S4 流程图对齐
+- 包含必要的状态说明
+"""
+    return {
+        "system_prompt": system_prompt,
+        "user_template": f"""## 游戏道具商城系统 — 原型导出（S3）
+
+基于以下 Story 清单设计页面原型。
+
+### 涉及页面的 Epic/Story（来自 backlog.json）
+请重点关注以下模块的页面：
+1. **UI-SHOP**（商城首页）：热门道具展示、分类导航、搜索
+2. **UI-DETAIL**（道具详情页）：道具信息展示、数量选择
+3. **BIZ-PURCHASE**（购买流程）：购买确认弹窗、支付页、成功/失败页
+
+### 已有的业务流程（来自 S4）可参考：
+- 请先检查 _STAGE_DIR_REF_/business_flow.md 是否存在
+
+### 输出要求：
+1. 编写 `prototype.md`，包含所有页面的详细描述
+2. 在 `prototype.md` 末尾包含 Mermaid 页面流图
+3. 输出 JSON 格式的页面清单：
+
+```json
+{{
+  "version": "{version}",
+  "stage": "S3",
+  "req_name": "{req_name}",
+  "pages": [
+    {{
+      "page_id": "PAGE-001",
+      "page_name": "商城首页",
+      "module": "UI-SHOP",
+      "entry_source": "玩家登录后自动进入",
+      "core_functions": ["热门道具展示", "分类导航", "搜索"],
+      "interactions": ["搜索框", "分类标签", "道具卡片点击", "分页"],
+      "states": ["正常", "空数据", "加载中"]
+    }}
+  ]
+}}
+```
+
+请将 `prototype.md` 和 `prototype.json` 保存到 _STAGE_DIR_。
+""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S3", version))) \
+         .replace("_STAGE_DIR_REF_", str(_stage_dir(req_name, "S4", version))),
+    }
+
+
+def save_stage3_output(req_name: str, prototype_md: str, prototype_json: dict | str,
+                        version: str = "v1.0") -> dict:
+    """保存 S3 原型导出结果。"""
+    d = _stage_dir(req_name, "S3", version)
+    d.mkdir(parents=True, exist_ok=True)
+
+    md_path = d / "prototype.md"
+    json_path = d / "prototype.json"
+
+    with md_path.open("w", encoding="utf-8") as f:
+        f.write(prototype_md.strip())
+    print(f"[S3] Markdown → {md_path}")
+
+    if isinstance(prototype_json, str):
+        prototype_json = json.loads(prototype_json)
+    prototype_json["version"] = version
+    prototype_json["stage"] = "S3"
+    prototype_json["req_name"] = req_name
+
+    with json_path.open("w", encoding="utf-8") as f:
+        json.dump(prototype_json, f, ensure_ascii=False, indent=2)
+    print(f"[S3] JSON → {json_path}")
+
+    return {"md": str(md_path), "json": str(json_path)}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S2 — 需求拆解（make only，save 由 AI 调用）
+# ─────────────────────────────────────────────────────────────────────────────
+
+def make_stage2_skill(
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    incremental_context: dict | None = None,
+) -> dict:
+    """生成 S2 需求拆解的 AI 协作技能。
+
+    Args:
+        req_name: 需求名称
+        version: 版本标识
+        incremental_context: S1.8 增量上下文（来自 review_report.json meta.is_incremental）
+                           - 若 is_incremental=True：读取旧版 backlog + 产出增量 Epic
+                           - 若 is_incremental=False / None：标准 S2
+    """
+    ep_path = _stage_dir(req_name, "S1", version) / "exit_permission.json"
+    req_path = _stage_dir(req_name, "S1", version) / "终版需求.md"
+    # 读取 review_report.json 获取增量上下文
+    rr_path = _stage_dir(req_name, "S1", version) / "review_report.json"
+
+    ep_data = {}
+    if ep_path.exists():
+        with ep_path.open(encoding="utf-8") as f:
+            ep_data = json.load(f)
+
+    req_text = ""
+    if req_path.exists():
+        with req_path.open(encoding="utf-8") as f:
+            req_text = f.read()[:3000]
+
+    # ── 读取 S1 review_report.json 获取增量上下文 ────────────────────
+    inc_ctx = incremental_context or {}
+    if not inc_ctx and rr_path.exists():
+        try:
+            rr_data = json.loads(rr_path.read_text(encoding="utf-8"))
+            inc_ctx = rr_data.get("meta", {}).get("incremental_context", {})
+        except Exception:
+            pass
+
+    is_incremental = inc_ctx.get("is_incremental", False)
+    old_backlog_ref = inc_ctx.get("old_backlog_ref") or ""
+
+    # ── 读取旧版 backlog（增量时）────────────────────────────────────
+    old_backlog_text = ""
+    if is_incremental and old_backlog_ref:
+        try:
+            old_backlog_text = Path(old_backlog_ref).read_text(encoding="utf-8")[:2000]
+        except Exception:
+            pass
+
+    # ── 构建回归 Epic 引导（增量时）──────────────────────────────────
+    regression_note = ""
+    if is_incremental:
+        reg_blocks = inc_ctx.get("block_details", [])
+        affected = inc_ctx.get("affected_modules", [])
+        reg_epics = inc_ctx.get("regression_epics", [])
+        regression_note = f"""增量审查上下文（S1.8）：
+- 选中优化块：{', '.join(b['block_id'] + ':' + b['block_name'] for b in reg_blocks) if reg_blocks else '无'}
+- 影响模块：{', '.join(affected)}
+- 需回归 Epic：{', '.join(reg_epics) if reg_epics else '（基于旧 backlog 推断）'}
+- 回归要求：选中块涉及 BIZ/LINK/SPECIAL 模块，需产出回归测试用例覆盖旧流程变更点
+"""
+
+    system_prompt = """你是一个专业的游戏需求分析师，负责将需求文档拆解为 Epic/Story/需求对象/功能点层级。
+
+## 输出规范
+
+### 层级结构
+1. **Epic**（顶级需求模块）：按业务域划分，如"购买流程"、"VIP体系"、"商城首页"
+2. **Story**（具体功能）：每个 Epic 下的具体功能点
+3. **需求对象**（数据实体）：如玩家、订单、道具、促销规则
+4. **功能点**（原子操作）：不可再分的最小功能单元
+
+### 质量要求
+- Epic 估算工时（周），Story 数量
+- 每个 Story 包含：ID、标题、验收标准、前置条件、输入数据、预期输出
+- 优先级标注（priority: true/false）
+- 对应 backlog.json 的格式
+"""
+    # 增量上下文预渲染（避免在 f-string 中混用 JSON 引号）
+    _inc_ctx_json = (
+        '  "incremental_context": ' + json.dumps(inc_ctx, ensure_ascii=False) + ",\n"
+        if is_incremental else ""
+    )
+    _inc_epic_fields = (
+        '      "incremental_block_id": "OPT-XXX",\n      "regression": False,\n'
+        if is_incremental else ""
+    )
+    _incremental_requirements = (
+        "## 增量评审特殊要求（S1.8）\n"
+        "- 仅对 OPT-XXX 块产出新 Epic/Story，不重复评审基础文档已有内容\n"
+        "- 在 backlog.json 中为每个增量 Epic 标注 `incremental_block_id: OPT-XXX`\n"
+        "- 推断可能受影响的旧 Epic，标注 `regression: true`\n"
+        "- 回归 Epic 列表填入顶层 `regression_epics[]`\n"
+        if is_incremental else ""
+    )
+    _old_backlog_block = (
+        f"### 旧版 backlog（增量参考）\n{old_backlog_text[:1000]}\n"
+        if old_backlog_text else ""
+    )
+    user_template = f"""## 游戏道具商城系统 — 需求拆解（S2）
+{regression_note}
+
+需求材料：
+- 终版需求（{req_path}）：{req_text[:500]}...
+- 准出许可：{ep_data.get('exit_permission', {})}
+
+{_old_backlog_block}
+请执行 S2 需求拆解，输出：
+1. `backlog.md`（Epic/Story 列表，Markdown 格式）
+2. `backlog.json`（机器可读格式）
+
+{_incremental_requirements}
+JSON 格式参考：
+```json
+{{
+  "version": "{version}",
+  "date": "<今天>",
+  "stage": "S2",
+  "req_name": "{req_name}",
+  "quality_level": "{ep_data.get('exit_permission', {}).get('quality_level', 'MEDIUM')}",
+{_inc_ctx_json if is_incremental else ""}  "summary": {{"epic_count": N, "story_count": N, "requirement_object_count": N, "feature_point_count": N}},
+  "regression_epics": {inc_ctx.get("regression_epics", []) if is_incremental else []},
+  "priority_epics": ["EPIC-ID-1", "EPIC-ID-2"],
+  "epics": [
+    {{
+      "id": "EPIC-ID-1",
+      "module": "MODULE",
+      "title": "Epic标题",
+      "estimated_weeks": N,
+      "priority": true,
+{_inc_epic_fields if is_incremental else ""}      "stories": [
+        {{
+          "id": "EPIC-ID-001",
+          "title": "Story标题",
+          "acceptance_criteria": ["AC1", "AC2"],
+          "precondition": "前提条件",
+          "input_data": "输入数据",
+          "expected_output": "预期输出",
+          "source": "original|clarification|fallback|incremental"
+        }}
+      ]
+    }}
+  ]
+}}
+```
+
+请将结果保存到 _STAGE_DIR_。
+""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S2", version)))
+    return {"system_prompt": system_prompt, "user_template": user_template}
+
+
+def save_stage2_output(req_name: str, backlog_md: str, backlog_json: dict | str,
+                        version: str = "v1.0") -> dict:
+    d = _stage_dir(req_name, "S2", version)
+    d.mkdir(parents=True, exist_ok=True)
+
+    md_path = d / "backlog.md"
+    json_path = d / "backlog.json"
+
+    with md_path.open("w", encoding="utf-8") as f:
+        f.write(backlog_md.strip())
+    print(f"[S2] backlog.md → {md_path}")
+
+    if isinstance(backlog_json, str):
+        backlog_json = json.loads(backlog_json)
+    backlog_json["version"] = version
+    backlog_json["stage"] = "S2"
+    backlog_json["req_name"] = req_name
+
+    with json_path.open("w", encoding="utf-8") as f:
+        json.dump(backlog_json, f, ensure_ascii=False, indent=2)
+    print(f"[S2] backlog.json → {json_path}")
+
+    return {"md": str(md_path), "json": str(json_path)}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S4 — 流程图导出
+# ─────────────────────────────────────────────────────────────────────────────
+
+def make_stage4_skill(
+    req_name: str = "游戏道具商城系统",
+    version: str = "v1.0",
+    incremental_context: dict | None = None,
+) -> dict:
+    """生成 S4 流程图导出的 AI 协作技能。
+
+    v1.1+ 关键约束：4 类可机检 ID（风险点 + 异常树叶子） + 7 类风险点典型清单。
+    S5/S6/S7 强依赖这些 ID——S7 100% 覆盖率审计的 SSoT。
+    """
+    # 读取 S1 review_report.json 获取增量上下文
+    rr_path = _stage_dir(req_name, "S1", version) / "review_report.json"
+    inc_ctx = incremental_context or {}
+    if not inc_ctx and rr_path.exists():
+        try:
+            rr_data = json.loads(rr_path.read_text(encoding="utf-8"))
+            inc_ctx = rr_data.get("meta", {}).get("incremental_context", {})
+        except Exception:
+            pass
+    is_incremental = inc_ctx.get("is_incremental", False)
+    reg_epics = inc_ctx.get("regression_epics", [])
+
+    incremental_note = ""
+    if is_incremental:
+        incremental_note = f"""## 增量审查要求（S1.8）
+- 增量 Epic：{', '.join(inc_ctx.get('incremental_epics', ['OPT-XXX-001']))}
+- 回归 Epic：{', '.join(reg_epics) if reg_epics else '（从旧 backlog 推断）'}
+- 增量 Epic 需产出完整 4 类（S4 流程图 / 时序图 / 异常树 / 风险点）
+- 回归 Epic 只需产出变更点的增量异常路径，不需要重新产出完整流程图
+- 异常树叶子 ID 跨 Epic 全局唯一（不能与回归 Epic 的叶子 ID 冲突）
+"""
+    system_prompt = """你是一个专业的业务流程设计师，负责将 S2 backlog 拆解为**可机检的 4 类产出**：
+1. Mermaid 业务流程图（Flowchart）— 节点带 `S4-{EpicID}-FNN` ID
+2. Mermaid 时序图（Sequence Diagram）
+3. 异常/错误决策树 — 叶子节点带 `S4-{EpicID}-X.Y.Z` ID
+4. 风险点清单 — 风险带 `R-NNN`（机器友好）+ `R-{EpicID}-NN`（人类可读）双重 ID
+
+## 关键约束（v1.1+）
+
+### 风险点 7 类典型清单（必覆盖最小集，禁止造词）
+| 序号 | 风险类型 | 关键判据 |
+|------|---------|----------|
+| 1 | 竞态条件 | 涉及并发请求 / 锁 / 冻结 |
+| 2 | 时间依赖 | 涉及时间戳 / TTL / 倒计时 |
+| 3 | 状态损坏 | 涉及状态机 / 配置变更 |
+| 4 | 支付幂等性 | 涉及第三方回调 / 订单号 |
+| 5 | 数据一致性 | 涉及事务 / 回滚 |
+| 6 | 资源/容量 | 涉及上限 / 满载 |
+| 7 | 安全/合规 | 涉及鉴权 / 合规风控 |
+
+### ID 命名规范
+- 风险点：`R-001`（全局顺序）+ `R-{EpicID}-01`（按 Epic 局部）= 同一风险点
+- 异常树叶子：`S4-{EpicID}-1.3.2`（X.Y.Z 三级）
+- 流程图节点：`S4-{EpicID}-F03`（推荐，可选）
+
+### 上游消费
+- S2 backlog.json 的 `epics[].module`（必填，从 8 模块取值：CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT）
+- S2 backlog.json 的 `acceptance_criteria` 推导异常路径
+- S3 prototype.md（推荐）消费 `PAGE-XXX` 节点
+
+### 下游契约（S5/S6/S7 强依赖）
+- S5 TP `s4_reference` 字段 = `R-{EpicID}-NN` 格式
+- S6 禁止照抄 S4 节点名到用例字段
+- S7 审查员 B P0 100% 覆盖率（风险点 + 异常树叶子）
+
+## 输出规范
+
+### 1. 业务流程图（Mermaid flowchart）
+覆盖核心购买流程：用户操作 → 系统判断 → 结果输出
+
+### 2. 时序图（Mermaid sequence）
+展示关键场景中各系统组件的交互顺序
+
+### 3. 异常决策树
+覆盖异常路径：余额不足、支付失败、汇率异常、道具售罄等
+**每个叶子节点必须有 ID**（S4-{EpicID}-X.Y.Z）
+
+### 4. 风险点清单
+每条风险带双重 ID + 7 类归类 + 异常树叶子交叉引用
+
+## 模块定义 SSoT
+⚠️ 模块定义见 `.cursor/MODULES.md` §1（项目级唯一真相源）。本文件不重写 8 模块表。
+
+## 质量要求
+- 每个 Epic 必须 4 类产出齐全
+- 风险点 ID 全局唯一
+- 异常树叶子节点 ID 唯一
+- 风险点 ↔ 异常树叶子交叉引用 ≥ 50%
+- Mermaid 语法合法
+"""
+    return {
+        "system_prompt": system_prompt + ("\n" + incremental_note if incremental_note else ""),
+        "user_template": f"""## 游戏道具商城系统 — 流程图导出（S4）
+{incremental_note if incremental_note else ""}
+基于 backlog.json 中的 Story 设计业务流程图（**v1.1+ 必须按可机检 ID 规范产出**）。
+
+### 输入材料
+1. **S2 backlog.json**（必填）— `epics[].module` + `acceptance_criteria` + `incremental_block_id`
+2. **S3 prototype.md**（推荐）— `PAGE-XXX` 节点命名参考
+
+请输出 `business_flow.md`，**4 类产出按顺序**：
+1. **0. 元信息** — Epic × 模块 × 风险点数 × 异常树叶子数
+2. **1. Epic 级产出**（每个 Epic 4 节）：
+   - 1.1 主业务流程（Flowchart，节点带 `S4-{EpicID}-FNN` ID）
+   - 1.2 时序图（Sequence）
+   - 1.3 异常决策树（叶子带 `S4-{EpicID}-X.Y.Z` ID）
+   - 1.4 风险点（双重 ID：`R-NNN` + `R-{EpicID}-NN`，7 类归类，↔ 异常树叶子）
+3. **N. 风险点汇总（全局）** — 风险点表 `R-001` ~ `R-NNN` 全量列出（这是 S7 100% 覆盖率审计的 SSoT）
+
+### 重点覆盖
+- BIZ-PURCHASE 系列 Story（购买确认→游戏币支付→人民币支付→道具到账→邮件通知）
+- CONFIG-DISCOUNT 系列 Story（折扣计算叠加规则）
+- CONFIG-VIP 系列 Story（VIP折扣计算）
+- AUX-CACHE / LINK-PAYMENT / LOG-PAYMENT / SPECIAL-VIP-CHANGE 等支撑模块
+
+### 风险点 7 类必覆盖最小集
+竞态条件 / 时间依赖 / 状态损坏 / 支付幂等性 / 数据一致性 / 资源容量 / 安全合规
+
+### 严禁
+- ❌ 不要写"风险1, 风险2"——必须带 `R-NNN` ID
+- ❌ 不要省略异常树叶子 ↔ 风险点交叉引用
+- ❌ 不要用模块中文别名
+
+请将结果保存到 _STAGE_DIR_。
+""".replace("_STAGE_DIR_", str(_stage_dir(req_name, "S4", version))),
+    }
+
+
+def save_stage4_output(req_name: str, flow_md: str, version: str = "v1.0") -> dict:
+    """保存 S4 流程图导出结果（v1.1+ 同时保存 JSON 索引供 S5 消费）。
+
+    必传参数：
+      - flow_md: business_flow.md 全文
+    """
+    import re
+    d = _stage_dir(req_name, "S4", version)
+    d.mkdir(parents=True, exist_ok=True)
+
+    md_path = d / "business_flow.md"
+    md_path.write_text(flow_md.strip(), encoding="utf-8")
+    print(f"[S4] business_flow.md → {md_path}")
+
+    # v1.1+ 提取可机检结构（风险点 + 异常树叶子）→ business_flow.json
+    risk_pattern = re.compile(
+        r"\|\s*(R-\d{3})\s*\|\s*(R-[A-Z\-]+-\d+)\s*\|"  # R-NNN + R-{EpicID}-NN
+    )
+    risks = []
+    for m in risk_pattern.finditer(flow_md):
+        risks.append({
+            "risk_id_machine": m.group(1),
+            "risk_id_human": m.group(2),
+        })
+
+    leaf_pattern = re.compile(r"S4-([A-Z\-]+)-(\d+\.\d+\.\d+)")
+    leaves = list(set(leaf_pattern.findall(flow_md)))
+
+    json_path = d / "business_flow.json"
+    if risks or leaves:
+        json_path.write_text(
+            json.dumps(
+                {
+                    "version": version,
+                    "stage": "S4",
+                    "req_name": req_name,
+                    "risks": risks,
+                    "exception_tree_leaves": [
+                        {"epic_id": epic_id, "leaf_id": f"S4-{epic_id}-{leaf}"}
+                        for epic_id, leaf in leaves
+                    ],
+                    "summary": {
+                        "risk_count": len(risks),
+                        "exception_leaf_count": len(leaves),
+                    },
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        print(f"[S4] business_flow.json → {json_path} (R={len(risks)} / leaves={len(leaves)})")
+
+    return {"md": str(md_path), "json": str(json_path) if json_path.exists() else None}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 简化流水线执行器
+# ─────────────────────────────────────────────────────────────────────────────
+
+def execute_simple_flow(req_text: str, req_name: str = "游戏道具商城系统",
+                        version: str = "v1.0", filename: str = "test_cases") -> dict:
+    """简化流水线：S1 → S2 → S5 → S6（Python 自动化 + AI 协作）"""
+    results = {"stages": {}, "overall_status": "running"}
+
+    # S1：纯材料门禁（不做评分；5 维度评分和判决由 LLM 按 STAGE_S1_REVIEW.mdc 执行）
+    from ai_workflow.requirement_reviewer_auto import check_material_gate
+    gate = check_material_gate(req_text)
+    results["stages"]["S1"] = gate
+
+    if not gate["gate_passed"]:
+        results["overall_status"] = "REJECTED"
+        return results
+
+    # S2 / S5 / S6：由 AI 通过 conversation_skills 协作完成
+    # 这三个阶段需要 AI 参与，不能纯自动化
+    results["overall_status"] = "need_ai_collaboration"
+    results["next_stage"] = "S2"
+    results["skill"] = make_stage2_skill(req_name, version)
+    return results
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 全流程执行器
+# ─────────────────────────────────────────────────────────────────────────────
+
+def execute_full_flow(req_name: str = "游戏道具商城系统",
+                       version: str = "v1.0") -> dict:
+    """完整流水线状态查询（不执行，由 AI 协作分阶段执行）"""
+    stages = ["S1", "S2", "S2.5", "S3", "S4", "S5", "S6", "S7", "S8"]
+    results = {}
+
+    for s in stages:
+        d = _stage_dir(req_name, s, version)
+        stage_files = list(d.glob("*")) if d.exists() else []
+        results[s] = {
+            "done": d.exists() and len(stage_files) > 0,
+            "dir": str(d),
+            "files": [f.name for f in stage_files],
+        }
+
+    return results
+
+
+if __name__ == "__main__":
+    import pprint
+    pprint.pprint(execute_full_flow())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S5 — 测试点生成保存
+# ─────────────────────────────────────────────────────────────────────────────
+
+def save_stage5_output(
+    req_name: str,
+    test_points_json: dict | str,
+    version: str = "v1.0",
+    project_name: str | None = None,
+    *,
+    flow_md_text: str = "",
+) -> dict:
+    """保存 S5 测试点生成结果（JSON + 统计摘要）。
+
+    流程：
+    1. 解析 test_points_json（字符串或 dict）
+    2. 读 S4 business_flow.json（如存在）填充 s4_reference 格式 R-{EpicID}-NN
+    3. 写 test_points.json 到 <req_name>/<version>/「S5 测试点生成」/
+    4. 写 test_points_summary.json 统计摘要
+
+    Args:
+        req_name: 需求名称
+        test_points_json: S5 产出的测试点 JSON（dict 或 JSON 字符串）
+        version: 版本标识
+        flow_md_text: S4 business_flow.md 原文（如有，用于提取 s4_reference 格式）
+    """
+    import json, re, textwrap
+
+    d = _stage_dir(req_name, "S5", version)
+    d.mkdir(parents=True, exist_ok=True)
+    run_stage_preflight("S5", req_name, version, project_name=project_name)
+
+    # ── 1. 解析输入 ──────────────────────────────────────────────────────
+    if isinstance(test_points_json, str):
+        try:
+            data = json.loads(test_points_json)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"S5 test_points JSON 解析失败: {e}") from e
+    else:
+        data = test_points_json
+
+    # 兼容三种结构：
+    # A) {"stories": [...]}          — compose_test_points_from_structure 输出
+    # B) [{"story_id": "...", ...}]   — 直接列表
+    # C) {"test_points": [...]}       — 备用
+    stories = data.get("stories") or (data if isinstance(data, list) else data.get("test_points", []))
+
+    # ── 2. 从 S4 business_flow.json 提取风险点映射（s4_reference 格式参考）──
+    s4_json_path = _stage_dir(req_name, "S4", version) / "business_flow.json"
+    s4_risks: dict[str, list[str]] = {}  # epic_id -> [risk_id_human, ...]
+    if s4_json_path.exists():
+        with s4_json_path.open(encoding="utf-8") as f:
+            s4_data = json.load(f)
+        for r in s4_data.get("risks", []):
+            rid_h = r.get("risk_id_human", "")
+            # e.g. "R-BIZ-PURCHASE-01" → epic_id = "BIZ-PURCHASE"
+            parts = rid_h.split("-")
+            if len(parts) >= 3 and rid_h.startswith("R-"):
+                epic_id = "-".join(parts[1:-1])  # BIZ-PURCHASE
+                s4_risks.setdefault(epic_id, []).append(rid_h)
+
+    # ── 3. 统计 ───────────────────────────────────────────────────────────
+    total_tp = 0
+    by_module: dict[str, int] = {}
+    by_type: dict[str, int] = {}
+    missing_module_count = 0
+    missing_type_count = 0
+    seed_tp_count = 0
+
+    for story in stories:
+        tps = story.get("scenario_test_points", [])
+        total_tp += len(tps)
+
+        # 判断是否种子 TP（字段未填满）
+        for tp in tps:
+            m = tp.get("module", "")
+            if m:
+                by_module[m] = by_module.get(m, 0) + 1
+            else:
+                missing_module_count += 1
+
+            t = tp.get("test_point_type", "")
+            if t:
+                by_type[t] = by_type.get(t, 0) + 1
+            else:
+                missing_type_count += 1
+
+            # 种子 TP 特征：description 为空或含占位符
+            desc = tp.get("description", "") or tp.get("描述", "")
+            placeholder_flags = ["[待", "待补充", "待 LLM", "TODO", "tbd", "待填写", "待定", "待填", "LLM"]
+            if any(p.lower() in desc.lower() for p in placeholder_flags):
+                seed_tp_count += 1
+
+    # ── 4. 写文件 ─────────────────────────────────────────────────────────
+    json_path = d / "test_points.json"
+    with json_path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"[S5] test_points.json → {json_path}")
+
+    # 统计摘要
+    summary = {
+        "version": version,
+        "stage": "S5",
+        "req_name": req_name,
+        "date": _today(),
+        "stories_count": len(stories),
+        "total_test_points": total_tp,
+        "by_module": by_module,
+        "by_type": by_type,
+        "missing_module": missing_module_count,
+        "missing_type": missing_type_count,
+        "seed_tp_count": seed_tp_count,
+        "seed_tp_ratio": round(seed_tp_count / total_tp, 3) if total_tp else None,
+        "s4_risks_loaded": len(s4_risks),
+    }
+
+    summary_path = d / "test_points_summary.json"
+    with summary_path.open("w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, indent=2)
+    print(f"[S5] test_points_summary.json → {summary_path}")
+
+    # 可读摘要（Markdown）
+    seed_ratio = summary["seed_tp_ratio"]
+    seed_ratio_text = f"{seed_ratio:.1%}" if seed_ratio is not None else "0.0%"
+
+    md_summary_lines = [
+        f"# S5 测试点统计摘要 — {req_name} {version}\n",
+        f"日期：{summary['date']}\n\n",
+        f"- Story 数：**{summary['stories_count']}**\n",
+        f"- 测试点总数：**{summary['total_test_points']}**\n",
+        f"- 种子 TP 数：{summary['seed_tp_count']} ({seed_ratio_text})\n",
+        f"- 缺失 module：{summary['missing_module']} 个\n",
+        f"- 缺失 type：{summary['missing_type']} 个\n",
+        f"- S4 风险点加载：{summary['s4_risks_loaded']} 个 Epic\n\n",
+        "### 按模块分布\n\n",
+        "| 模块 | TP 数 |\n|---|---|\n",
+    ]
+    for m, cnt in sorted(by_module.items()):
+        md_summary_lines.append(f"| {m} | {cnt} |\n")
+
+    md_summary_lines.extend([
+        "\n### 按类型分布\n\n",
+        "| 类型 | TP 数 |\n|---|---|\n",
+    ])
+    for t, cnt in sorted(by_type.items()):
+        md_summary_lines.append(f"| {t} | {cnt} |\n")
+
+    md_summary_lines.append(
+        "\n> 种子 TP（含 `[待补充]` 占位符）由 LLM 在对话中填充完整字段后重新保存。\n"
+    )
+
+    md_summary_path = d / "test_points_summary.md"
+    with md_summary_path.open("w", encoding="utf-8") as f:
+        f.writelines(md_summary_lines)
+    print(f"[S5] test_points_summary.md → {md_summary_path}")
+
+    gate = run_stage_postflight("S5", req_name, version, project_name=project_name)
+
+    return {
+        "json": str(json_path),
+        "summary_json": str(summary_path),
+        "summary_md": str(md_summary_path),
+        "summary": summary,
+        "gate": gate,
+    }
+
+
+def _today() -> str:
+    """返回今天日期字符串 YYYY-MM-DD。"""
+    from datetime import date
+    return date.today().isoformat()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 阶段产物清理询问（v8 实战决策：开始之前请用户确认是否删除旧产物）
+# ─────────────────────────────────────────────────────────────────────────────
+
+_PURGE_BANNER = (
+    "\n┌─ [AIDocxWorkFlow] 阶段开始前询问 ─────────────────────────────┐\n"
+    "│ 检测到阶段目录已存在且非空，是否删除旧产物后重新执行？       │\n"
+    "└──────────────────────────────────────────────────────────────┘"
+)
+
+
+def _resolve_stage_path(stage: str, req_name: str, version: str) -> Path:
+    """根据当前 stage/req/version 算出阶段目录（v8 主轴：先版本再阶段）。
+
+    不复用本地 _stage_dir（它使用旧主轴「阶段/版本」），
+    直接按 v8 规范拼路径：workflow_assets/<req_name>/<version>/「阶段」
+
+    v23 防御:阶段名两端 strip 空白,防止带空格目录污染工程。
+    """
+    stage_dir_name = {
+        "S1":   "「S1 需求评审」",
+        "S2":   "「S2 需求拆解」",
+        "S2.5": "「S2.5 迭代规划」",
+        "S3":   "「S3 原型导出」",
+        "S4":   "「S4 流程图导出」",
+        "S5":   "「S5 测试点生成」",
+        "S6":   "「S6 测试用例生成」",
+        "S7":   "「S7 用例审查」",
+        "S8":   "「S8 自迭代」",
+    }.get(stage, stage).strip()
+    return WF / req_name / version / stage_dir_name
+
+
+def _list_stage_artifacts(stage_dir: Path) -> tuple[list[str], int, float]:
+    """列出阶段目录里的文件 + 总大小 + 最近修改时间（用于删除前展示）。"""
+    if not stage_dir.exists():
+        return [], 0, 0.0
+    files: list[str] = []
+    total_size = 0
+    latest_mtime = 0.0
+    for p in stage_dir.rglob("*"):
+        if p.is_file():
+            files.append(str(p.relative_to(stage_dir)))
+            total_size += p.stat().st_size
+            latest_mtime = max(latest_mtime, p.stat().st_mtime)
+    files.sort()
+    return files, total_size, latest_mtime
+
+
+def _format_size(size_bytes: int) -> str:
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    if size_bytes < 1024 * 1024:
+        return f"{size_bytes / 1024:.1f} KB"
+    return f"{size_bytes / 1024 / 1024:.2f} MB"
+
+
+def _prompt_purge_existing(
+    stage: str,
+    req_name: str,
+    version: str,
+    project_name: str | None = None,
+) -> dict:
+    """阶段开始前询问用户是否删除旧产物。
+
+    Returns:
+        dict 含 4 字段：
+          - action: "purge" | "keep" | "auto_keep" | "abort"
+          - deleted_files: 被删除的文件数（仅 purge 时 > 0）
+          - stage_dir: 阶段目录路径
+          - reason: 决策原因
+    """
+    stage_dir = _resolve_stage_path(stage, req_name, version)
+    if not stage_dir.exists():
+        return {
+            "action": "auto_keep",
+            "deleted_files": 0,
+            "stage_dir": str(stage_dir),
+            "reason": "目录不存在，无需清理",
+        }
+
+    files, total_size, latest_mtime = _list_stage_artifacts(stage_dir)
+    if not files:
+        return {
+            "action": "auto_keep",
+            "deleted_files": 0,
+            "stage_dir": str(stage_dir),
+            "reason": "目录为空，无需清理",
+        }
+
+    from datetime import datetime
+    mtime_str = (
+        datetime.fromtimestamp(latest_mtime).isoformat(timespec="seconds")
+        if latest_mtime
+        else "unknown"
+    )
+
+    print(_PURGE_BANNER)
+    print(f"  阶段        ：{stage}")
+    print(f"  需求        ：{req_name}")
+    print(f"  版本        ：{version}")
+    if project_name:
+        print(f"  项目        ：{project_name}")
+    print(f"  阶段目录    ：{stage_dir}")
+    print(f"  现有文件数  ：{len(files)}")
+    print(f"  现有总大小  ：{_format_size(total_size)}")
+    print(f"  最近修改    ：{mtime_str}")
+    if len(files) <= 20:
+        print("  文件清单    ：")
+        for f in files:
+            print(f"    - {f}")
+    else:
+        print("  文件清单    ：（仅显示前 20 条）")
+        for f in files[:20]:
+            print(f"    - {f}")
+        print(f"    ... 及其他 {len(files) - 20} 个")
+
+    # 非交互环境（CI / 自动化 / 无 TTY）→ 默认 auto_keep，避免阻塞
+    if not sys.stdin.isatty():
+        print("  ⚠️ 非交互环境 → 默认保留旧产物（auto_keep）。")
+        return {
+            "action": "auto_keep",
+            "deleted_files": 0,
+            "stage_dir": str(stage_dir),
+            "reason": "non_interactive_env_default_keep",
+        }
+
+    while True:
+        print("\n请选择：")
+        print("  [Y] 删除旧产物，重新跑该阶段（推荐）")
+        print("  [N] 保留旧产物，跳过该阶段（status=SKIPPED）")
+        print("  [A] 中止整个流水线（abort）")
+        choice = input("  输入 Y/N/A（默认 N）：").strip().upper()
+        if choice in ("", "N"):
+            print(f"  → 保留旧产物，跳过 {stage}")
+            return {
+                "action": "keep",
+                "deleted_files": 0,
+                "stage_dir": str(stage_dir),
+                "reason": "user_chose_keep_existing",
+            }
+        if choice == "Y":
+            print(f"  → 正在删除 {stage_dir} …")
+            try:
+                shutil.rmtree(stage_dir)
+                deleted_count = len(files)
+                print(f"  ✓ 已删除 {deleted_count} 个文件 / {len(files)} 个入口")
+                return {
+                    "action": "purge",
+                    "deleted_files": deleted_count,
+                    "stage_dir": str(stage_dir),
+                    "reason": "user_chose_purge_existing",
+                }
+            except Exception as exc:
+                print(f"  ✗ 删除失败：{exc}")
+                return {
+                    "action": "keep",
+                    "deleted_files": 0,
+                    "stage_dir": str(stage_dir),
+                    "reason": f"purge_failed: {exc}",
+                }
+        if choice == "A":
+            print("  → 用户中止")
+            raise SystemExit("用户中止流水线（purge prompt: choice=A）")
+
+
+def _purge_decision_to_skip_result(
+    decision: dict,
+    stage: str,
+    req_name: str,
+    version: str,
+    project_name: str | None,
+) -> dict:
+    """把 purge 决策（keep / auto_keep）转成 run_stage 风格的 SKIPPED 结果。"""
+    return {
+        "stage": stage,
+        "req_name": req_name,
+        "project_name": project_name,
+        "version": version,
+        "preflight": None,
+        "stage_result": None,
+        "postflight": None,
+        "runtime_gate": None,
+        "status": "SKIPPED",
+        "skip_reason": decision.get("reason", "user_chose_keep_existing"),
+        "purge_decision": decision,
+    }

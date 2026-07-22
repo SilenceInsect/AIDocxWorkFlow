@@ -1,0 +1,9 @@
+{
+  "event": "afterFileEdit",
+  "payload": {
+    "goal_id": "725c2d64-e026-44c6-8fa4-ecc954f26f78",
+    "file_path": "/tmp/test.md"
+  },
+  "queued_at": "2026-07-18T15:14:47.327770+00:00",
+  "status": "pending"
+}

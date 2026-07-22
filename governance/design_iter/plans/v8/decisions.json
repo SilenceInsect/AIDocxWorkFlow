@@ -1,0 +1,87 @@
+{
+  "version": "v8",
+  "title": "目录主轴变更（先版本再阶段）",
+  "status": "已闭环",
+  "decided_at": "2026-07-10",
+  "decider": "用户（via AskQuestion 4 次批量收集）",
+  "decisions": {
+    "D-V8-001": {
+      "subject": "目录主轴变更",
+      "candidates": {
+        "A": "保持现状（先阶段再版本）",
+        "B": "改为先版本再阶段",
+        "C": "其他"
+      },
+      "chosen": "B",
+      "reasoning": "用户明确反馈当前路径别扭，且与 resource/ 主轴不对齐"
+    },
+    "D-V8-002": {
+      "subject": "约束同步范围",
+      "candidates": {
+        "A": "仅 §2.6 + §4.5（最小改动）",
+        "B": "全部 10 份 STAGE_S*.mdc（彻底）",
+        "C": "仅加注释（最低风险）"
+      },
+      "chosen": "B",
+      "reasoning": "DNA §0.1 禁止约束/实现/文档失配——必须同步所有引用"
+    },
+    "D-V8-003": {
+      "subject": "现有 v3.0/raw 数据处理",
+      "candidates": {
+        "A": "mv 到新结构",
+        "B": "重新跑 S1 抽取",
+        "C": "保留旧路径（双轨）"
+      },
+      "chosen": "A",
+      "reasoning": "避免双轨目录状态，保留可追溯路径"
+    },
+    "D-V8-004": {
+      "subject": "resource/ 目录是否同步调整",
+      "candidates": {
+        "A": "统一为版本在前",
+        "B": "不调整（保持现状）"
+      },
+      "chosen": "B",
+      "reasoning": "resource/ 已经是先版本模式，与新 workflow_assets 主轴自然对齐"
+    },
+    "D-V8-005": {
+      "subject": "历史版本回填策略",
+      "candidates": {
+        "A": "仅迁移当前 v3.0",
+        "B": "所有版本都迁移"
+      },
+      "chosen": "B",
+      "reasoning": "当前只有 v3.0 一个版本，B = A（实际操作无差异）"
+    },
+    "D-V8-006": {
+      "subject": "批量替换工具",
+      "candidates": {
+        "A": "Python 脚本",
+        "B": "sed 单行"
+      },
+      "chosen": "A",
+      "reasoning": "可逆/可追溯/dry-run 预览优先于速度"
+    },
+    "D-V8-007": {
+      "subject": "DESIGN_AND_EXECUTION_STANDARDS.mdc §4.5 处理",
+      "candidates": {
+        "A": "更新（保持代码 SSOT 不脱销）",
+        "B": "保留（仅作示例引用）"
+      },
+      "chosen": "A",
+      "reasoning": "新增 stage_dir() 工厂函数提供统一路径拼接入口"
+    }
+  },
+  "execution_summary": {
+    "files_changed": 42,
+    "path_replacements": 217,
+    "data_mv_count": 1,
+    "py_compile_validation": "10/10 通过",
+    "residual_old_pattern_matches": 4,
+    "residual_note": "CHANGELOG.md + governance/design_iter/plans/v2~v7 历史快照保留（按 DNA §10.5 CHANGELOG 是历史快照，不应改动）"
+  },
+  "issues_for_v9": [
+    "Q-V9-001: v3.0/raw 与 v3.01 内容重复（超出 v8 范围）",
+    "Q-V9-002: INDEX.md v8 章节未加（保留 v9 写）"
+  ]
+}

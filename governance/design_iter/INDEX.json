@@ -1,0 +1,405 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-07-21",
+  "current": "v28",
+  "plans_discrepancy_note": "plans 列表仅覆盖 v1/v2/v7 三项；v4/v8/v9/v13/v14 + v3/v10/v11/v12 + v15/v16 11 个方案目录存在但未入 JSON——Q-V15-001 跟踪。下次方案启动时由 CLI scripts/design_iter.py 重生成（不手填）。",
+  "plans": [
+    {
+      "version": "v1",
+      "title": "规则体系重构（备份迁入 + 3 栏框架）",
+      "status": "已被 v2 取代",
+      "created_at": "2026-06-17",
+      "based_on": null,
+      "path": "governance/design_iter/plans/v1/",
+      "open_questions_count": 10,
+      "open_questions_note": "v1 遗留问题——v2 启动后冻结,10 个 Q-XXX 由 v2 PLAN.md §⚠️ 启动必读 + v2 open_questions.md 跟踪。",
+      "resolved_questions_count": 11,
+      "resolved_questions_note": "v1 自身闭环:3 个 D-XXX + 8 个完成项 = 11。",
+      "files": [
+        "PLAN.md",
+        "open_questions.md",
+        "resolved_questions.md",
+        "decisions.json"
+      ],
+      "v2_blockers": [
+        "Q-001 gen 脚本定位",
+        "Q-002 DESIGN §2.3/§4.3 重写",
+        "Q-003 STAGE_S* vs SKILL 物理分离",
+        "Q-004 双视图索引",
+        "Q-005 DESIGN §3 知识层迁出"
+      ]
+    },
+    {
+      "version": "v2",
+      "title": "5 决策回答 + 4 步迁移实施",
+      "status": "待 5 决策",
+      "created_at": "2026-06-17",
+      "based_on": "v1",
+      "path": "governance/design_iter/plans/v2/",
+      "open_questions_count": 5,
+      "open_questions_note": "Q-001~Q-005 在 v2 PLAN.md §⚠️ 启动必答 等待点头(D-101~D-105 占位,decided=false);Q-101~Q-104 + Q-201 在 open_questions.md 跟踪,共 5 个次级问题,留 v3 评估。",
+      "resolved_questions_count": 3,
+      "resolved_questions_note": "v2 启动决策:D-201/D-202/D-203 = v2 启动原则决策(决策先于代码 + v2 主体 = 5 决策 + 4 步迁移 + v2 不重复 v1 设计)。",
+      "files": [
+        "PLAN.md",
+        "open_questions.md",
+        "resolved_questions.md",
+        "decisions.json"
+      ],
+      "v2_decision_placeholders": {
+        "D-101": "Q-001 gen 脚本定位 (默认 A: 守护者)",
+        "D-102": "Q-002 DESIGN §2.3/§4.3 重写 (默认 A: 全删硬阈值)",
+        "D-103": "Q-003 STAGE_S* vs SKILL 物理分离 (默认 A: 物理分离)",
+        "D-104": "Q-004 双视图索引 (默认 A: 双视图)",
+        "D-105": "Q-005 DESIGN §3 知识层迁出 (默认 A: 迁出到 knowledge/)"
+      },
+      "v3_blockers": [
+        "Q-101 design_iter 存什么",
+        "Q-102 design_iter 回滚粒度",
+        "Q-103 design_iter 和现有备份关系 (v1 D-003 已答)",
+        "Q-104 design_iter 回滚方式 (v1 D-001 已答)",
+        "Q-201 Agent '先执行' 误读防"
+      ],
+      "v6_2_closed": [
+        "Q-301 (S6 产出门禁缺 xlsx)",
+        "Q-401 (AGENTS.md 引用 §9.1.1)",
+        "Q-402 (Edit 残段风险模式化预防)"
+      ]
+    },
+    {
+      "version": "v7",
+      "title": ".mdc / SKILL.md 9 阶段规则层修复执行",
+      "status": "运行中 / current 已切",
+      "created_at": "2026-07-08",
+      "based_on": "v6.2 闭环（Q-401/Q-402）+ 3 份一致性审计报告",
+      "path": "governance/design_iter/plans/v7/",
+      "open_questions_count": 69,
+      "open_questions_note": "Q-501~Q-524 (24 条 RULE_SKILL) + Q-525~Q-569 (45 条 SCRIPT_SKILL + SKILL_LOGIC) 由 v2/open_questions.md §v7 启动版 跟踪;v7/PLAN.md §2 表格 含 56 行待修项。",
+      "resolved_questions_count": 0,
+      "resolved_questions_note": "v7 启动版,无已闭环 Q",
+      "files": [
+        "PLAN.md",
+        "audit_input.md",
+        "audit_input_scripts_skill.md",
+        "audit_input_skill_logic.md"
+      ],
+      "missing_files": [
+        "open_questions.md (待补,本轮未做)",
+        "resolved_questions.md (待补,本轮未做)",
+        "decisions.json (待补,本轮未做)",
+        "changes/ (待 v7.1 启动时建)"
+      ],
+      "audit_sources": {
+        "RULE_SKILL": "audit_input.md (24 条: 7 P0 + 12 P1 + 5 P2)",
+        "SCRIPT_SKILL": "audit_input_scripts_skill.md (14 条: 4 P0 + 5 P1 + 5 P2)",
+        "SKILL_LOGIC": "audit_input_skill_logic.md (31 条: 9 P0 + 14 P1 + 8 P2)"
+      },
+      "version_rationale": "v7 接 v4 之后;为避免与 open_questions.md §v6.2 闭环 阶段名同名(v6.2 是阶段闭环号,v6 是方案版本号——容易混淆),本方案用 v7。"
+    },
+    {
+      "version": "v10",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v10/"
+    },
+    {
+      "version": "v11",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v11/"
+    },
+    {
+      "version": "v12",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v12/"
+    },
+    {
+      "version": "v13",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v13/"
+    },
+    {
+      "version": "v14",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v14/"
+    },
+    {
+      "version": "v3",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v3/"
+    },
+    {
+      "version": "v4",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v4/"
+    },
+    {
+      "version": "v8",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v8/"
+    },
+    {
+      "version": "v9",
+      "title": "(待补全)",
+      "status": "(待补全)",
+      "path": "governance/design_iter/plans/v9/"
+    },
+    {
+      "version": "v15",
+      "title": "v15 治理方案 — L3 缺陷模式聚类 + L1/L2 方案 + v16 规划",
+      "status": "已闭环（2026-07-17 启动 v16）",
+      "created_at": "2026-07-14",
+      "based_on": "v14 §5 第一/二阶段已 100%",
+      "path": "governance/design_iter/plans/v15/",
+      "files": [
+        "PLAN.md",
+        "SELF_CHECK.md",
+        "A1_enhanced_path_feasibility.md",
+        "A2_case_value_scoring.md",
+        "A3_dashboard_tech_design.md",
+        "dna_11_4_changelog_ownership.md",
+        "module_classification_review.md",
+        "s5_module_checklist.md",
+        "v15_L3_blocker.md"
+      ],
+      "deliverables": {
+        "L3_defect_cluster": "ai_workflow/defect_cluster.py",
+        "L1_enhanced_path": "A1_enhanced_path_feasibility.md",
+        "L2_case_value_scoring": "A2_case_value_scoring.md",
+        "v16_planning": "A3_dashboard_tech_design.md"
+      },
+      "remaining_items_pushed_to_v16": [
+        "阶段 1 任务④ BLOCKED（无 S7 真实数据）→ v16 启动前解锁",
+        "A3 dashboard 完整版（Web/MCP）→ v16 阶段 1",
+        "A2 用例价值代码落地 → v16 阶段 2"
+      ]
+    },
+    {
+      "version": "v16",
+      "title": "v1.1 迭代方案落地治理",
+      "status": "current（启动前置 = 跑 ≥ 1 个真实项目解锁 BLOCKED）",
+      "created_at": "2026-07-17",
+      "based_on": "v15（已闭环）+ v1.1 迭代方案（用户 2026-07-17 拍板：全部推进）",
+      "path": "governance/design_iter/plans/v16/",
+      "files": [
+        "PLAN.md",
+        "SELF_CHECK.md",
+        "iteration_log.md",
+        "详细执行方案.md",
+        "DETAILED_EXECUTION_PLAN_AUDIT.md",
+        "current/v15_v1_1_iteration_audit.md"
+      ],
+      "user_decisions_2026_07_17": {
+        "Q1_P0_scope": "全部推进（含 #5 三级覆盖率）",
+        "Q2_minimum_set": "全部推进（#2 / #4 / C5 三项无遗漏）",
+        "Q3_governance_path": "开新独立迭代版本 v16",
+        "Q4_blocked_unlock": "B（跑新真实项目，慢但真实）",
+        "Q5_l2l3_threshold": "A（按 v1.1 原阈值 P0 L2 ≥ 80% / L3 ≥ 70%）",
+        "Q6_rca_naming": "B（5 类全新增，推翻 v14 §A.2 已拍板 7 类 → v16 12 类）"
+      },
+      "scope": {
+        "P0_6_items": [
+          "#2 模块优先级矩阵",
+          "#4 L1 格式校验",
+          "C5 红警确认",
+          "#1 S1 结构化评审包",
+          "#3 related_tags 双轨",
+          "#5 三级覆盖率（修订版）"
+        ],
+        "P1_3_items": [
+          "#6 L2/L3 门禁 + 黄金用例",
+          "#7 S7 三层审查重构",
+          "C8 RCA 新根因类型 5 类"
+        ],
+        "P2_2_items": [
+          "#8 SPECIAL 变体用例机制",
+          "#9 + #10 S8 自动分流 + 全局经验库"
+        ]
+      },
+      "blocked_preconditions": [
+        "v15 阶段 1 任务④（无 S7 真实数据）→ v16 §3 阶段 1 启动前必须先跑 ≥ 1 个新需求完整 S1-S7 解锁"
+      ],
+      "high_risks": [
+        "BLOCKED 未解锁 → 阻塞 T6/T7/T10/T11（2-4 周前置）",
+        "L2/L3 阈值采用 v1.1 原值（无真实数据校准）",
+        "RCA 5 类全新增（推翻 v14 §A.2 拍板）+ 历史 S7 review_report.json 数据迁移"
+      ]
+    },
+    {
+      "version": "v27",
+      "title": "AI 自治规则放宽 v1（强目标导向）",
+      "status": "current",
+      "created_at": "2026-07-19",
+      "based_on": "v26 草案（PLAN_dialectic_ai_constraints_relaxation.md）+ v17/v18-v22 历史归档",
+      "path": "governance/design_iter/plans/v27/",
+      "files": [
+        "GOAL.md"
+      ],
+      "user_decisions_2026_07_19": {
+        "Q1_enter_governance": "dispatch_v27（v26 拆为 v27+ 多轮逐条推进）",
+        "Q2_hook_audit_scope": "full_4hooks（C1-C4 全部精审）",
+        "Q3_v17_treatment": "v27_carry（v17 5 项约束由 v28 接办）",
+        "Q4_gates_scope": "德鲁克目标导向 — 高优 3 条先动（lazy_confirm 解读）"
+      },
+      "scope": {
+        "high_priority_done": [
+          "B1 阈值 SSOT 合并（DESIGN §2.3 索引化 → §4.3 唯一源）",
+          "C1 决策密度阈值 docstring 改 3 → 5（源码支持环境变量）",
+          "C4 注入文本 3 问 → 5 问对齐 DNA §1（self-test 4/4 PASS）",
+          "C2 保留不注册（精审后修订：避免与 goal_loop_hook.py sessionStart 双注入）"
+        ],
+        "withdrawn": [
+          "C3 dna_violation_check（精审后撤回 — hook 是好的，子任务误判）"
+        ],
+        "out_of_scope_pushed_to_v28_plus": [
+          "v17 5 项约束（fp_name 100% / steps[] / test_method[] / tp_reference 单值 / preconditions[]）",
+          "D1-D3 goal-loop 早期约束（GL-001 / GL-009 / §3.3 §3.4）",
+          "B2/B4 业务门禁放宽",
+          "A1/A3/A4/B3 DNA 与 DESIGN 内部冗余合并"
+        ]
+      },
+      "deliverables": {
+        "B1_doc_change": ".cursor/rules/DESIGN_AND_EXECUTION_STANDARDS.mdc §2.3 + §4.3（§2.3 改索引；§4.3 加 SSOT 声明）",
+        "C1_doc_change": ".cursor/hooks/dna_decision_density_check.py docstring（默认阈值 3 → 5 + 注释扩展）",
+        "C2_decision_recorded": "v27/GOAL.md C2 决策说明（保留 + 暂不注册 + v28+ 合并）",
+        "C4_code_change": ".cursor/hooks/before_prompt_dna_check.py 注入文本 3 问 → 5 问"
+      },
+      "high_risks": [
+        "B1 改动触发 §2.3 引用方未同步读 §4.3（已在 §2.3 表头加 '强制阅读指令'）",
+        "C1 阈值抬高后改文件监控弱化（环境变量可回退阈值）",
+        "C4 注入文本升级后 LLM 行为变化（注入为提示，不强制）"
+      ]
+    },
+    {
+      "version": "v21",
+      "title": "Goal Loop Skill v1.1 版本优化",
+      "status": "已闭环（2026-07-18）",
+      "created_at": "2026-07-18",
+      "based_on": "Goal Loop Skill v1.0 + Goal Loop Skill v1.1 版本优化需求",
+      "path": "governance/design_iter/plans/v21/",
+      "files": [
+        "PLAN.md",
+        "CONVERGED.md",
+        "audit_1.md",
+        "audit_2.md",
+        "audit_3.md",
+        "audit_4.md",
+        "audit_5.md",
+        "review_1.md",
+        "review_2.md",
+        "review_3.md",
+        "review_4.md",
+        "review_5.md"
+      ],
+      "deliverables": {
+        "skill_md_v1.1": ".cursor/skills/goal-loop/SKILL.md",
+        "goal_snapshot_py_v3": "ai_workflow/goal_snapshot.py",
+        "breakloop_hook_v2": ".cursor/hooks/goal_loop_breakloop_hook.py",
+        "systemic_issues": "knowledge/public/goal_loop/systemic_issues.md",
+        "antipattern_cases": "knowledge/public/goal_loop/antipattern_cases.jsonl",
+        "session_index_schema": "knowledge/public/goal_loop/session-index-schema.md",
+        "product_spec_v1.1": "knowledge/public/product_docs/goal_loop_product_spec.md",
+        "quality_baseline_removed_20260721": "(已撤销) 原 knowledge/public/goal_loop/QUALITY_BASELINE.mdc 于 2026-07-21 删除"
+      },
+      "gl_status": {
+        "GL-001": "✅ 完整落地",
+        "GL-002": "✅ 完整落地",
+        "GL-003": "✅ 完整落地",
+        "GL-004": "✅ 完整落地",
+        "GL-005_REVOKED": "🚫 2026-07-21 撤销（原 GL-005 质量基线兜底，对应文件已删除）",
+        "GL-005": "✅ 完整落地（增量审计，原 GL-006）",
+        "GL-006": "✅ 完整落地（反模式案例，原 GL-007）",
+        "GL-007": "✅ 完整落地（体系效能度量，原 GL-008）",
+        "GL-008": "✅ 完整落地（目标签名防漂移，原 GL-009）"
+      }
+    },
+    {
+      "version": "v31",
+      "title": "S5/S6 方法论重写",
+      "status": "achieved",
+      "created_at": "2026-07-20",
+      "closed_at": "2026-07-21",
+      "based_on": "v30 真实缺口闭环 + 游戏道具商城系统 v3.01 样本验证",
+      "path": "governance/design_iter/plans/v31/",
+      "archive_path": "governance/design_iter/archive/v31_20260721_020714.bak/",
+      "inventory": {
+        "top_level_files": 14,
+        "nested_archive_files": 3,
+        "total_files": 17,
+        "note": "源目录无 audit_4.md / review_4.md；归档按实际完整目录复制。"
+      },
+      "files": [
+        "PLAN.md",
+        "coverage_report.md",
+        "audit_1.md",
+        "audit_2.md",
+        "audit_3.md",
+        "audit_5.md",
+        "review_1.md",
+        "review_2.md",
+        "review_3.md",
+        "review_5.md",
+        "v31_SCC.md",
+        "s8_knowledge_backflow_diagnosis.md",
+        "v31_方法论_草案.md",
+        "CONVERGED.md",
+        "archive/s1_5_GOAL.md",
+        "archive/s1_5_PLAN.md",
+        "archive/s1_5_CONVERGENCE_VERDICT.md"
+      ],
+      "deliverables": {
+        "methodology_ssot": "PLAN.md",
+        "coverage_evidence": "coverage_report.md",
+        "story_complexity_coefficient": "v31_SCC.md",
+        "knowledge_backflow_diagnosis": "s8_knowledge_backflow_diagnosis.md",
+        "convergence_record": "CONVERGED.md"
+      },
+      "verification": {
+        "goal_loop_rounds": 5,
+        "sample_test_points": 230,
+        "sample_test_cases": 230,
+        "coverage_result": "OBJ / FP / S4 异常叶子 / S4 风险点四项覆盖率均为 100%",
+        "tc_semantic_result": "字段语义收紧校验 230/230 PASS"
+      },
+      "follow_up": [
+        "ssot_citation_path 是否升级为必填",
+        "SCC 软下限修订",
+        "UI TP 交叉 S3 prototype",
+        "density 覆盖率审查",
+        "多项目样本回归",
+        "测试点库首批回灌"
+      ]
+    }
+  ],
+  "structure": {
+    "INDEX.md": "人类索引（所有方案一览）",
+    "INDEX.json": "机器可读（元数据）",
+    "plans/": "方案目录（v1/, v2/, ...）",
+    "archive/": "覆盖前的自动备份",
+    "scripts/design_iter.py": "CLI 工具"
+  },
+  "conventions": {
+    "version_naming": "v1, v2, v3 ...",
+    "question_naming": "Q-001, Q-002 ... (3 位数)",
+    "decision_naming": "D-001, D-002 ... (v1 决策) / D-101+ (v2 决策) / D-201+ (v2 启动原则决策)",
+    "required_sections_per_plan": [
+      "解决",
+      "新增",
+      "遗留"
+    ]
+  },
+  "known_inconsistencies": [
+    {
+      "id": "KI-001",
+      "summary": "(已修复 v2.1) CLI 计数已认 '**Q-XXX**:' 格式",
+      "resolution": "v2.1: _count_open_questions 改用正则 r'\\*\\*Q-\\d+\\*\\*:' 匹配 open_questions.md 行首;_count_resolved 已认 - [x] / - ✅ / - [X];cmd_resolve 同步修复",
+      "resolved_at": "2026-06-17"
+    }
+  ]
+}

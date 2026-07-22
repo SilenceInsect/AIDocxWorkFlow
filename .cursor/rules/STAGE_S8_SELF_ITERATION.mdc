@@ -1,0 +1,416 @@
+---
+description: AIDocxWorkFlow Stage 8 — 自迭代（独立阶段）
+alwaysApply: false
+---
+
+# AIDocxWorkFlow S8 — 自迭代
+
+> **独立阶段**：可以单独调用。上游材料（S7 review_report.json / review_snapshot.json）审查合格后开始，失败写失败报告。
+
+---
+
+## 阶段入口
+
+**触发方式**：`/aidocx-s8-self-iteration` 或粘贴 S7 审查报告
+
+**前置材料（必须全部满足）**：
+
+| 材料 | 来源 | 审查要求 |
+|------|------|----------|
+| S7 审查报告 | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/review_report.json` | 必须存在 |
+| S5 test_points.json（**必须读取**） | `workflow_assets/<req_name>/<version>/「S5 测试点生成」/test_points.json` | 用于 S4 覆盖率分析 |
+| S6 test_cases.json | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/test_cases.json` | 用于 S6 层缺陷追溯 |
+| S4 business_flow.md（**必须读取**） | `workflow_assets/<req_name>/<version>/「S4 流程图导出」/business_flow.md` | 用于风险点提取 |
+| 执行反馈日志（可选） | `workflow_assets/feedback_logs/` | 存在则作为深度分析数据 |
+
+**前置材料缺失时**：生成失败报告，停止 S8。
+
+---
+
+## §1.4 LLM 必读材料（阶段前置）
+
+**开始根因分析前，必须先读取以下全部材料。禁止凭印象直接生成。**
+
+| # | 材料 | 路径 | 读取原因 |
+|---|---|---|---|
+| 1 | 8 模块总表 | `.cursor/MODULES.md`（§1 总表） | 缺陷根因最终落到模块 × 类型的组合；缺陷模式按模块统计 |
+| 2 | 模块边界区分 | `.cursor/MODULES.md`（§4 各模块 O_boundary.md） | 判断 S5 TP 模块归属是否正确；根因分析的起点 |
+| 3 | S7 review_report（**必须读取**） | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/review_report.json` | 所有审查结论的来源；按 reviewer_a / reviewer_b / recommendations 结构追溯 |
+| 4 | S5 test_points（**必须读取**） | `workflow_assets/<req_name>/<version>/「S5 测试点生成」/test_points.json` | S5 层缺陷追溯的起点 |
+| 5 | S4 business_flow（**必须读取**） | `workflow_assets/<req_name>/<version>/「S4 流程图导出」/business_flow.md` | 异常决策树和风险点清单是 S5 缺 TP 的根因来源 |
+| 6 | S6 test_cases | `workflow_assets/<req_name>/<version>/「S6 测试用例生成」/test_cases.json` | S6 层缺陷追溯的参考 |
+
+---
+
+## 核心原则
+
+> **🚨 强制阅读指令（MANDATORY）**：S8 阶段输出**判定**（不输出建议）——以「风险点覆盖」为核心指标，从 S4→S5→S6→S7 链路推理根因。
+> - **全阶段质量门禁 SSOT**：[`DESIGN_AND_EXECUTION_STANDARDS.mdc` §2.3](./DESIGN_AND_EXECUTION_STANDARDS.mdc#23-质量门禁quality-gate)（**仅作全阶段速查**，S8 当前实际门禁见本节）
+> - **执行 S8 前必须**读本节 + `aidocx-s8-self-iteration/SKILL.md`。
+> - **变更历史**见 [`CHANGELOG.md`](../../CHANGELOG.md)。
+
+> **S8 的核心使命**：从 S4 → S5 → S6 → S7 链路推理根因，以「风险点覆盖」为核心指标，产出缺陷模式分析和 Prompt 改进建议，并将经验归档到知识库。
+
+**禁止出现的行为**：
+- ❌ 根据覆盖率数字直接判定 PASS / FAIL
+- ❌ 输出"建议"而非"判定"
+- ❌ 不追溯根因，直接输出修改方向
+- ❌ 跳过 S7 review_report 直接生成迭代建议
+- ❌ 归档时忽略模块维度分类
+
+---
+
+## 核心任务
+
+分析 S7 审查报告，推理缺陷根因，产出可执行的判定，强制归档经验。
+
+### 分析流程（4 步，必须按顺序执行）
+
+#### 第 1 步：读取 S7 审查报告
+
+```python
+import json
+with open("workflow_assets/<req_name>/<version>/「S6 测试用例生成」/review_report.json") as f:
+    report = json.load(f)
+
+reviewer_a = report["reviewer_a"]
+reviewer_b = report["reviewer_b"]
+recommendations = report["recommendations"]
+```
+
+**必须读取的字段**：
+
+| 字段 | 读取目的 |
+|------|----------|
+| `reviewer_a.field_name_violations` | S2 → S5 → S6 字段名错误的根因起点 |
+| `reviewer_a.module_misjudgment` | S5 TP 模块归属错误的根因 |
+| `reviewer_b.s4_risk_reference_rate` | S5 未引用 S4 风险点的根因 |
+| `reviewer_b.s4_exception_leaf_reference_rate` | S5 未引用 S4 异常树叶子的根因 |
+| `reviewer_b.uncovered_risks` | S4 风险点缺口列表 |
+| `recommendations.must_fix` | 必修项 = 必须追溯根因的缺陷 |
+| `recommendations.should_fix` | 应改项 = 需要追溯根因的缺陷 |
+
+#### 第 2 步：追溯根因链路
+
+**根因链路图（必须按此路径追溯每个缺陷）**：
+
+```
+症状 ──── S7 必修项 / 应改项
+            ↓
+根因层 1 ── 具体缺口：哪些 R-NNN 或异常树节点未被覆盖？
+            ↓
+根因层 2 ── S5 层缺失：这些风险点/异常节点是否在 test_points.json 中？
+            ↓
+根因层 3 ── 根本原因（必须判定）：
+              - S4→S5 衔接断裂（风险点清单未传递）？
+              - S5 规则未明确要求引用 S4？
+              - S5 执行时遗漏了某些风险点？
+              - S2 OBJ 拆分错误导致模块归属错误？
+              - S4 Epic 命名误导导致模块归属错误？
+```
+
+**根因来源分类（必须填入 `root_cause_source` 字段）**：
+
+| 来源 | 说明 | 追溯方向 |
+|------|------|----------|
+| `S4_PROVIDE` | S4 未提供足够的风险点或异常树节点 | 检查 S4 风险点清单完整性 |
+| `S4_NAME` | S4 Epic 命名/归属误导了 S5 模块判定 | 检查 S4 Epic 元信息 |
+| `S5_RULE` | S5 规则未明确要求引用 S4 或引用方式不明确 | 检查 S5 SKILL.md §1.5 |
+| `S5_EXEC` | S5 执行时遗漏了风险点（规则本身正确） | 检查 S5 产物的 s4_reference 填充率 |
+| `S5_MODULE` | S5 TP 模块归属错误（与 O_boundary.md 不符） | 检查 S5 §1.5.4 反例对照 |
+| `S2_OBJ` | S2 拆 OBJ 时违反跨模块拆分规则 | 检查 S2 OBJ 的 belong_module 字段 |
+| `S2_RULE` | S2 规则未明确跨模块拆分要求 | 检查 S2 SKILL.md §1.5.1 |
+| `S6_EXEC` | S6 步骤质量差（通用模板语言） | 检查 S6 步骤是否有模板语言 |
+
+#### 第 3 步：产出根因判定
+
+**每个缺陷必须输出以下字段**：
+
+| 字段 | 内容要求 |
+|------|----------|
+| `problem` | S7 报告中的具体缺口描述 |
+| `evidence` | S7 报告中的数值（覆盖率/缺失率/违规数） |
+| `root_cause_source` | 根因来源分类（必填，见上表） |
+| `root_cause_detail` | 具体根因描述（哪个阶段、哪个环节断裂） |
+| `affected_stage` | 需要修改的阶段（S4 / S5 / S6 规则文件） |
+| `fix_action` | 具体修复动作（可执行的操作步骤） |
+
+
+**v14 RCA 填写说明**（`iteration_items[].rca` 字段）：
+
+| RCA 字段 | 来源映射 |
+|---------|---------|
+| `rca.stage` | 根因链路图"根本原因"层 → 对应阶段代码 |
+| `rca.type` | 缺陷类型分类（OMISSION / BOUNDARY_ERR / QUALITY_LOW / FIELD_MISSING / LINKAGE_BROKEN / RULE_VIOLATION / ID_NONCOMPLIANT） |
+| `rca.clause` | RCA 映射表 §1.3（`governance/design_iter/current/rca_three_level_classification.md`） |
+| `rca.explanation` | 根因简述（≤ 50 字） |
+
+> **条款代码必须来自映射表，禁止自创**。`affected_stage` 数组必须包含 `rca.stage`。
+
+#### 第 4 步：归档经验
+
+**归档触发条件（必须执行）**：
+
+| 条件 | 触发动作 |
+|------|----------|
+| 存在根因为 `S5_MODULE` 的缺陷 | 写入 `knowledge/project_local/.review_queue/` 的待审候选，注明建议回写的公共模板文件、段落和内容 |
+| 存在根因为 `S5_EXEC` 的缺陷 | 写入 `knowledge/project_local/.review_queue/` 的待审候选，注明建议补充的测试点知识 |
+| 存在根因为 `S6_EXEC` 的缺陷 | 写入 `knowledge/project_local/.review_queue/` 的待审候选，注明建议补充的用例模板知识 |
+| 根因涉及 Prompt 规则不明确 | 将修复建议写入 `.cursor/rules/prompt_fixes/<Stage>_<日期>.md` |
+
+**归档文件命名规范**：
+
+| 类型 | 命名 |
+|------|------|
+| 按模块分类的通用补充点 | `knowledge/project_local/.review_queue/<Module>/<Subclass>__<root_cause>__<section>.md` |
+| 新增测试点类型 | 待审后才允许进入 `knowledge/public/test_point_library/` |
+| 新增用例模板 | 待审后才允许进入 `knowledge/public/test_case_library/` |
+| Prompt 修复建议 | `.cursor/rules/prompt_fixes/<Stage>_<日期>.md` |
+
+---
+
+## S8 产出规范
+
+### iteration.json 完整 schema
+
+```json
+{
+  "iteration_number": 2,
+  "date": "YYYY-MM-DD",
+  "source_review_report": "workflow_assets/<req_name>/<version>/「S6 测试用例生成」/review_report.json",
+  "root_causes": [
+    {
+      "problem": "S4-BIZ-PURCHASE-1.3.2 异常树叶子未覆盖",
+      "evidence": "S4 异常树叶子引用率 83% (10/12)，2 个叶子缺失",
+      "root_cause_source": "S5_EXEC",
+      "root_cause_detail": "S5 执行时遗漏了渠道重复回调异常树叶子；S5 规则（skill §1.5）已要求引用 S4，但执行时 s4_reference 填充率仅 65%",
+      "affected_stage": "S5 规则",
+      "fix_action": "在 aidocx-s5-test-points/SKILL.md §1.4 强制要求：每个 TP 必须在 s4_reference 中引用至少 1 个 S4 节点"
+    },
+    {
+      "problem": "12 个 BIZ 类 TP 模块归属错误，应为 SPECIAL",
+      "evidence": "reviewer_a.module_misjudgment 中 BIZ 类误判 12 个",
+      "root_cause_source": "S5_MODULE",
+      "root_cause_detail": "S5 执行时将弱网/风控类场景归为 BIZ，但 MODULES.md §4.9 明确将弱网场景归为 SPECIAL；S5 §1.5.4 反例对照未执行",
+      "affected_stage": "S5 规则",
+      "fix_action": "在 aidocx-s5-test-points/SKILL.md §1.5.4 增加弱网/风控类场景的反例，强制执行反例对照"
+    },
+    {
+      "problem": "UI-TC-005 步骤包含模板语言「执行操作：」",
+      "evidence": "reviewer_a.step_quality_issues 包含该用例",
+      "root_cause_source": "S6_EXEC",
+      "root_cause_detail": "S6 执行时未执行自检清单第 3 项（检查步骤是否包含模板语言）；S6 SKILL.md §1.5 自检清单已存在但未被执行",
+      "affected_stage": "S6 执行流程",
+      "fix_action": "在 S6 自检清单前增加强制执行确认步骤"
+    }
+  ],
+  "defect_patterns": [
+    {
+      "pattern": "弱网场景模块归属混淆",
+      "frequency": 12,
+      "affected_modules": ["BIZ", "SPECIAL"],
+      "root_cause_source": "S5_MODULE",
+      "count": 12
+    },
+    {
+      "pattern": "s4_reference 字段缺失",
+      "frequency": 7,
+      "affected_modules": ["UI", "HINT", "BIZ"],
+      "root_cause_source": "S5_EXEC",
+      "count": 7
+    }
+  ],
+  "recommendations": {
+    "must_fix": [
+      {
+        "problem": "渠道重复回调异常树叶子未覆盖",
+        "affected_stage": "S5 规则",
+        "fix_action": "强制 s4_reference 引用"
+      }
+    ],
+    "should_fix": [
+      {
+        "problem": "弱网场景模块归属错误",
+        "affected_stage": "S5 规则",
+        "fix_action": "增加反例库"
+      }
+    ]
+  },
+  "archive_summary": {
+    "triggered": true,
+    "total_archived": 10,
+    "by_type": {
+      "module_rules": 5,
+      "test_points": 3,
+      "test_cases": 2,
+      "prompt_fixes": 0
+    },
+    "modules_affected": ["BIZ", "SPECIAL", "UI", "HINT"]
+  },
+  "next_iteration_focus": [
+    "在 S5 规则中强制执行反例对照（新增 §1.5.4 执行确认）",
+    "在 S6 规则中强化自检清单执行（模板语言检查前置）",
+    "在 S4 规则中增加异常树叶子与模块归属的对照表"
+  ]
+}
+```
+
+### iteration.md 结构
+
+```markdown
+# 自迭代报告
+
+**版本**: v1.0
+**日期**: YYYY-MM-DD
+**来源**: S7 审查报告 + N 条执行反馈
+
+---
+
+## 1. 根因链路分析
+
+### 1.1 必修项根因追溯
+
+| 缺陷 | S7 来源 | 根因来源 | 根因详情 | 受影响阶段 |
+|------|---------|----------|----------|------------|
+| 渠道重复回调异常树叶子未覆盖 | reviewer_b.uncovered_leaves | S5_EXEC | S5 执行时遗漏；s4_reference 填充率仅 65% | S5 规则 |
+
+### 1.2 应改项根因追溯
+
+| 缺陷 | S7 来源 | 根因来源 | 根因详情 | 受影响阶段 |
+|------|---------|----------|----------|------------|
+| 弱网场景模块归属错误 | reviewer_a.module_misjudgment (12个) | S5_MODULE | 反例对照未执行；弱网场景应归 SPECIAL | S5 规则 |
+
+---
+
+## 2. 缺陷模式统计
+
+| 模式 | 出现次数 | 受影响模块 | 根因来源 |
+|------|----------|------------|----------|
+| 弱网场景模块归属混淆 | 12 | BIZ, SPECIAL | S5_MODULE |
+| s4_reference 字段缺失 | 7 | UI, HINT, BIZ | S5_EXEC |
+
+---
+
+## 3. Prompt 改进建议
+
+### 3.1 S5 规则改进
+
+| 问题 | 当前描述 | 改进建议 |
+|------|----------|----------|
+| 反例对照未执行 | §1.5.4 仅为参考 | 强制执行：每个 TP 必须声明「与反例 N 无冲突」或「已应用反例 N」 |
+| s4_reference 缺失 | 仅提示「推荐填写」 | 强制填写：s4_reference 为必填字段，缺失则 TP 不合格 |
+
+### 3.2 S6 规则改进
+
+| 问题 | 当前描述 | 改进建议 |
+|------|----------|----------|
+| 模板语言检查缺失 | 自检清单第 3 项存在但未强制执行 | 将模板语言检查前置到「提交前强制自检」 |
+
+---
+
+## 4. 归档摘要
+
+| 归档类型 | 数量 | 受影响模块 | 归档路径 |
+|----------|------|------------|----------|
+| 模块规则补充 | 5 | BIZ, SPECIAL | `knowledge/project_local/.review_queue/`（待人工审核后决定是否回写公共模板） |
+| 测试点补充 | 3 | UI, HINT | `knowledge/project_local/.review_queue/` |
+| 用例模板补充 | 2 | HINT | `knowledge/project_local/.review_queue/` |
+
+---
+
+## 5. 下一轮迭代重点
+
+1. 在 aidocx-s5-test-points/SKILL.md §1.5.4 强制执行反例对照
+2. 在 aidocx-s6-test-cases/SKILL.md 自检清单增加模板语言强制检查
+3. 在 aidocx-s4-flowchart/SKILL.md 增加异常树叶子与模块归属对照表
+```
+
+---
+
+## 失败报告
+
+`workflow_assets/<req_name>/<version>/「S8 自迭代」/fail_report_S8.md`
+
+**触发条件**：
+- `review_report.json` 不存在
+- `review_report.json` 缺少 `reviewer_a` 或 `reviewer_b` 顶层字段
+- 无法读取 S5 test_points.json 或 S4 business_flow.md（可选材料缺失只警告，不阻断）
+
+---
+
+## 代码入口
+
+```python
+from ai_workflow.self_iteration import analyze_and_iterate
+result = analyze_and_iterate(
+    version="v1.0",
+    review_report=review_report,
+    test_points=test_points,
+    test_cases=test_cases,
+    s4_risks=s4_risks
+)
+# result['root_causes']         # 根因列表（含 root_cause_source 分类）
+# result['defect_patterns']     # 缺陷模式统计
+# result['recommendations']      # 必修/应改分类
+# result['archive_summary']     # 归档摘要
+
+from ai_workflow.self_iteration import archive_experience
+archive_experience(result, version)
+# 按 root_cause_source 分类归档到对应目录
+```
+
+---
+
+## §1.5 决策 push 块
+
+### §1.5.1 S8 根因追溯必须执行
+
+**每个缺陷追溯必须回答 4 个问题（不可跳过）**：
+
+1. **根因来源是什么？** 从 `S4_PROVIDE / S4_NAME / S5_RULE / S5_EXEC / S5_MODULE / S2_OBJ / S2_RULE / S6_EXEC` 中选择 1 个
+2. **哪条规则/哪个环节断裂？** 描述具体断裂点
+3. **受影响的是哪个阶段？** S4 / S5 / S6 规则文件
+4. **修复动作是什么？** 可执行的操作步骤
+
+**4 个问题任一空答 → 根因不完整，禁止输出该缺陷的 iteration 报告。**
+
+### §1.5.2 S8 归档写入待审候选区
+
+**禁止 S8 直接修改公共 `knowledge/public/module_templates/`。** 所有经验先写入 `knowledge/project_local/.review_queue/`：
+
+- 候选中必须注明目标公共文件，如 `knowledge/public/module_templates/BIZ/O_boundary.md`
+- 候选中必须注明目标段落，如 子类定义 / 典型场景 / 种子 TP / 边界陷阱
+- 候选中必须注明来源缺陷 ID、根因类型、建议补充内容
+- 其余测试点库 / 用例模板库同理，先出候选，后人工审核入公共库
+
+**候选格式**：候选文件中写入建议 block：
+
+```markdown
+> 经验补充（S8，缺陷 ID #12）
+> 根因：S5_MODULE，BIZ vs SPECIAL 边界误判
+> 补充：[具体补充内容]
+```
+
+**禁止**：S8 直接修改公共知识库正式文件。
+
+### §1.5.3 S8 必须读取反例对照
+
+**S8 追溯模块归属类根因时（root_cause_source = S5_MODULE），必须读取**：
+
+| 文件 | 读取原因 |
+|------|----------|
+| `.cursor/MODULES.md` §4.9 SPECIAL 边界 | 弱网/风控类场景边界 |
+| `.cursor/MODULES.md` §4.11.2 HINT vs UI 边界 | 提示类场景边界 |
+| `.cursor/MODULES.md` §3.5 交叉场景判定 | BIZ vs CONFIG / LINK vs AUX 等跨模块边界 |
+
+---
+
+## 关联文件
+
+- 完整阶段规范：`.cursor/rules/STAGE_S7_REVIEW.mdc`
+- S7 审查规范：`.cursor/rules/STAGE_S7_REVIEW.mdc`
+- S5 测试点规范：`.cursor/rules/STAGE_S5_TEST_POINTS.mdc`
+- Prompt 模板：`ai_workflow/prompts/self_iteration.md`
+- 迭代引擎：`ai_workflow/self_iteration.py`
+- 反馈日志：`workflow_assets/feedback_logs/`
+- 归档目录：`knowledge/project_local/.review_queue/`（公共知识库需人工审核后再入库）

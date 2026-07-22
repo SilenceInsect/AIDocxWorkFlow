@@ -1,0 +1,62 @@
+{"ts": "2026-06-21T19:02:30.270600", "trigger_file": "workflow_assets/游戏道具商城系统/「S1 需求评审」/v3.01/review_report.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:02:41.555647", "trigger_file": "workflow_assets/游戏道具商城系统/「S1 需求评审」/v3.01/review_report.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:03:24.693470", "trigger_file": "workflow_assets/游戏道具商城系统/「S1 需求评审」/v3.01/role_definitions.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:04:06.709938", "trigger_file": "workflow_assets/游戏道具商城系统/「S1 需求评审」/v3.01/requirement_objects.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:04:14.883840", "trigger_file": "workflow_assets/游戏道具商城系统/「S1 需求评审」/v3.01/requirement_objects.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:04:38.360566", "trigger_file": "workflow_assets/游戏道具商城系统/「S1 需求评审」/v3.01/clarification_checklist.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:05:04.337494", "trigger_file": "workflow_assets/游戏道具商城系统/「S1 需求评审」/v3.01/终版需求.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:06:42.625025", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:07:08.352703", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:08:07.361350", "trigger_file": "workflow_assets/游戏道具商城系统/「S4 流程图导出」/v3.01/business_flow.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:11:48.944868", "trigger_file": "ai_workflow/auto_reviewer.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:12:59.325604", "trigger_file": "workflow_assets/游戏道具商城系统/「S6 测试用例生成」/v3.01/review_report.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:13:05.851659", "trigger_file": "workflow_assets/游戏道具商城系统/「S6 测试用例生成」/v3.01/review_snapshot.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:13:41.283751", "trigger_file": "workflow_assets/游戏道具商城系统/「S8 自迭代」/v3.01/iteration.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T19:13:51.396696", "trigger_file": "workflow_assets/游戏道具商城系统/「S8 自迭代」/v3.01/iteration.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:00:42.268472", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:00:53.183621", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:01:01.697364", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:01:09.879857", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:01:17.713552", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:01:39.881823", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:01:48.282733", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:02:01.630907", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:02:13.778321", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:02:23.830710", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:02:29.635090", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:02:35.617729", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:02:52.135718", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:02:57.516160", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:03:03.719062", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:03:08.894161", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:03:14.703067", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.json", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:05:15.486073", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:06:46.578931", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:07:14.844649", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:10:56.917521", "trigger_file": "workflow_assets/游戏道具商城系统/「S2 需求拆解」/v3.01/backlog.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:18:19.621782", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:18:26.606650", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:18:36.216508", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:19:15.361175", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:19:22.067482", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:19:29.286450", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:20:07.890243", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:20:15.942610", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:43:47.568428", "trigger_file": "ai_workflow/auto_reviewer.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:44:00.104213", "trigger_file": "ai_workflow/auto_reviewer.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:45:06.739991", "trigger_file": "ai_workflow/auto_reviewer.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:45:37.519493", "trigger_file": "ai_workflow/auto_reviewer.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T20:45:53.349744", "trigger_file": "ai_workflow/auto_reviewer.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T21:01:45.124157", "trigger_file": "ai_workflow/auto_reviewer.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T21:58:58.464638", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T21:59:12.319188", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T22:01:23.893731", "trigger_file": "ai_workflow/test_case_formatter.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:14:03.875973", "trigger_file": "README.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:45:32.001571", "trigger_file": "README.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:49:41.084919", "trigger_file": "workflow_assets/module_templates/README.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:50:00.703325", "trigger_file": "workflow_assets/test_point_library/README.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:50:29.898341", "trigger_file": "README.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:50:35.835050", "trigger_file": "README.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:50:43.774424", "trigger_file": "README.md", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:51:32.864974", "trigger_file": "ai_workflow/self_iteration.py", "status": "synced", "error": null}
+{"ts": "2026-06-21T23:52:01.474696", "trigger_file": "ai_workflow/self_iteration.py", "status": "synced", "error": null}

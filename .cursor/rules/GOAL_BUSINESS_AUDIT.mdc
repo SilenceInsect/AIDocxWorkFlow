@@ -1,0 +1,73 @@
+# Goal Loop 业务审计规则（v1，适配 AIDocxWorkFlow）
+
+> **适用对象**：所有在 `/goal-loop` 自治循环下产出的 FP / TP / TC / 验收文档。
+> **触发位置**：GoalLoop.audit() 调用前；产物落盘后由 hook 自动追加 system_reminder 提示。
+> **规则 SSOT**：本文件是项目级业务审计规则的唯一真相源；其他文件需引用本文件而非重复定义。
+> **范围约束**：本规则仅约束"由 goal-loop 驱动的产物"；普通阶段产物遵守各自 STAGE_S*.mdc。
+
+---
+
+## 规则 1：FP 必须中性功能命名
+
+**禁止**：场景化命名（如 `FP-001 用户登录`、`FP-002 提现失败重试`）
+**要求**：使用"功能对象 + 行为动词"的中性命名（如 `FP-001 身份验证`、`FP-002 资金回滚`）
+**审计方式**：
+
+- 正则：`^FP-\d{3}\s+[一-龥]{2,10}$`（中文 2-10 字，且不含"登录/失败/重试/异常"等场景词）
+- 命中场景词 → FAIL（AuditVerdict.judgement = "FAIL"）
+
+## 规则 2：禁止文本【】锚点冗余
+
+**禁止**：用 `【用户ID】`、`【金额】` 等文本方括号引用上游字段
+**要求**：所有溯源依赖结构化字段（`obj_id` / `story_id` / `feature_point_id`）
+**审计方式**：
+
+- 正则：`【[^】]+】` 在 TC 描述中每出现 1 次 → 警告
+- 超过 3 次 → FAIL
+
+## 规则 3：TP/TC/Excel 结构化映射
+
+**禁止**：从 Markdown / Excel 文本中截取字段
+**要求**：所有 TP / TC / Excel 列严格通过 ID 字段对齐（`test_point_id` / `test_case_id` / `feature_point_id`）
+**审计方式**：
+
+- 检查 JSON 是否含必填 ID 字段；缺失 → FAIL
+- 检查 Excel 列名是否与 JSON schema 一致；不一致 → FAIL
+
+## 规则 4：正反场景无语义冲突
+
+**禁止**：`EP_VALID`（等价类有效）和 `EP_INVALID`（等价类无效）描述同一行为
+**要求**：正反场景语义必须互补且互斥；`EP_BOUNDARY_*` 标注具体边界值
+**审计方式**：
+
+- 解析 `test_point.test_point_type` 字段
+- `EP_VALID` 与 `EP_INVALID` 的 `obj_id` 必须一致
+- `EP_BOUNDARY_*` 必须包含 `boundary_value` 数值字段
+
+## 规则 5：L1 校验轻量化
+
+**禁止**：L1 校验器进行文本格式校验（行尾空格 / 中英空格 / 标点风格）
+**要求**：L1 仅校验：
+1. 必填字段存在
+2. 枚举值合法（status / priority / test_point_type）
+3. ID 格式（`TC-\d{4,6}` / `TP-\d{4,6}`）
+4. 跨文件 ID 引用一致
+
+**审计方式**：
+
+- L1 校验器代码中不含 `re.search.*\s`、`re.match.*[，：]` 等文本格式正则
+- L1 校验器代码中不含 `.replace.*空格` 类清理逻辑
+
+---
+
+## 审计触发时机
+
+| 阶段 | 触发方式 |
+|---|---|
+| Plan | GoalLoop.plan() 时枚举 FP 命名 → 规则 1 |
+| Act | 写产物后调用 GoalLoop.audit() 逐条对比规则 2/3/4 |
+| Audit | GoalLoop.audit() 内部自动跑规则 5（扫描 L1 校验器源码） |
+
+## 不合规处置
+
+任一规则 FAIL → AuditVerdict.judgement = "FAIL" → GoalLoop.iterate() 进入下一轮而非 achieved → 用户可通过 `/pause-goal` 暂停或 `/clear-goal` 终止。

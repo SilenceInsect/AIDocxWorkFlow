@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "version": "v12",
+    "title": "S3/S4→TC 工作流+约束（UI 节点驱动 + BIZ 4 层引用驱动）",
+    "created_at": "2026-07-10T02:02:00+08:00",
+    "created_by": "AIDocxWorkFlow",
+    "status": "启动版 / current 已切",
+    "execution_mode": "批处理知识+约束（Phase 6.5 不动数据）",
+    "trigger": "v11 §3 替代 + 用户指令 '2026-07-10 02:02: UI 相关的用例要根据 S3 的原型图做全覆盖，业务相关的用例要根据 S4 的业务流程和算法、逻辑分支，状态迁移做全覆盖，落地工作流和规则约束'"
+  },
+  "decisions": [
+    {
+      "id": "D-V12-001",
+      "q_id": "Q-V12-001",
+      "question": "v12 与 v11 关系",
+      "selected": "B",
+      "options": ["A: 叠加 v11", "B: 替代 v11", "C: 暂停 v11"],
+      "reasoning": "v11 的 FP 全覆盖不能覆盖 UI/BIZ 全覆盖（FP 是静态拆解，不等于 UI 节点覆盖）。v12 完全替代 v11；v11 知识层标 obsolete，数据暂不重生成。",
+      "decided_at": "2026-07-10T02:02:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V12-002",
+      "q_id": "Q-V12-002",
+      "question": "UI TC 引用粒度",
+      "selected": "用户澄清：4 字段紧凑（page + node + 操作 + 预期）",
+      "options": ["A: 3 层", "B: 4 层", "C: 引用 prototype.md 章节"],
+      "reasoning": "用户原话：'原型的是界面，界面就是需求对象，界面的UI节点就是功能'——prototype.md 中每个页面的 UI 节点清单本身就是 UI TC 的功能点 SSOT，不需要复杂的 page_id+组件+状态分层。",
+      "decided_at": "2026-07-10T02:02:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V12-003",
+      "q_id": "Q-V12-003",
+      "question": "BIZ TC 引用粒度",
+      "selected": "A",
+      "options": ["A: 4 层", "B: 1 层", "C: 3 层"],
+      "reasoning": "BIZ 业务复杂——必须按 scenario + state machine + exception tree + risk point 4 层全覆盖，才能保证不漏关键业务路径。",
+      "decided_at": "2026-07-10T02:02:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V12-004",
+      "q_id": "Q-V12-004",
+      "question": "BIZ TC 模板边界",
+      "selected": "用户批评：不预设模板边界",
+      "options": ["A: 4 类独立模板", "B: 1 统一模板", "C: 2 类"],
+      "reasoning": "用户原话：'什么叫各一个模板，AI能想出来多少就多少，不要省token'——LLM 按场景+状态+异常+风险穷举所有可能 TC 类型，不要人为设限。",
+      "decided_at": "2026-07-10T02:02:00+08:00",
+      "decided_by": "user"
+    },
+    {
+      "id": "D-V12-005",
+      "q_id": "Q-V12-005",
+      "question": "v12 首批交付范围",
+      "selected": "A",
+      "options": ["A: 仅 PLAN + SKILL", "B: PLAN + SKILL + STAGE_*.mdc", "C: 端到端"],
+      "reasoning": "用户原话：'先别修结果，先把流程步骤，内容，标准，约束做到位'——本轮不动 S5/S6 数据，只交付 PLAN + 4 个 SKILL.md。",
+      "decided_at": "2026-07-10T02:02:00+08:00",
+      "decided_by": "user"
+    }
+  ]
+}
