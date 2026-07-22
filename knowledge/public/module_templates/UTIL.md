@@ -1,9 +1,9 @@
-# AUX 模块测试点模板（概览）
+# UTIL 模块测试点模板（概览）
 
-> **模块代码**：`AUX`
+> **模块代码**：`UTIL`
 > **来源**：`.cursor/MODULES.md` §1 总表 + 用户细化定义
-> **作用**：S5 生成 AUX 模块测试点时，按 story 实际涉及子类**按需加载**对应子模板。
-> **v1.6.1 变更**：**AUX 模块职责收窄——只保留底层基础工具，剔除日志/提示/第三方/风控**等高层业务辅助。
+> **作用**：S5 生成 UTIL 模块测试点时，按 story 实际涉及子类**按需加载**对应子模板。
+> **v1.6.1 变更**：**UTIL 模块职责收窄——只保留底层基础工具，剔除日志/提示/第三方/风控**等高层业务辅助。
 >
 > **完整覆盖范围**（一句话）：
 > 底层全局公共工具类、通用基础框架组件；网络底层传输封装、消息队列、断线重连底层能力；
@@ -29,8 +29,8 @@
 | **运营业务（批量发奖/公告后台/活动配置）** | **BIZ 模块** | ✅ **v1.7 已落地** |
 
 > **占位文件清理**：
-> - `AUX/J_log_moved_to_LOG.md`（v1.6.1 占位）—— LOG v1.9 落地后已**删除**
-> - `AUX/L_ops_moved_to_BIZ.md`（v1.6.1+ 占位）—— BIZ v1.7 落地后已**删除**
+> - `UTIL/J_log_moved_to_LOG.md`（v1.6.1 占位）—— LOG v1.9 落地后已**删除**
+> - `UTIL/L_ops_moved_to_BIZ.md`（v1.6.1+ 占位）—— BIZ v1.7 落地后已**删除**
 
 **保留内容**（v1.6.1 子模板，14 测试子模板 + 2 规则 = **16 文件**）：
 
@@ -59,22 +59,22 @@
 
 | 字母 | 子类名           | 子类代码（v1.2 枚举）            | 模板                                                                | 细化段 |
 | ---- | ---------------- | --------------------------------- | ------------------------------------------------------------------- | ------ |
-| A    | 公共工具         | `COMMON_UTIL`                     | [A_common_util.md](./AUX/A_common_util.md)                          | §1 |
-| B    | 网络层           | `NETWORK_LAYER`                   | [B_network_layer.md](./AUX/B_network_layer.md)                      | §2 |
-| C    | 缓存层           | `CACHE_HIT_RATE`                  | [C_cache_layer.md](./AUX/C_cache_layer.md)                          | §3 |
-| D    | 资源管理         | `RESOURCE_MGMT`                   | [D_resource_mgmt.md](./AUX/D_resource_mgmt.md)                      | §4 |
-| E    | 汇率换算         | `CURRENCY_EXCHANGE`               | [E_currency_exchange.md](./AUX/E_currency_exchange.md)              | §5 |
-| F    | 离线/版本更新    | `OFFLINE_UPDATE`                  | [F_offline_update.md](./AUX/F_offline_update.md)                    | §6+§13 |
-| G    | GM 工具          | `GM_TOOL`                         | [G_gm_tool.md](./AUX/G_gm_tool.md)                                  | §7 |
-| H    | 测试脚本         | `TEST_SCRIPT`                     | [H_test_script.md](./AUX/H_test_script.md)                          | §8 |
-| I    | 策划验收         | `ACCEPTANCE_CHECKLIST`            | [I_acceptance_checklist.md](./AUX/I_acceptance_checklist.md)        | §9 |
-| J    | 本地持久化存储 | `LOCAL_STORAGE`（v1.6.1 收窄为仅本地存档）| [J_storage.md](./AUX/J_storage.md)                                  | §10 |
-| K    | 画质/性能        | `PERF_TOOL`                       | [K_perf_tool.md](./AUX/K_perf_tool.md)                              | §12 |
-| L    | 运营辅助         | `OPS_TOOL`                        | [L_ops_tool.md](./AUX/L_ops_tool.md)                                | §14 |
-| M    | 加密安全         | `SECURITY`                        | [M_security.md](./AUX/M_security.md)                                | §15 |
-| N    | 异常兜底         | `ERROR_RECOVERY`                  | [N_error_recovery.md](./AUX/N_error_recovery.md)                    | §16 |
-| O    | 边界区分         | —（判定规则，非测试类型）        | [O_boundary.md](./AUX/O_boundary.md)                                | §4 边界 |
-| P    | 游戏项目补充     | —（游戏项目专项，非通用测试类型）| [P_game_specific.md](./AUX/P_game_specific.md)                      | §5 游戏 |
+| A    | 公共工具         | `COMMON_UTIL`                     | [A_common_util.md](./UTIL/A_common_util.md)                          | §1 |
+| B    | 网络层           | `NETWORK_LAYER`                   | [B_network_layer.md](./UTIL/B_network_layer.md)                      | §2 |
+| C    | 缓存层           | `CACHE_HIT_RATE`                  | [C_cache_layer.md](./UTIL/C_cache_layer.md)                          | §3 |
+| D    | 资源管理         | `RESOURCE_MGMT`                   | [D_resource_mgmt.md](./UTIL/D_resource_mgmt.md)                      | §4 |
+| E    | 汇率换算         | `CURRENCY_EXCHANGE`               | [E_currency_exchange.md](./UTIL/E_currency_exchange.md)              | §5 |
+| F    | 离线/版本更新    | `OFFLINE_UPDATE`                  | [F_offline_update.md](./UTIL/F_offline_update.md)                    | §6+§13 |
+| G    | GM 工具          | `GM_TOOL`                         | [G_gm_tool.md](./UTIL/G_gm_tool.md)                                  | §7 |
+| H    | 测试脚本         | `TEST_SCRIPT`                     | [H_test_script.md](./UTIL/H_test_script.md)                          | §8 |
+| I    | 策划验收         | `ACCEPTANCE_CHECKLIST`            | [I_acceptance_checklist.md](./UTIL/I_acceptance_checklist.md)        | §9 |
+| J    | 本地持久化存储 | `LOCAL_STORAGE`（v1.6.1 收窄为仅本地存档）| [J_storage.md](./UTIL/J_storage.md)                                  | §10 |
+| K    | 画质/性能        | `PERF_TOOL`                       | [K_perf_tool.md](./UTIL/K_perf_tool.md)                              | §12 |
+| L    | 运营辅助         | `OPS_TOOL`                        | [L_ops_tool.md](./UTIL/L_ops_tool.md)                                | §14 |
+| M    | 加密安全         | `SECURITY`                        | [M_security.md](./UTIL/M_security.md)                                | §15 |
+| N    | 异常兜底         | `ERROR_RECOVERY`                  | [N_error_recovery.md](./UTIL/N_error_recovery.md)                    | §16 |
+| O    | 边界区分         | —（判定规则，非测试类型）        | [O_boundary.md](./UTIL/O_boundary.md)                                | §4 边界 |
+| P    | 游戏项目补充     | —（游戏项目专项，非通用测试类型）| [P_game_specific.md](./UTIL/P_game_specific.md)                      | §5 游戏 |
 
 > **结构说明**：
 > - A-N 是 14 个 v1.2 测试子模板（覆盖你给的 16 大类）
@@ -86,16 +86,16 @@
 
 ## 加载规则（S5 prompt 使用方式）
 
-1. **检测** `epic.module == "AUX"` → 必读本概览
+1. **检测** `epic.module == "UTIL"` → 必读本概览
 2. **按 story 内容** 识别涉及的子类（如"GM 发道具"→ 涉及 G GM 工具 + M 加密安全 + L 运营辅助）
 3. **按需加载** 对应子模板
-4. **交叉参考** `O_boundary.md` 防止误标 AUX 标签（实际是 BIZ / CONFIG / UI / HINT）
+4. **交叉参考** `O_boundary.md` 防止误标 UTIL 标签（实际是 BIZ / CONFIG / UI / HINT）
 
 ---
 
 ## 边界总览
 
-| 归 AUX                              | 不归 AUX（归其他模块）              |
+| 归 UTIL                              | 不归 UTIL（归其他模块）              |
 | ----------------------------------- | ---------------------------------- |
 | 底层通用基础能力、工具、框架组件    | 业务流程、玩家交互逻辑 → BIZ       |
 | GM / 测试 / 运营工具                | 配置表字段、跨表数值依赖 → CONFIG  |
@@ -103,7 +103,7 @@
 | 离线更新、日志埋点、全局公共工具    | 业务协议的业务逻辑校验 → BIZ       |
 | 加密 / 异常兜底 / 性能监控          | 提示内容、状态逻辑 → HINT          |
 
-> 完整边界规则见 [`O_boundary.md`](./AUX/O_boundary.md)
+> 完整边界规则见 [`O_boundary.md`](./UTIL/O_boundary.md)
 
 ---
 
@@ -131,5 +131,5 @@
 
 ## 进度
 
-- v1.6.1 (2026-06-15)：AUX 模块 14 测试子模板 + 2 规则全部到位（A-P 共 16 文件）；J 重命名 J_storage_log → J_storage（日志/埋点部分迁出 LOG）；N 缩窄为底层（业务异常迁出 BIZ）
-- v1.6.1+ (2026-06-15)：AUX 模块职责收窄——剔除 4 类高层业务辅助（LOG v1.9 / HINT v1.7+ / LINK v1.8 / SPECIAL v1.11 / BIZ v1.7），占位文件 `J_log_moved_to_LOG.md` 和 `L_ops_moved_to_BIZ.md` 全部删除
+- v1.6.1 (2026-06-15)：UTIL 模块 14 测试子模板 + 2 规则全部到位（A-P 共 16 文件）；J 重命名 J_storage_log → J_storage（日志/埋点部分迁出 LOG）；N 缩窄为底层（业务异常迁出 BIZ）
+- v1.6.1+ (2026-06-15)：UTIL 模块职责收窄——剔除 4 类高层业务辅助（LOG v1.9 / HINT v1.7+ / LINK v1.8 / SPECIAL v1.11 / BIZ v1.7），占位文件 `J_log_moved_to_LOG.md` 和 `L_ops_moved_to_BIZ.md` 全部删除

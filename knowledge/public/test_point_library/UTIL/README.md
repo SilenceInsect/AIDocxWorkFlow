@@ -1,7 +1,7 @@
-# AUX 模块 TP 库
+# UTIL 模块 TP 库
 
-> **TP 库位置**：`knowledge/public/test_point_library/AUX/`
-> **子模板来源**：`knowledge/public/module_templates/AUX/`
+> **TP 库位置**：`knowledge/public/test_point_library/UTIL/`
+> **子模板来源**：`knowledge/public/module_templates/UTIL/`
 > **v1.2 枚举数**：14（COMMON_UTIL / NETWORK_LAYER / CACHE_HIT_RATE / RESOURCE_MGMT / CURRENCY_EXCHANGE / OFFLINE_UPDATE / GM_TOOL / TEST_SCRIPT / ACCEPTANCE_CHECKLIST / LOCAL_STORAGE / PERF_TOOL / OPS_TOOL / SECURITY / ERROR_RECOVERY）
 
 ---
@@ -27,9 +27,9 @@
 
 ---
 
-## AUX 与其他模块的边界（**v1.6.1 严格隔离**）
+## UTIL 与其他模块的边界（**v1.6.1 严格隔离**）
 
-| 对比模块 | AUX 测 | 其他模块测 |
+| 对比模块 | UTIL 测 | 其他模块测 |
 |----------|--------|------------|
 | vs **HINT** | 底层通知框架 API | 通知内容/触发逻辑 |
 | vs **LOG** | 日志底层 SDK/采集框架 | 业务埋点规范/审计/合规 |
@@ -39,8 +39,8 @@
 | vs **BIZ** | 底层工具（断线重连/缓存）| 业务流程（充值/任务）|
 | vs **CONFIG** | GM 工具底层（执行层）| GM 权限/参数配置（声明层）|
 
-> **AUX = "水管"**——只管底层能力底座，**不**含业务联动逻辑。
-> 完整边界见 [`module_templates/AUX/O_boundary.md`](../../module_templates/AUX/O_boundary.md)。
+> **UTIL = "水管"**——只管底层能力底座，**不**含业务联动逻辑。
+> 完整边界见 [`module_templates/UTIL/O_boundary.md`](../../module_templates/UTIL/O_boundary.md)。
 
 ---
 
