@@ -383,7 +383,7 @@ result = run_stage(
 - UI 模块沉淀 → 通知 /ui-expert
 - BIZ 模块沉淀 → 通知 /biz-expert
 - CONFIG 模块沉淀 → 通知 /config-expert
-- UTIL 模块沉淀 → 通知 /UTIL-expert
+- UTIL 模块沉淀 → 通知 /util-expert
 - LINK 模块沉淀 → 通知 /link-expert
 - LOG 模块沉淀 → 通知 /log-expert
 - SPECIAL 模块沉淀 → 通知 /special-expert
@@ -438,7 +438,7 @@ index_project_module_knowledge(
   │  Task(/ui-expert)    → UI_module_tp.json              │
   │  Task(/biz-expert)   → BIZ_module_tp.json             │
   │  Task(/config-expert) → CONFIG_module_tp.json          │
-  │  Task(/UTIL-expert)   → AUX_module_tp.json             │
+  │  Task(/util-expert)   → UTIL_module_tp.json             │
   │  Task(/link-expert)  → LINK_module_tp.json            │
   └────────────────────────────────────────────────────────┘
   │
@@ -467,7 +467,7 @@ index_project_module_knowledge(
     UI_module_tp.json
     BIZ_module_tp.json
     CONFIG_module_tp.json
-    AUX_module_tp.json
+    UTIL_module_tp.json
     LINK_module_tp.json
     LOG_module_tp.json
     SPECIAL_module_tp.json
@@ -527,7 +527,7 @@ S6 同理，`_module_expert_drafts/` 下为 `*_module_tc.json`。
 - /ui-expert：生成 UI 模块 TP，写入 _module_expert_drafts/UI_module_tp.json
 - /biz-expert：生成 BIZ 模块 TP，写入 _module_expert_drafts/BIZ_module_tp.json
 - /config-expert：生成 CONFIG 模块 TP，写入 _module_expert_drafts/CONFIG_module_tp.json
-- /UTIL-expert：生成 UTIL 模块 TP，写入 _module_expert_drafts/AUX_module_tp.json
+- /util-expert：生成 UTIL 模块 TP，写入 _module_expert_drafts/UTIL_module_tp.json
 - /link-expert：生成 LINK 模块 TP，写入 _module_expert_drafts/LINK_module_tp.json
 
 每个 expert 的 task prompt 包含：

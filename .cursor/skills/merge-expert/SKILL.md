@@ -50,7 +50,7 @@ _module_expert_drafts/
   UI_module_tp.json        # UI expert 产出（S5）
   BIZ_module_tp.json       # BIZ expert 产出（S5）
   CONFIG_module_tp.json     # CONFIG expert 产出（S5）
-  AUX_module_tp.json        # UTIL expert 产出（S5）
+  UTIL_module_tp.json        # UTIL expert 产出（S5）
   LINK_module_tp.json       # LINK expert 产出（S5）
   LOG_module_tp.json        # LOG expert 产出（S5）
   SPECIAL_module_tp.json    # SPECIAL expert 产出（S5）

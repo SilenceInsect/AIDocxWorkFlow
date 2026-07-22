@@ -285,6 +285,245 @@ def run_stage(
     return result
 
 
+# ── 模块专家编排 orchestrator（v35 新增）──────────────────────────────────────
+
+MODULE_EXPERTS = ["ui-expert", "biz-expert", "config-expert", "util-expert",
+                  "link-expert", "log-expert", "special-expert", "hint-expert"]
+"""8 个模块专家，编排时按此顺序调度"""
+
+ORCHESTRATOR_BATCH_SIZE = 5
+"""Cursor Task 工具每批最大并发数"""
+
+
+def build_module_orchestrator_prompt(
+    stage: str,
+    req_name: str,
+    version: str,
+    project_name: str | None = None,
+) -> str:
+    """生成模块专家编排指令 prompt（v35 新增）。
+
+    用途：写入临时文件，交给主 agent 读取后用 Task 工具调度 expert。
+
+    编排逻辑：
+      - 第 1 批 ≤ 5 个 expert 并行
+      - 第 2 批 ≤ 5 个 expert 并行
+      - 最后调用 /merge-expert 串行合并
+
+    Args:
+        stage: "S5" 或 "S6"
+        req_name: 需求名称
+        version: 版本号
+        project_name: 项目名称（可选）
+
+    Returns:
+        orchestrator prompt 字符串
+    """
+    stage_dir = _stage_dir(req_name, stage, version)
+    draft_dir = stage_dir / "_module_expert_drafts"
+
+    if stage == "S5":
+        suffix = "_module_tp.json"
+        upstream_path = _stage_dir(req_name, "S2", version) / "backlog.json"
+        final_artifact = stage_dir / "test_points.json"
+        merge_artifact = "test_points.json"
+        merge_suffix = "_module_tp.json"
+        save_callable = "save_stage5_output()"
+        save_description = "将 merge 后的 test_points.json 写入规范化最终产物"
+    elif stage == "S6":
+        suffix = "_module_tp.json"  # TC 草稿仍用 tp 后缀（merge-expert 读 *module_tp*.json）
+        upstream_path = stage_dir.parent.parent / f"「S5 测试点生成」" / "test_points.json"
+        final_artifact = stage_dir / "test_cases.json"
+        merge_artifact = "test_cases.json"
+        merge_suffix = "_module_tp.json"  # 同上
+        save_callable = "format_test_cases()"
+        save_description = "将 merge 后的 test_cases.json 规范化并产出公共级 xlsx"
+    else:
+        raise ValueError(f"Unsupported stage for module orchestration: {stage}")
+
+    # 分批：第 1 批 5 个 expert，第 2 批剩余
+    batch1 = MODULE_EXPERTS[:ORCHESTRATOR_BATCH_SIZE]
+    batch2 = MODULE_EXPERTS[ORCHESTRATOR_BATCH_SIZE:]
+
+    def _expert_list_block(experts: list[str]) -> str:
+        items = []
+        for e in experts:
+            module = e.replace("-expert", "").upper()
+            items.append(f"- /{e}：写入 _module_expert_drafts/{module}{suffix}")
+        return "\n".join(items)
+
+    prompt = f"""# {stage} 模块专家编排指令（v35）
+
+## 上游输入
+- S2 backlog.json：{upstream_path}
+
+## 阶段目录
+{stage_dir}
+
+## 草稿目录
+{draft_dir}
+
+## 你的角色
+你是编排者，不自己写 TP/TC。用 Task 工具并行调度 8 个模块专家 expert。
+
+## 执行步骤
+
+### Step 1：并行调度第 1 批 expert（≤5 并发）
+
+使用 Task 工具，并行 launch 以下 {len(batch1)} 个 expert：
+{_expert_list_block(batch1)}
+
+每个 expert 的 task prompt 包含：
+1. 读取 S2 backlog.json（{upstream_path}）
+2. 筛选属于自己模块的 Story/Epic
+3. 生成 {"TP" if stage == "S5" else "TC"}（格式见 aidocx-s{stage}-test-{"points" if stage == "S5" else "cases"}/SKILL.md §3）
+4. 写入 <module>_module_{"tp" if stage == "S5" else "tc"}.json（含 meta.header：module/expert/req_name/version/story_ids）
+
+### Step 2：并行调度第 2 批 expert（≤5 并发）
+
+{_expert_list_block(batch2) if batch2 else "_（已全部完成，无需第 2 批）_"}
+
+### Step 3：调度 /merge-expert
+
+等所有 8 个草稿文件写入完成后：
+1. 调用 /merge-expert
+2. 读取 _module_expert_drafts/*{merge_suffix}
+3. 合并 → 去重 → 重分配 ID → 覆盖校验
+4. 写入 {merge_artifact} + merge_report.json
+
+### Step 4：调用 {save_callable}
+
+调用 {save_callable}，{save_description}。
+
+## 成功标准
+- _module_expert_drafts/ 下有 8 个 *{suffix}
+- {merge_artifact} 存在且含所有模块的 {"TP" if stage == "S5" else "TC"}
+- merge_report.json 存在且含去重报告
+- {"test_points.json 已规范化写入" if stage == "S5" else "test_cases.xlsx（公共级）已产出"}
+"""
+    return prompt
+
+
+def write_orchestrator_prompt(
+    stage: str,
+    req_name: str,
+    version: str,
+    project_name: str | None = None,
+) -> Path:
+    """将 orchestrator prompt 写入临时文件并返回路径。
+
+    主 agent 读取此文件后执行模块专家编排。
+    """
+    prompt = build_module_orchestrator_prompt(stage, req_name, version, project_name)
+    stage_dir = _stage_dir(req_name, stage, version)
+    # 写入阶段目录下，文件名不含 .md 避免被误读为阶段产物
+    prompt_path = stage_dir / "_orchestrator_prompt.txt"
+    prompt_path.parent.mkdir(parents=True, exist_ok=True)
+    prompt_path.write_text(prompt, encoding="utf-8")
+    return prompt_path
+
+
+def is_module_orchestration_mode(project_name: str | None) -> bool:
+    """判定是否应启用模块编排模式（v35 新增）。
+
+    启用条件：project_name 不为 None 时启用模块编排。
+    无 project_name 时走默认单 agent 直接生成路径。
+    """
+    return project_name is not None
+
+
+# ── 清理旧产物询问 ───────────────────────────────────────────────────────────
+
+def _prompt_purge_existing(
+    stage: str,
+    req_name: str,
+    version: str,
+    project_name: str | None = None,
+) -> dict:
+    """检测阶段目录是否存在且非空，若存在则询问用户是否删除。
+
+    v8 实战决策：阶段开始前若检测到阶段目录存在且非空，
+    自动询问用户"是否删除旧产物"——决策返回 keep/purge/abort。
+    """
+    stage_dir = _stage_dir(req_name, stage, version)
+    if not stage_dir.exists():
+        return {"action": "proceed", "stage_dir": str(stage_dir)}
+
+    # 检测是否非空（忽略 raw/ 子目录）
+    non_raw_files = [
+        f for f in stage_dir.rglob("*")
+        if f.is_file()
+        and not f.name.startswith(".")
+        and "raw" not in str(f.relative_to(stage_dir))
+    ]
+    if not non_raw_files:
+        return {"action": "proceed", "stage_dir": str(stage_dir)}
+
+    total_size = sum(f.stat().st_size for f in non_raw_files)
+    recent = max(f.stat().st_mtime for f in non_raw_files)
+    import datetime
+    recent_str = datetime.datetime.fromtimestamp(recent).isoformat()
+    file_names = [str(f.relative_to(stage_dir)) for f in non_raw_files[:10]]
+    more = len(non_raw_files) - len(file_names)
+
+    import sys
+    print(f"""
+┌─ [AIDocxWorkFlow] 阶段开始前询问 ─────────────────────────────┐
+│ 检测到阶段目录已存在且非空，是否删除旧产物后重新执行？       │
+└──────────────────────────────────────────────────────────────┘
+  阶段        ：{stage}
+  需求        ：{req_name}
+  版本        ：{version}
+  阶段目录    ：{stage_dir}
+  现有文件数  ：{len(non_raw_files)}
+  现有总大小  ：{total_size / 1024:.1f} KB
+  最近修改    ：{recent_str}
+  文件清单    ：
+{chr(10).join(f"    - {n}" for n in file_names)}
+{f"    ...（还有 {more} 个文件）" if more else ""}
+
+请选择：
+  [Y] 删除旧产物，重新跑该阶段（推荐）
+  [N] 保留旧产物，跳过该阶段（status=SKIPPED）
+  [A] 中止整个流水线（abort）
+""")
+    # 非交互环境默认保留
+    if not sys.stdin.isatty():
+        print("[自动] 非交互环境，默认保留旧产物。")
+        return {"action": "auto_keep", "stage_dir": str(stage_dir), "reason": "non-interactive"}
+
+    choice = input("请输入 [Y/N/A]：").strip().upper()
+    if choice == "A":
+        raise SystemExit("用户中止流水线")
+    if choice in ("N", ""):
+        return {"action": "keep", "stage_dir": str(stage_dir)}
+    # Y — 删除
+    shutil.rmtree(stage_dir)
+    return {"action": "purge", "stage_dir": str(stage_dir)}
+
+
+def _purge_decision_to_skip_result(decision: dict, stage: str, req_name: str,
+                                    version: str, project_name: str | None) -> dict:
+    skip_reason = (
+        "user_chose_keep_existing"
+        if decision["action"] == "keep"
+        else "non_interactive_env_default_keep"
+    )
+    return {
+        "stage": stage,
+        "req_name": req_name,
+        "project_name": project_name,
+        "version": version,
+        "preflight": None,
+        "stage_result": None,
+        "postflight": None,
+        "runtime_gate": None,
+        "status": "SKIPPED",
+        "skip_reason": skip_reason,
+        "stage_dir": decision.get("stage_dir"),
+    }
+
+
 def run_pipeline(
     stages: list[str],
     req_name: str = "游戏道具商城系统",

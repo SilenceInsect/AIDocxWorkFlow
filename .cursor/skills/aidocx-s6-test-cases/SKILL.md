@@ -1638,3 +1638,73 @@ python3 ai_workflow/s6_coverage_gate.py --self-test
 ### 自我测试
 
 `python3 ai_workflow/s6_coverage_gate.py --self-test` — 3 cases 全覆盖。
+
+---
+
+## §新增 S6 模块编排模式（v35 新增）
+
+> **触发条件**：当执行 `/aidocx-s6-test-cases` 且 `project_name` 参数存在（或显式指定"模块编排模式"）时，启用本模式。
+> **不改变默认行为**：单 agent 直接生成 TC 的方式仍然保留，本节是**额外编排路径**。
+
+### §1 模式切换
+
+| 模式 | 触发 | 主 agent 角色 |
+|------|------|--------------|
+| **默认模式**（直接生成） | 无 `project_name` | 直接生成 TC 写入 test_cases.json |
+| **模块编排模式**（v35 新增）| 有 `project_name` | orchestrator：调度 8 expert + merge-expert |
+
+### §2 流水线
+
+主 agent（orchestrator，不自己写 TC）
+  ↓ orchestrator prompt（由 conversation_skills 生成）
+  ├─ Task(/ui-expert)   → _module_expert_drafts/UI_module_tc.json
+  ├─ Task(/biz-expert)  → _module_expert_drafts/BIZ_module_tc.json
+  ├─ Task(/config-expert) → _module_expert_drafts/CONFIG_module_tc.json
+  ├─ Task(/util-expert)  → _module_expert_drafts/UTIL_module_tc.json
+  ├─ Task(/link-expert) → _module_expert_drafts/LINK_module_tc.json
+  ├─ Task(/log-expert)  → _module_expert_drafts/LOG_module_tc.json
+  ├─ Task(/special-expert) → _module_expert_drafts/SPECIAL_module_tc.json
+  └─ Task(/hint-expert) → _module_expert_drafts/HINT_module_tc.json
+  ↓（全部完成）
+  /merge-expert → test_cases.json
+  ↓
+主 agent 调用 format_test_cases()（强制公共级 xlsx）
+
+### §3 草稿格式
+
+每个 expert 写入 `<stage_dir>/_module_expert_drafts/<MODULE>_module_tc.json`：
+
+```json
+{
+  "meta": {
+    "module": "UI",
+    "expert": "ui-expert",
+    "req_name": "游戏道具商城系统",
+    "version": "v3.01",
+    "created_at": "2026-07-22T09:30:00+08:00",
+    "tp_source": "S5 test_points.json"
+  },
+  "test_cases": [...]
+}
+```
+
+### §4 与默认模式的差异
+
+| 方面 | 默认模式 | 模块编排模式 |
+|------|----------|--------------|
+| 主 agent 产出 | 自己写 TC | 只做编排，不写 TC |
+| 并行性 | 无 | 8 expert 并行（≤5 批）|
+| 合并 | 无 | merge-expert 串行收尾 |
+| 上下文长度 | 所有 TC 在上下文中 | 上下文只含 orchestrator prompt |
+| 知识复用 | 无 | 各 expert 复用自己模块知识库 |
+| 覆盖率保证 | 依赖主 agent 能力 | 各 expert 专注自己模块，覆盖更全 |
+
+### §5 v35 xlsx 强制产出约束
+
+S6 模块编排模式的最终产物必须包含：
+
+| 产出 | 路径 | 强制？ |
+|------|------|--------|
+| `test_cases.json` | 同上目录 | ✅ 强制 |
+| `test_cases.xlsx`（公共级） | 同上目录 | ✅ **强制**（v35 新增） |
+| `merge_report.json` | 同上目录 | ✅ 强制 |

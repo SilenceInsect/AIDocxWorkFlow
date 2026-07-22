@@ -1,7 +1,110 @@
-# Python bytecode
-__pycache__/
-*.pyc
-*.pyo
+# macOS / OS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
 
-# Temporary / backup
-governance/aux_rename_backup/
+# Editors / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+venv/
+.venv/
+env/
+ENV/
+
+# Cursor / agent tooling
+.cursor/.DS_Store
+.cursor/hooks/__pycache__/
+.cursor/skills/.DS_Store
+.cursor/sync_logs/
+
+# Chroma 向量索引数据库（本地过程资产）
+.chroma_db/
+
+# CodeGraph — machine-local code index cache (do not commit)
+.codegraph/
+
+# Workflow assets — 本地过程资产
+workflow_assets/*
+
+# Governance — 本地治理档（方案/归档/INDEX 全不入库，仅工作区可见）
+governance/
+
+# CHANGELOG — 本地迭代历史（不入库；如需跨人协作请提炼到 release notes 或 .mdc）
+CHANGELOG.md
+
+# Goal log database — 本地过程资产
+.goal-log-db/
+
+# Workflow assets goals — 旧版 goal 目录（已迁移到 .goal-log-db/archive/）
+workflow_assets/goals/
+
+# Knowledge — 分层知识库
+# public 入 Git（公共资产）；project_local 为项目级私有知识库，不入 Git
+knowledge/project_local/
+resource/
+
+# 阶段上下文包（不入 Git，过程资产）
+workflow_assets/**/*.stage_context.md
+workflow_assets/**/stage_context.json
+workflow_assets/**/read_ack.json
+
+# jsonl 一刀切：所有 .jsonl 都是过程录制（目标反模式案例/反馈日志/阶段录制），全部不入 git
+*.jsonl
+
+ai_workflow/.DS_Store
+ai_workflow/__pycache__/
+
+# Local secrets / config
+.env
+.env.local
+*.local
+secrets.json
+.cursor/private/
+
+# Logs
+*.log
+logs/
+feedback_logs/
+# 注：*.jsonl 一刀切已在第 91 行生效
