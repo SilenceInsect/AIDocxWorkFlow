@@ -35,8 +35,8 @@
       "id": "task-4",
       "title": "AUX模块专家自我认知提升",
       "status": "completed",
-      "artifact": "knowledge/public/module_templates/_module_expert_cognition/AUX_expert_cognition.md",
-      "module": "AUX"
+      "artifact": "knowledge/public/module_templates/_module_expert_cognition/util_expert_cognition.md",
+      "module": "UTIL"
     },
     {
       "id": "task-5",

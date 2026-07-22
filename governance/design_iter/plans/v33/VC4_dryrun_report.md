@@ -34,12 +34,12 @@
 | LOG | 16 | 7.0% |
 | LINK | 4 | 1.7% |
 | CONFIG | 0 | 0.0% |
-| AUX | 0 | 0.0% |
+| UTIL | 0 | 0.0% |
 | SPECIAL | 0 | 0.0% |
 | HINT | 0 | 0.0% |
 | **TOTAL** | **230** | **100%** |
 
-**发现**：仅覆盖 4/8 模块；BIZ 占 70.9%，UI 占 20.4%。CONFIG/AUX/SPECIAL/HINT 为 0。
+**发现**：仅覆盖 4/8 模块；BIZ 占 70.9%，UI 占 20.4%。CONFIG/UTIL/SPECIAL/HINT 为 0。
 
 ---
 

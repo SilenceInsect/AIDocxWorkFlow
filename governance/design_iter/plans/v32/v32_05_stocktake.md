@@ -71,7 +71,7 @@ ls /Users/gleon/Documents/TestDev/AIDocxWorkFlow/knowledge/public/test_point_lib
 **输出**：
 
 ```
-AUX/  BIZ/  CONFIG/  HINT/  LINK/  LOG/  README.md  SPECIAL/  UI/  _index.md
+UTIL/  BIZ/  CONFIG/  HINT/  LINK/  LOG/  README.md  SPECIAL/  UI/  _index.md
 ```
 
 → **目录骨架完整，8 模块子目录 + README + _index**。
@@ -79,7 +79,7 @@ AUX/  BIZ/  CONFIG/  HINT/  LINK/  LOG/  README.md  SPECIAL/  UI/  _index.md
 ### 4.2 命令 2：TP 库各模块文件统计
 
 ```bash
-for d in AUX BIZ CONFIG HINT LINK LOG SPECIAL UI; do
+for d in UTIL BIZ CONFIG HINT LINK LOG SPECIAL UI; do
     ls -1 $d 2>/dev/null | wc -l
 done
 ```
@@ -87,7 +87,7 @@ done
 **输出**：
 
 ```
-AUX: 1 (README.md)
+UTIL: 1 (README.md)
 BIZ: 1 (README.md)
 CONFIG: 1 (README.md)
 HINT: 1 (README.md)
@@ -134,7 +134,7 @@ ls /Users/gleon/Documents/TestDev/AIDocxWorkFlow/knowledge/public/module_templat
 **输出**：
 
 ```
-AUX/ AUX.md BIZ/ BIZ.md CONFIG/ CONFIG.md HINT/ HINT.md LINK/ LINK.md
+UTIL/ UTIL.md BIZ/ BIZ.md CONFIG/ CONFIG.md HINT/ HINT.md LINK/ LINK.md
 LOG/ LOG.md README.md SPECIAL/ SPECIAL.md UI/ UI.md
 _common_structure.md  _decision_tree.md  s2_output_template.md
 ```

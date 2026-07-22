@@ -24,7 +24,7 @@
 |---|---|---|---|---|
 | 质量闭环完整性 | 30% | 强付费项 3 段识别（发奖/排行/订单/兑换/VIP/战令）| ❌ 关键字识别，没有按模块深度展开 |
 | 功能覆盖度 | 25% | 每个功能 F 有测试场景 | ❌ 没有按模块视角检查"每个模块的覆盖度" |
-| 可测试性 | 25% | GM 命令 / 测试脚本 | ⚠️ 部分按模块（如 GM 命令涉及 BIZ/AUX）|
+| 可测试性 | 25% | GM 命令 / 测试脚本 | ⚠️ 部分按模块（如 GM 命令涉及 BIZ/UTIL）|
 | 一致性 | 20% | 角色 / 功能 / 验收标准 | ❌ 没按 8 模块交叉检查 |
 
 **核心痛点**：S1 当前是"通用化评审"——**没用 8 模块视角预审**。结果：**S1 阶段漏掉的模块视角到 S2 才暴露，导致 S2 返工**。
@@ -56,7 +56,7 @@
 │  R1 CONFIG-专家 ─→ 读 module_templates/CONFIG/*            │
 │  R2 UI-专家     ─→ 读 module_templates/UI/*                │
 │  R3 BIZ-专家    ─→ 读 module_templates/BIZ/*               │
-│  R4 AUX-专家    ─→ 读 module_templates/AUX/*               │
+│  R4 UTIL-专家    ─→ 读 module_templates/UTIL/*               │
 │  R5 LINK-专家   ─→ 读 module_templates/LINK/*              │
 │  R6 SPECIAL-专家 ─→ 读 module_templates/SPECIAL/*          │
 │  R7 LOG-专家    ─→ 读 module_templates/LOG/*               │
@@ -71,7 +71,7 @@
 
 > **用户原话 #4**："补齐策划需求没有的，明确策划需求有的，找到策划需求和通用经验矛盾的"
 
-| 功能 F | CONFIG | UI | BIZ | AUX | LINK | SPECIAL | LOG | HINT | 漏模块 / 矛盾 |
+| 功能 F | CONFIG | UI | BIZ | UTIL | LINK | SPECIAL | LOG | HINT | 漏模块 / 矛盾 |
 |---|---|---|---|---|---|---|---|---|---|
 | F3 购买流程 | ✅ 提到价格表 | ✅ 商城页 | ✅ 扣款 | ❌ 没提本地缓存 | ❌ 没提跨服 | ⚠️ 防刷未细化 | ❌ 没提资产流水 | ✅ 飘字 | **漏 4 块** |
 | F5 VIP 商城 | ✅ 提到 VIP 配置 | ✅ | ✅ | — | ⚠️ 没提跨服 VIP 权益 | — | ❌ 没提 VIP 状态变更埋点 | ✅ | **漏 1 矛盾 1** |
@@ -208,7 +208,7 @@ S2 读取 exit_permission + module_gap_analysis → 启动 8 角色拆解
 │  R1 CONFIG-专家 ─→ 拆 CONFIG OBJ（配置表 / 字段校验）          │
 │  R2 UI-专家     ─→ 拆 UI OBJ（页面 / 控件）                  │
 │  R3 BIZ-专家    ─→ 拆 BIZ OBJ（业务流 / 状态机）              │
-│  R4 AUX-专家    ─→ 拆 AUX OBJ（底层 / 缓存 / 离线）           │
+│  R4 UTIL-专家    ─→ 拆 UTIL OBJ（底层 / 缓存 / 离线）           │
 │  R5 LINK-专家   ─→ 拆 LINK OBJ（跨服务 + 变更回归）          │
 │  R6 SPECIAL-专家 ─→ 拆 SPECIAL OBJ（异常 / 风控 / 边界）      │
 │  R7 LOG-专家    ─→ 拆 LOG OBJ（埋点 / 审计 / 监控）           │

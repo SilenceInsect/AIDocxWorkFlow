@@ -352,7 +352,7 @@ errors = v.validate_bad_patterns(test_points)
                   └─ 异常/对抗/弱网/反作弊 → SPECIAL
 
 （新元素 → ⑥是底层通用工具 还是业务辅助？）
-  ├─ 底层工具/SDK/加密/网络  → AUX
+  ├─ 底层工具/SDK/加密/网络  → UTIL
   └─ 业务辅助 → ⑦测行为轨迹 还是互通一致性？
           ├─ 埋点/审计/监控    → LOG
           └─ 跨服/跨端/外部三方 → LINK
@@ -365,10 +365,10 @@ errors = v.validate_bad_patterns(test_points)
 | **UI** | ①页面元素吗？②常驻还是临时？③测样式还是内容？ | — |
 | **HINT** | ①事件触发还是常驻？②自动消失还是长期保留？③测内容还是样式？ | 易误标 UI（见下方 6 大误判） |
 | **CONFIG** | ①字段还是规则？②配置还是热更？③字段校验还是业务逻辑？ | 易误标 BIZ |
-| **BIZ** | ①服务端业务还是通用工具？②业务流程还是行为异常？③业务日志还是通用日志？ | 易误标 SPECIAL/CONFIG/AUX |
+| **BIZ** | ①服务端业务还是通用工具？②业务流程还是行为异常？③业务日志还是通用日志？ | 易误标 SPECIAL/CONFIG/UTIL |
 | **SPECIAL** | ①常规业务还是异常行为？②对抗还是正常？③底层还是业务？ | 易误标 BIZ |
-| **AUX** | ①通用工具还是业务逻辑？②底层还是上层？③通用技术还是业务场景？ | 易误标 BIZ/LINK |
-| **LINK** | ①跨服务/跨端？②互通协议还是底层传输？③一致性校验还是数据流？ | 易误标 AUX |
+| **UTIL** | ①通用工具还是业务逻辑？②底层还是上层？③通用技术还是业务场景？ | 易误标 BIZ/LINK |
+| **LINK** | ①跨服务/跨端？②互通协议还是底层传输？③一致性校验还是数据流？ | 易误标 UTIL |
 | **LOG** | ①业务日志还是通用日志？②审计还是埋点？③SDK还是业务规范？ | 易误标 BIZ |
 
 **冲突处理**：Step1 命中 X，Step2 三问判定属于 Y → 以**三问判定为准**。
@@ -393,7 +393,7 @@ errors = v.validate_bad_patterns(test_points)
 | 红点显示/隐藏 | UI | UI 测图标样式；HINT 测显示逻辑 |
 | 飘字 "+100 金币" | UI | UI 测轨迹动画；HINT 测数字内容 |
 | 升级弹窗 | BIZ | BIZ 测状态机；HINT 测弹窗内容 |
-| 新手引导高亮 | UI | UI 测遮罩样式；HINT 测引导内容；AUX 测步骤管理器 |
+| 新手引导高亮 | UI | UI 测遮罩样式；HINT 测引导内容；UTIL 测步骤管理器 |
 | 战斗暴击飘字 | UI | UI 测动画；HINT 测伤害数字内容 |
 
 **核心原则**：HINT 测"内容/触发/文案"，UI 测"样式/位置/动画"。
@@ -404,7 +404,7 @@ errors = v.validate_bad_patterns(test_points)
 |---|---|---|
 | 抽卡 | BIZ（1个）| BIZ 业务逻辑 + CONFIG 概率配置 + BIZ 状态机 + LOG 审计（4-5个TP）|
 | 商城购买 | BIZ（1个）| BIZ 扣款发货 + BIZ 协议 + BIZ 状态机 + UI 渲染 + HINT 提示 + LOG 埋点（6个TP）|
-| 网络断线 | BIZ | BIZ 断线业务处理 + SPECIAL 弱网降级 + AUX 断线重连（拆3个）|
+| 网络断线 | BIZ | BIZ 断线业务处理 + SPECIAL 弱网降级 + UTIL 断线重连（拆3个）|
 | 充值 | BIZ | BIZ 订单流程 + LINK 第三方支付集成（拆2个）|
 
 #### 产出要求
@@ -430,7 +430,7 @@ errors = v.validate_bad_patterns(test_points)
 | R1 | `module` **必须**出现在 `related_tags` 中（自己关联自己）|
 | R2 | `related_tags` 最多 **3 个**元素 |
 | R3 | 元素**互异**（自动去重）|
-| R4 | 枚举仅限 8 模块：`CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG / HINT` |
+| R4 | 枚举仅限 8 模块：`CONFIG / UI / BIZ / UTIL / LINK / SPECIAL / LOG / HINT` |
 
 ### 扫描规则（每条 TP 生成前必走）
 
@@ -755,7 +755,7 @@ python3 ai_workflow/s5_exit_precheck.py --self-test
 |------|------|------|
 | `MISSING_REQUIRED` | 必填字段缺失：`test_point_id` / `module` / `test_type` / `priority` / `description` | P0 标准 |
 | `INVALID_ID_FORMAT` | `test_point_id` 必须匹配 `TP-NNN`（3+ 位数字） | test_points.json 现有惯例 |
-| `INVALID_MODULE` | `module` 必须 ∈ {CONFIG, UI, BIZ, AUX, LINK, LOG, SPECIAL, HINT} | MODULES.md §1 |
+| `INVALID_MODULE` | `module` 必须 ∈ {CONFIG, UI, BIZ, UTIL, LINK, LOG, SPECIAL, HINT} | MODULES.md §1 |
 | `INVALID_PRIORITY` | `priority` 必须 ∈ {P0, P1, P2} | P0 标准 |
 | `DUPLICATE_ID` | `test_point_id` 全局唯一 | ID 唯一性 |
 | `EMPTY` | 测试点数组为空 | S5 最低产出 |

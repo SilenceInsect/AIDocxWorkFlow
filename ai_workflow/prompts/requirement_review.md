@@ -73,7 +73,7 @@
 > ⚠️ 模块定义见 `.cursor/MODULES.md`（项目级唯一真相源）。**本文件不重写模块表**——不要在此处列出 8 模块清单。
 > 如模块定义调整，只改 MODULES.md。
 >
-> 8 模块（按 MODULES.md §1 总表）：`CONFIG` / `UI` / `BIZ` / `AUX` / `LINK` / `LOG` / `SPECIAL` / `HINT`
+> 8 模块（按 MODULES.md §1 总表）：`CONFIG` / `UI` / `BIZ` / `UTIL` / `LINK` / `LOG` / `SPECIAL` / `HINT`
 >
 > HINT vs UI 边界判定见 `MODULES.md` §4.11.2（HINT 测"内容/触发"、UI 测"样式/位置"——临时弹出 = HINT；常驻 = UI）。
 
@@ -121,7 +121,7 @@
 ```markdown
 ### <obj_id>: <需求对象名>
 - **所属角色**: <role_id>
-- **模块**: CONFIG | UI | BIZ | HINT | LINK | SPECIAL | LOG | AUX
+- **模块**: CONFIG | UI | BIZ | HINT | LINK | SPECIAL | LOG | UTIL
 - **功能列表**:
   1. <功能 1>（输入 → 处理 → 输出）
   2. <功能 2>（输入 → 处理 → 输出）

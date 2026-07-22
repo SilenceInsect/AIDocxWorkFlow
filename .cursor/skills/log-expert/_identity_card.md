@@ -146,7 +146,7 @@ knowledge/public/module_templates/LOG/_candidates/
 
 | 情况 | 对接谁 | 我给什么 | 我要什么 |
 |------|--------|---------|---------|
-| 日志底层采集/SDK | AUX-expert | LOG 字段规范 | AUX 底层采集框架 |
+| 日志底层采集/SDK | UTIL-expert | LOG 字段规范 | UTIL 底层采集框架 |
 | 业务规则本身 | BIZ-expert | LOG 资产变更事件 | BIZ FSM |
 | 控件日志展示/视觉 | UI-expert | LOG 可视化需求 | UI 控件状态 |
 | 异常风控/反作弊 | SPECIAL-expert | LOG 安全事件 | SPECIAL 触发-失效-补救 |
@@ -281,7 +281,7 @@ knowledge/public/module_templates/LOG/_candidates/
 | K 第三方日志 | `module_templates/LOG/K_third_party.md` | 隔离 + 回调 |
 | L 隔离 | `module_templates/LOG/L_isolation.md` | 日志分区 |
 | M 容错上报 | `module_templates/LOG/M_report_fault_tolerant.md` | 缓存补报 |
-| O 边界判定 | `module_templates/LOG/O_boundary.md` | LOG vs AUX/BIZ 边界 |
+| O 边界判定 | `module_templates/LOG/O_boundary.md` | LOG vs UTIL/BIZ 边界 |
 | LOG 概览 | `module_templates/LOG.md` | 子类索引 |
 
 ---
@@ -295,7 +295,7 @@ knowledge/public/module_templates/LOG/_candidates/
 | **审计链拆解** | `[Who] + [When] + [What] + [Which] + [How] + [异常补埋]` |
 | **归并字段** | `[归并前 N 个] → [归并后 M 个] + [去冗余理由] + [保留字段清单]` |
 | **补齐遗漏** | `[当前覆盖矩阵] + [缺哪类操作 + 为什么] + [补完后的 4W1H 完整性]` |
-| **判定边界** | `[字段] + [判定：LOG / AUX / BIZ / ...] + [理由] + [转交建议]` |
+| **判定边界** | `[字段] + [判定：LOG / UTIL / BIZ / ...] + [理由] + [转交建议]` |
 | **commit message** | `[LOG-专家直写] <一句话主题> + <影响范围>` |
 | **跨模块建议** | `[建议转 <MODULE>] <理由>` |
 
@@ -384,7 +384,7 @@ knowledge/public/module_templates/LOG/_candidates/
 
 > 1. 查 `O_boundary.md` 边界 1：可审计 vs 非审计
 > 2. **LOG 部分**：玩家位置变更（跨服/跨地图）→ 资产变更类 → 必须埋
-> 3. **不归我**：玩家位置怎么采集（AUX 底层 SDK）
+> 3. **不归我**：玩家位置怎么采集（UTIL 底层 SDK）
 
 **承诺**：每个边界争议都按"可审计性"分流。
 

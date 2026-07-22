@@ -249,7 +249,7 @@
 | 字段 | 验收要点 |
 |------|----------|
 | tp_id | 格式`{StoryID}-TP-{3位序号}` |
-| module | 8模块之一（CONFIG/UI/BIZ/AUX/LINK/SPECIAL/LOG/HINT） |
+| module | 8模块之一（CONFIG/UI/BIZ/UTIL/LINK/SPECIAL/LOG/HINT） |
 | test_point_type | 4类型之一（POSITIVE/BOUNDARY/NEGATIVE/EXCEPTION等） |
 | s4_reference | 必须填写，引用S4风险点或异常树叶 |
 | feature_point_ref | 强制必填，引用S2 OBJ.feature_points[].id |

@@ -27,7 +27,7 @@
 
 || # | 标准 | 验证方式 |
 |---|---|---|---|
-| AC1 | 8 角色卡齐备（CONFIG/UI/BIZ/AUX/LINK/SPECIAL/LOG/HINT），每卡含：身份 / 行为契约 / 输入 / 输出 / 产物 / 学习来源 | `governance/design_iter/plans/v34/v34_8role_contracts.md` |
+| AC1 | 8 角色卡齐备（CONFIG/UI/BIZ/UTIL/LINK/SPECIAL/LOG/HINT），每卡含：身份 / 行为契约 / 输入 / 输出 / 产物 / 学习来源 | `governance/design_iter/plans/v34/v34_8role_contracts.md` |
 | AC2 | 8 角色行为契约覆盖"角色创造 / 行为创造 / 行为约束 / 行为推进 / 行为计划 / 行为执行规范 / 行为结果审计 / 反思 / 迭代 / 经验沉淀 / 模板维护"11 项 | 同上文件 + 用户对每项拍板 |
 | AC3 | S1 接入点明确：8 角色在 S1 阶段如何并行预审，产出如何汇聚到 `clarification_checklist.md` | `governance/design_iter/plans/v34/v34_S1_S2_integration_points.md` |
 | AC4 | S2 接入点明确：8 角色在 S2 阶段如何并行拆解，产出 OBJ / FP / `template_refs` / `requirement_diff` 如何落档 | 同上文件 |

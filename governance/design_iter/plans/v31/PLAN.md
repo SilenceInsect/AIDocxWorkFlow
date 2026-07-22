@@ -16,7 +16,7 @@
 
 | 维度 | 现状 | 依据 |
 |------|------|------|
-| 8 模块测试点模板 | 全部到位（CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG / HINT） | `knowledge/public/module_templates/<MODULE>.md` |
+| 8 模块测试点模板 | 全部到位（CONFIG / UI / BIZ / UTIL / LINK / SPECIAL / LOG / HINT） | `knowledge/public/module_templates/<MODULE>.md` |
 | 8 模块边界规则 | 全部到位 | `knowledge/public/module_templates/<MODULE>/<boundary>.md` |
 | 测试点库（成品 TP 模板）| ⏳ 待补（v31 完成后激活入库机制） | `knowledge/public/test_point_library/` |
 | S5/S6 STAGE 规则 | 已有完整规则 | `STAGE_S5_TEST_POINTS.mdc` / `STAGE_S6_TEST_CASES.mdc` |
@@ -328,7 +328,7 @@ TP_TYPE_FACTOR = { POSITIVE: 1.5, BOUNDARY: 1.0, NEGATIVE: 1.0, EXCEPTION: 0.5 }
 | 配置表字段、枚举、资源、ID、热更、解析、数值公式、版本兼容 | CONFIG |
 | 页面、控件、按钮、输入框、列表、布局、分辨率、动效、皮肤 | UI |
 | 业务逻辑、扣款发货、合成、抽卡、保底、限购、概率、状态机、并发、付费、审计 | BIZ |
-| 工具、组件、路由、缓存、Redis、资源加载、网络、SDK、加密、崩溃、GM | AUX |
+| 工具、组件、路由、缓存、Redis、资源加载、网络、SDK、加密、崩溃、GM | UTIL |
 | 上下游、跨服务、跨服、多端、外部 SDK、第三方登录、异步消息、灰度 | LINK |
 | 弱网、断网、高频包、反作弊、切后台、宕机、版本兼容异常、渠道灰度 | SPECIAL |
 | 埋点、点击事件、资产流水、崩溃日志、日志分级、脱敏、trace、监控 | LOG |
@@ -343,7 +343,7 @@ TP_TYPE_FACTOR = { POSITIVE: 1.5, BOUNDARY: 1.0, NEGATIVE: 1.0, EXCEPTION: 0.5 }
 | CONFIG | 9 子类（A-I：FIELD_LEGALITY / FIELD_INTRA_DEP / FIELD_CROSS_DEP / RELOAD_4_MODE / PARSE_LOAD / VERSION_COMPAT / VALUE_LOGIC / EXPORT_PUBLISH / SERVER_CONFIG）| `knowledge/public/module_templates/CONFIG.md` |
 | UI | 11 子类（A-H：CONTROL_RENDER / CONTROL_STATE / PURE_INTERACTION / LAYOUT_ADAPT / STATIC_DISPLAY / ANIMATION / GUIDE_HINT / ACCESSIBILITY / EDGE_UI 等）| `knowledge/public/module_templates/UI.md` |
 | BIZ | 9 子类（A-I：BIZ_LOGIC / BIZ_DATA_FLOW / BIZ_PROTOCOL / BIZ_STATE_MACHINE / BIZ_DB_PERSIST / BIZ_CONCURRENCY / BIZ_SCHEDULED_TASK / BIZ_PAYMENT / BIZ_AUDIT_LOG）| `knowledge/public/module_templates/BIZ.md` |
-| AUX | 14 子类（A-N）| `knowledge/public/module_templates/AUX.md` |
+| UTIL | 14 子类（A-N）| `knowledge/public/module_templates/UTIL.md` |
 | LINK | 6 子类（A-F）| `knowledge/public/module_templates/LINK.md` |
 | SPECIAL | 9 子类（A-I）| `knowledge/public/module_templates/SPECIAL.md` |
 | LOG | 13 子类（A-M）| `knowledge/public/module_templates/LOG.md` |
@@ -361,7 +361,7 @@ TP_TYPE_FACTOR = { POSITIVE: 1.5, BOUNDARY: 1.0, NEGATIVE: 1.0, EXCEPTION: 0.5 }
 | 日志 / 埋点 / 审计 / 流水 | LOG | A_click / B_asset_log / C_crash_log |
 | 红点 / 飘字 / Toast / 引导 | HINT | A_red_dot / B_toast / C_popup |
 | 配置 / 资源 / 热更 / 数值表 | CONFIG | A_field_legality / D_hot_reload / G_value_logic |
-| 缓存 / SDK / 加密 / 网络 / GM | AUX | A_util / B_sdk / C_crypto |
+| 缓存 / SDK / 加密 / 网络 / GM | UTIL | A_util / B_sdk / C_crypto |
 
 ### 4.4 冲突优先级矩阵
 
@@ -372,7 +372,7 @@ TP_TYPE_FACTOR = { POSITIVE: 1.5, BOUNDARY: 1.0, NEGATIVE: 1.0, EXCEPTION: 0.5 }
 | 3 | 配置驱动 vs 业务逻辑 | CONFIG > BIZ |
 | 4 | 纯日志 vs 业务附带日志 | 纯 LOG / 附 BIZ |
 | 5 | 红点/弹窗样式 vs 内容触发 | 样式 UI / 触发 HINT |
-| 6 | 辅助功能 vs 业务功能 | AUX < BIZ（业务优先）|
+| 6 | 辅助功能 vs 业务功能 | UTIL < BIZ（业务优先）|
 | 7 | 关联影响 vs 主业务 | LINK 独立 / BIZ 主归 |
 | 8 | 特殊配置 vs 配置通用 | SPECIAL > CONFIG |
 
@@ -400,7 +400,7 @@ TP_TYPE_FACTOR = { POSITIVE: 1.5, BOUNDARY: 1.0, NEGATIVE: 1.0, EXCEPTION: 0.5 }
 | SPECIAL | steps.data 引用异常注入方式（弱网、改包、切后台）；expected_results 引用异常拦截 + 降级行为 |
 | LOG | steps.data 引用触发动作；expected_results 引用日志字段必填 + 脱敏 + trace 串联 |
 | HINT | steps.action 引用触发场景；expected_results 引用提示内容 + 触发时机 + 自动消失 |
-| AUX | steps.data 引用底层 SDK 调用参数；expected_results 引用 SDK 返回值 |
+| UTIL | steps.data 引用底层 SDK 调用参数；expected_results 引用 SDK 返回值 |
 
 ---
 

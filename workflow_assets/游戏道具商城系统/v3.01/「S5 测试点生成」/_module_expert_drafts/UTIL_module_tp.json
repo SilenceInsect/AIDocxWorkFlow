@@ -1,7 +1,7 @@
 {
   "meta": {
-    "module": "AUX",
-    "expert": "aux-expert",
+    "module": "UTIL",
+    "expert": "UTIL-expert",
     "req_name": "游戏道具商城系统",
     "version": "v3.01",
     "created_at": "2026-07-22T09:23:00Z",
@@ -9,9 +9,9 @@
   },
   "test_points": [
     {
-      "tp_id": "AUX-001-TP-001",
+      "tp_id": "UTIL-001-TP-001",
       "story_id": "BIZ-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CACHE_HIT_RATE",
       "test_point_type": "NEGATIVE",
       "test_point_name": "游戏币余额缓存失效时DB查询",
@@ -25,12 +25,12 @@
       "test_input": "模拟余额缓存 key 过期事件，触发缓存重建",
       "expected_result": "缓存失效后正确查询DB获取最新余额，不返回过期值",
       "description": "余额缓存失效时系统正确从DB查询最新余额",
-      "test_point_category": "AUX-C缓存层"
+      "test_point_category": "UTIL-C缓存层"
     },
     {
-      "tp_id": "AUX-001-TP-002",
+      "tp_id": "UTIL-001-TP-002",
       "story_id": "BIZ-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CURRENCY_EXCHANGE",
       "test_point_type": "POSITIVE",
       "test_point_name": "游戏币扣款精度保持",
@@ -44,12 +44,12 @@
       "test_input": "扣减游戏币：原价100钻石，折扣后85钻石（汇率计算）",
       "expected_result": "扣减后余额精确，精度无丢失（使用整数或Decimal计算）",
       "description": "游戏币扣款金额换算精度无误差",
-      "test_point_category": "AUX-E汇率换算"
+      "test_point_category": "UTIL-E汇率换算"
     },
     {
-      "tp_id": "AUX-001-TP-003",
+      "tp_id": "UTIL-001-TP-003",
       "story_id": "BIZ-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "ERROR_RECOVERY",
       "test_point_type": "POSITIVE",
       "test_point_name": "订单生成幂等性",
@@ -63,12 +63,12 @@
       "test_input": "相同购买请求发送2次（模拟网络超时重试）",
       "expected_result": "服务端只生成1个订单，不重复扣款，订单号唯一",
       "description": "订单生成接口具备幂等性，重复请求不产生副作用",
-      "test_point_category": "AUX-N异常兜底"
+      "test_point_category": "UTIL-N异常兜底"
     },
     {
-      "tp_id": "AUX-001-TP-004",
+      "tp_id": "UTIL-001-TP-004",
       "story_id": "BIZ-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "NETWORK_LAYER",
       "test_point_type": "NEGATIVE",
       "test_point_name": "断网时购买请求缓存与重连重试",
@@ -82,12 +82,12 @@
       "test_input": "断网 → 购买请求失败 → 恢复网络",
       "expected_result": "操作缓存至队列，重连后自动重试，不丢失用户操作",
       "description": "断网时购买请求被缓存，重连后正确重试",
-      "test_point_category": "AUX-B网络层"
+      "test_point_category": "UTIL-B网络层"
     },
     {
-      "tp_id": "AUX-001-TP-005",
+      "tp_id": "UTIL-001-TP-005",
       "story_id": "BIZ-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "NETWORK_LAYER",
       "test_point_type": "BOUNDARY",
       "test_point_name": "购买请求超时重试机制",
@@ -101,12 +101,12 @@
       "test_input": "模拟请求超时（30s无响应），验证重试逻辑",
       "expected_result": "自动重试最多3次，3次失败后返回错误回调，余额不扣",
       "description": "购买请求超时后正确重试，避免重复扣款",
-      "test_point_category": "AUX-B网络层"
+      "test_point_category": "UTIL-B网络层"
     },
     {
-      "tp_id": "AUX-001-TP-006",
+      "tp_id": "UTIL-001-TP-006",
       "story_id": "BIZ-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "ERROR_RECOVERY",
       "test_point_type": "EXCEPTION",
       "test_point_name": "扣款成功但发放失败时事务回滚",
@@ -120,12 +120,12 @@
       "test_input": "模拟扣款成功但道具发放失败的异常场景",
       "expected_result": "事务回滚，游戏币退还玩家，异常日志记录",
       "description": "异常场景下事务正确回滚，数据一致性保证",
-      "test_point_category": "AUX-N异常兜底"
+      "test_point_category": "UTIL-N异常兜底"
     },
     {
-      "tp_id": "AUX-002-TP-001",
+      "tp_id": "UTIL-002-TP-001",
       "story_id": "BIZ-001-002",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "ERROR_RECOVERY",
       "test_point_type": "POSITIVE",
       "test_point_name": "第三方支付回调幂等性",
@@ -139,12 +139,12 @@
       "test_input": "模拟支付回调重复通知（相同订单号多次回调）",
       "expected_result": "服务端幂等处理，只生成1个订单，不重复发放道具",
       "description": "支付回调接口具备幂等性，重复回调不产生副作用",
-      "test_point_category": "AUX-N异常兜底"
+      "test_point_category": "UTIL-N异常兜底"
     },
     {
-      "tp_id": "AUX-002-TP-002",
+      "tp_id": "UTIL-002-TP-002",
       "story_id": "BIZ-001-002",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "NETWORK_LAYER",
       "test_point_type": "NEGATIVE",
       "test_point_name": "支付回调断网补单",
@@ -158,12 +158,12 @@
       "test_input": "模拟回调通知期间网络断开",
       "expected_result": "补单机制触发，定时轮询或回调重试，玩家道具正常到账",
       "description": "支付回调断网时具备补单机制，确保订单不丢失",
-      "test_point_category": "AUX-B网络层"
+      "test_point_category": "UTIL-B网络层"
     },
     {
-      "tp_id": "AUX-002-TP-003",
+      "tp_id": "UTIL-002-TP-003",
       "story_id": "BIZ-001-002",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CACHE_HIT_RATE",
       "test_point_type": "POSITIVE",
       "test_point_name": "人民币订单缓存查询",
@@ -177,12 +177,12 @@
       "test_input": "玩家查询同一订单状态（Redis缓存）",
       "expected_result": "命中缓存返回订单状态，减少DB查询",
       "description": "订单状态查询命中缓存，提升查询性能",
-      "test_point_category": "AUX-C缓存层"
+      "test_point_category": "UTIL-C缓存层"
     },
     {
-      "tp_id": "AUX-002-TP-004",
+      "tp_id": "UTIL-002-TP-004",
       "story_id": "BIZ-001-002",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CACHE_HIT_RATE",
       "test_point_type": "BOUNDARY",
       "test_point_name": "支付回调缓存雪崩防护",
@@ -196,12 +196,12 @@
       "test_input": "模拟100个订单缓存同时过期时大量查询请求",
       "expected_result": "使用随机TTL或提前续期策略，避免DB被打爆",
       "description": "订单缓存雪崩场景下系统具备防护能力",
-      "test_point_category": "AUX-C缓存层"
+      "test_point_category": "UTIL-C缓存层"
     },
     {
-      "tp_id": "AUX-002-TP-005",
+      "tp_id": "UTIL-002-TP-005",
       "story_id": "BIZ-001-002",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "NETWORK_LAYER",
       "test_point_type": "EXCEPTION",
       "test_point_name": "支付SDK拉起失败降级处理",
@@ -215,12 +215,12 @@
       "test_input": "模拟支付SDK拉起失败（网络/SDK异常）",
       "expected_result": "错误回调、不崩溃、提示玩家重试",
       "description": "支付SDK拉起失败时全局异常捕获，不闪退",
-      "test_point_category": "AUX-B网络层"
+      "test_point_category": "UTIL-B网络层"
     },
     {
-      "tp_id": "AUX-002-TP-006",
+      "tp_id": "UTIL-002-TP-006",
       "story_id": "BIZ-001-002",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CURRENCY_EXCHANGE",
       "test_point_type": "POSITIVE",
       "test_point_name": "人民币支付金额精度换算",
@@ -234,12 +234,12 @@
       "test_input": "玩家购买商品，金额：99.99元，汇率1元=10钻石",
       "expected_result": "精确换算为999.9钻石，使用Decimal避免浮点误差",
       "description": "人民币金额换算为游戏货币时精度无丢失",
-      "test_point_category": "AUX-E汇率换算"
+      "test_point_category": "UTIL-E汇率换算"
     },
     {
-      "tp_id": "AUX-003-TP-001",
+      "tp_id": "UTIL-003-TP-001",
       "story_id": "BIZ-002-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CACHE_HIT_RATE",
       "test_point_type": "POSITIVE",
       "test_point_name": "订单列表缓存命中",
@@ -253,12 +253,12 @@
       "test_input": "玩家再次进入订单页面",
       "expected_result": "命中缓存秒级返回，不发送网络请求",
       "description": "订单列表查询命中缓存，提升响应速度",
-      "test_point_category": "AUX-C缓存层"
+      "test_point_category": "UTIL-C缓存层"
     },
     {
-      "tp_id": "AUX-003-TP-002",
+      "tp_id": "UTIL-003-TP-002",
       "story_id": "BIZ-002-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CACHE_HIT_RATE",
       "test_point_type": "NEGATIVE",
       "test_point_name": "订单列表缓存过期重新请求",
@@ -272,12 +272,12 @@
       "test_input": "缓存过期后玩家进入订单页面",
       "expected_result": "缓存失效后正确发起新请求获取最新数据",
       "description": "订单列表缓存过期后正确刷新数据",
-      "test_point_category": "AUX-C缓存层"
+      "test_point_category": "UTIL-C缓存层"
     },
     {
-      "tp_id": "AUX-003-TP-003",
+      "tp_id": "UTIL-003-TP-003",
       "story_id": "BIZ-002-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "NETWORK_LAYER",
       "test_point_type": "NEGATIVE",
       "test_point_name": "订单查询网络异常降级到本地缓存",
@@ -291,12 +291,12 @@
       "test_input": "网络断开时玩家进入订单页面",
       "expected_result": "降级读取本地缓存，展示历史订单，提示网络异常",
       "description": "网络异常时降级到本地缓存，保证基本可用性",
-      "test_point_category": "AUX-B网络层"
+      "test_point_category": "UTIL-B网络层"
     },
     {
-      "tp_id": "AUX-003-TP-004",
+      "tp_id": "UTIL-003-TP-004",
       "story_id": "BIZ-002-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "LOCAL_STORAGE",
       "test_point_type": "POSITIVE",
       "test_point_name": "订单数据本地持久化存储",
@@ -310,12 +310,12 @@
       "test_input": "订单数据写入 → App进程杀掉 → 重启App",
       "expected_result": "本地存储中有订单数据，可恢复展示",
       "description": "订单数据正确持久化到本地存储，进程重启后可恢复",
-      "test_point_category": "AUX-J本地存储"
+      "test_point_category": "UTIL-J本地存储"
     },
     {
-      "tp_id": "AUX-003-TP-005",
+      "tp_id": "UTIL-003-TP-005",
       "story_id": "BIZ-002-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "LOCAL_STORAGE",
       "test_point_type": "BOUNDARY",
       "test_point_name": "本地存储容量限制与淘汰",
@@ -329,12 +329,12 @@
       "test_input": "订单数据写入量超过存储限制",
       "expected_result": "触发LRU淘汰策略，自动清理旧数据，不影响新订单写入",
       "description": "本地存储容量满时正确淘汰旧数据",
-      "test_point_category": "AUX-J本地存储"
+      "test_point_category": "UTIL-J本地存储"
     },
     {
-      "tp_id": "AUX-003-TP-006",
+      "tp_id": "UTIL-003-TP-006",
       "story_id": "BIZ-002-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "NETWORK_LAYER",
       "test_point_type": "EXCEPTION",
       "test_point_name": "订单查询超时错误处理",
@@ -348,12 +348,12 @@
       "test_input": "模拟查询请求超时（30s无响应）",
       "expected_result": "返回错误提示，有重试按钮，不崩溃",
       "description": "订单查询超时时全局异常捕获，优雅降级",
-      "test_point_category": "AUX-B网络层"
+      "test_point_category": "UTIL-B网络层"
     },
     {
-      "tp_id": "AUX-004-TP-001",
+      "tp_id": "UTIL-004-TP-001",
       "story_id": "UI-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CACHE_HIT_RATE",
       "test_point_type": "POSITIVE",
       "test_point_name": "商品列表缓存命中",
@@ -367,12 +367,12 @@
       "test_input": "玩家从其他页面返回商城首页",
       "expected_result": "命中缓存秒级展示，无网络请求（验证Network面板）",
       "description": "商品列表缓存命中，提升页面加载速度",
-      "test_point_category": "AUX-C缓存层"
+      "test_point_category": "UTIL-C缓存层"
     },
     {
-      "tp_id": "AUX-004-TP-002",
+      "tp_id": "UTIL-004-TP-002",
       "story_id": "UI-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "RESOURCE_MGMT",
       "test_point_type": "POSITIVE",
       "test_point_name": "道具图标首次加载资源管理",
@@ -386,12 +386,12 @@
       "test_input": "首次进入商城首页（100个道具图标）",
       "expected_result": "异步加载图标资源，不阻塞主线程，加载完成后正确展示",
       "description": "道具图标首次加载时异步处理，不卡顿",
-      "test_point_category": "AUX-D资源管理"
+      "test_point_category": "UTIL-D资源管理"
     },
     {
-      "tp_id": "AUX-004-TP-003",
+      "tp_id": "UTIL-004-TP-003",
       "story_id": "UI-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "RESOURCE_MGMT",
       "test_point_type": "BOUNDARY",
       "test_point_name": "图标加载失败占位处理",
@@ -405,12 +405,12 @@
       "test_input": "图标资源加载失败",
       "expected_result": "显示占位图，不显示空白，错误不外露",
       "description": "图标加载失败时优雅降级，显示占位图",
-      "test_point_category": "AUX-D资源管理"
+      "test_point_category": "UTIL-D资源管理"
     },
     {
-      "tp_id": "AUX-004-TP-004",
+      "tp_id": "UTIL-004-TP-004",
       "story_id": "UI-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CACHE_HIT_RATE",
       "test_point_type": "BOUNDARY",
       "test_point_name": "商品列表缓存击穿防护",
@@ -424,12 +424,12 @@
       "test_input": "1000个玩家同时访问商城首页（缓存重建窗口期）",
       "expected_result": "使用分布式锁，只有1个请求查DB，其他等待缓存重建",
       "description": "热点商品缓存击穿时防止DB被打爆",
-      "test_point_category": "AUX-C缓存层"
+      "test_point_category": "UTIL-C缓存层"
     },
     {
-      "tp_id": "AUX-004-TP-005",
+      "tp_id": "UTIL-004-TP-005",
       "story_id": "UI-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "NETWORK_LAYER",
       "test_point_type": "NEGATIVE",
       "test_point_name": "商城首页网络异常降级",
@@ -443,12 +443,12 @@
       "test_input": "网络断开时进入商城首页",
       "expected_result": "显示错误提示，有重试按钮，不闪退",
       "description": "网络异常时商城首页优雅降级，用户体验保障",
-      "test_point_category": "AUX-B网络层"
+      "test_point_category": "UTIL-B网络层"
     },
     {
-      "tp_id": "AUX-004-TP-006",
+      "tp_id": "UTIL-004-TP-006",
       "story_id": "UI-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "RESOURCE_MGMT",
       "test_point_type": "EXCEPTION",
       "test_point_name": "商城首页内存泄漏检测",
@@ -462,12 +462,12 @@
       "test_input": "连续进出商城首页100次",
       "expected_result": "内存稳定（±5%），无持续增长，图标资源正确释放",
       "description": "商城首页长时间使用无内存泄漏",
-      "test_point_category": "AUX-D资源管理"
+      "test_point_category": "UTIL-D资源管理"
     },
     {
-      "tp_id": "AUX-005-TP-001",
+      "tp_id": "UTIL-005-TP-001",
       "story_id": "SPECIAL-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "CACHE_HIT_RATE",
       "test_point_type": "POSITIVE",
       "test_point_name": "退款状态缓存查询",
@@ -481,12 +481,12 @@
       "test_input": "玩家查询退款状态（重复查询）",
       "expected_result": "命中缓存秒级返回，减少DB压力",
       "description": "退款状态查询命中缓存，提升性能",
-      "test_point_category": "AUX-C缓存层"
+      "test_point_category": "UTIL-C缓存层"
     },
     {
-      "tp_id": "AUX-005-TP-002",
+      "tp_id": "UTIL-005-TP-002",
       "story_id": "SPECIAL-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "ERROR_RECOVERY",
       "test_point_type": "NEGATIVE",
       "test_point_name": "离线退款指令队列同步",
@@ -500,12 +500,12 @@
       "test_input": "离线时提交退款指令 → 恢复网络",
       "expected_result": "退款指令缓存到本地操作队列，重连后自动同步执行",
       "description": "离线退款指令正确缓存，联网后自动同步",
-      "test_point_category": "AUX-N异常兜底"
+      "test_point_category": "UTIL-N异常兜底"
     },
     {
-      "tp_id": "AUX-005-TP-003",
+      "tp_id": "UTIL-005-TP-003",
       "story_id": "SPECIAL-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "ERROR_RECOVERY",
       "test_point_type": "EXCEPTION",
       "test_point_name": "退款操作幂等性保证",
@@ -519,12 +519,12 @@
       "test_input": "模拟退款指令重复提交（网络超时重试/离线队列重发）",
       "expected_result": "服务端幂等处理，退款只执行1次，不重复扣回道具",
       "description": "退款操作具备幂等性，重复执行不产生副作用",
-      "test_point_category": "AUX-N异常兜底"
+      "test_point_category": "UTIL-N异常兜底"
     },
     {
-      "tp_id": "AUX-005-TP-004",
+      "tp_id": "UTIL-005-TP-004",
       "story_id": "SPECIAL-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "LOCAL_STORAGE",
       "test_point_type": "BOUNDARY",
       "test_point_name": "退款指令本地加密存储",
@@ -538,12 +538,12 @@
       "test_input": "模拟本地存储数据被恶意篡改",
       "expected_result": "本地存储数据加密，篡改后校验失败，丢弃该指令并上报",
       "description": "本地缓存的退款指令数据防篡改",
-      "test_point_category": "AUX-J本地存储"
+      "test_point_category": "UTIL-J本地存储"
     },
     {
-      "tp_id": "AUX-005-TP-005",
+      "tp_id": "UTIL-005-TP-005",
       "story_id": "SPECIAL-001-001",
-      "module": "AUX",
+      "module": "UTIL",
       "subclass": "ERROR_RECOVERY",
       "test_point_type": "EXCEPTION",
       "test_point_name": "退款同步失败重试与指数退避",
@@ -557,7 +557,7 @@
       "test_input": "连续3次退款同步失败",
       "expected_result": "指数退避重试（1s→2s→4s），3次后放弃并提示玩家",
       "description": "退款同步失败时正确重试，指数退避策略",
-      "test_point_category": "AUX-N异常兜底"
+      "test_point_category": "UTIL-N异常兜底"
     }
   ]
 }

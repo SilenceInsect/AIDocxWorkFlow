@@ -154,7 +154,7 @@
 - **precondition**：连接中断
 - **test_data**：连接恢复
 - **expected**：弹窗显示恢复
-- **notes**：与 AUX 网络检测配合
+- **notes**：与 UTIL 网络检测配合
 
 ### TP-011（OFFLINE_COMPENSATION）：版本升级补偿
 - **scenario**：场景 10

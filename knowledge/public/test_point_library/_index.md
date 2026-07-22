@@ -10,7 +10,7 @@
 
 | 维度 | 数量 | 备注 |
 |------|------|------|
-| 模块数 | 8 | CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG / HINT |
+| 模块数 | 8 | CONFIG / UI / BIZ / UTIL / LINK / SPECIAL / LOG / HINT |
 | 类型数 | 4 | POSITIVE / BOUNDARY / NEGATIVE / EXCEPTION |
 | 子类数（v1.7+ 累计）| 87 | 跨 8 模块 |
 | TP 库文件 | 87 | 每个子类 1 个 `.md` |
@@ -25,7 +25,7 @@
 | 1 | **CONFIG**（配置）| 9 + 边界 + 专项 = 11 | [`module_templates/CONFIG/`](../module_templates/CONFIG/) | [`CONFIG/`](./CONFIG/) |
 | 2 | **UI**（界面）| 8 + 边界 + 专项 = 10 | [`module_templates/UI/`](../module_templates/UI/) | [`UI/`](./UI/) |
 | 3 | **BIZ**（业务）| 9 + 边界 + 专项 = 11 | [`module_templates/BIZ/`](../module_templates/BIZ/) | [`BIZ/`](./BIZ/) |
-| 4 | **AUX**（辅助）| 14 + 边界 + 专项 = 16 | [`module_templates/AUX/`](../module_templates/AUX/) | [`AUX/`](./AUX/) |
+| 4 | **UTIL**（辅助）| 14 + 边界 + 专项 = 16 | [`module_templates/UTIL/`](../module_templates/UTIL/) | [`UTIL/`](./UTIL/) |
 | 5 | **LINK**（关联）| 6 + 边界 + 专项 = 8 | [`module_templates/LINK/`](../module_templates/LINK/) | [`LINK/`](./LINK/) |
 | 6 | **SPECIAL**（特殊）| 9 + 边界 + 专项 = 11 | [`module_templates/SPECIAL/`](../module_templates/SPECIAL/) | [`SPECIAL/`](./SPECIAL/) |
 | 7 | **LOG**（日志）| 13 + 边界 + 专项 = 15 | [`module_templates/LOG/`](../module_templates/LOG/) | [`LOG/`](./LOG/) |
@@ -81,24 +81,24 @@
 
 ---
 
-## 5. AUX（辅助）— 14 测试子模板
+## 5. UTIL（辅助）— 14 测试子模板
 
 | 字母 | 子类 | 子类代码（v1.2）| 模板 | TP 库 |
 |------|------|----------------|------|------|
-| A | 公共工具 | `COMMON_UTIL` | [A_common_util.md](../module_templates/AUX/A_common_util.md) | [A_common_util.md](./AUX/A_common_util.md) |
-| B | 网络层 | `NETWORK_LAYER` | [B_network_layer.md](../module_templates/AUX/B_network_layer.md) | [B_network_layer.md](./AUX/B_network_layer.md) |
-| C | 缓存层 | `CACHE_HIT_RATE` | [C_cache_layer.md](../module_templates/AUX/C_cache_layer.md) | [C_cache_layer.md](./AUX/C_cache_layer.md) |
-| D | 资源管理 | `RESOURCE_MGMT` | [D_resource_mgmt.md](../module_templates/AUX/D_resource_mgmt.md) | [D_resource_mgmt.md](./AUX/D_resource_mgmt.md) |
-| E | 汇率换算 | `CURRENCY_EXCHANGE` | [E_currency_exchange.md](../module_templates/AUX/E_currency_exchange.md) | [E_currency_exchange.md](./AUX/E_currency_exchange.md) |
-| F | 离线/版本更新 | `OFFLINE_UPDATE` | [F_offline_update.md](../module_templates/AUX/F_offline_update.md) | [F_offline_update.md](./AUX/F_offline_update.md) |
-| G | GM 工具 | `GM_TOOL` | [G_gm_tool.md](../module_templates/AUX/G_gm_tool.md) | [G_gm_tool.md](./AUX/G_gm_tool.md) |
-| H | 测试脚本 | `TEST_SCRIPT` | [H_test_script.md](../module_templates/AUX/H_test_script.md) | [H_test_script.md](./AUX/H_test_script.md) |
-| I | 策划验收 | `ACCEPTANCE_CHECKLIST` | [I_acceptance_checklist.md](../module_templates/AUX/I_acceptance_checklist.md) | [I_acceptance_checklist.md](./AUX/I_acceptance_checklist.md) |
-| J | 本地存储 | `LOCAL_STORAGE` | [J_storage.md](../module_templates/AUX/J_storage.md) | [J_storage.md](./AUX/J_storage.md) |
-| K | 画质/性能 | `PERF_TOOL` | [K_perf_tool.md](../module_templates/AUX/K_perf_tool.md) | [K_perf_tool.md](./AUX/K_perf_tool.md) |
-| L | 运营辅助 | `OPS_TOOL` | [L_ops_tool.md](../module_templates/AUX/L_ops_tool.md) | [L_ops_tool.md](./AUX/L_ops_tool.md) |
-| M | 加密安全 | `SECURITY` | [M_security.md](../module_templates/AUX/M_security.md) | [M_security.md](./AUX/M_security.md) |
-| N | 异常兜底 | `ERROR_RECOVERY` | [N_error_recovery.md](../module_templates/AUX/N_error_recovery.md) | [N_error_recovery.md](./AUX/N_error_recovery.md) |
+| A | 公共工具 | `COMMON_UTIL` | [A_common_util.md](../module_templates/UTIL/A_common_util.md) | [A_common_util.md](./UTIL/A_common_util.md) |
+| B | 网络层 | `NETWORK_LAYER` | [B_network_layer.md](../module_templates/UTIL/B_network_layer.md) | [B_network_layer.md](./UTIL/B_network_layer.md) |
+| C | 缓存层 | `CACHE_HIT_RATE` | [C_cache_layer.md](../module_templates/UTIL/C_cache_layer.md) | [C_cache_layer.md](./UTIL/C_cache_layer.md) |
+| D | 资源管理 | `RESOURCE_MGMT` | [D_resource_mgmt.md](../module_templates/UTIL/D_resource_mgmt.md) | [D_resource_mgmt.md](./UTIL/D_resource_mgmt.md) |
+| E | 汇率换算 | `CURRENCY_EXCHANGE` | [E_currency_exchange.md](../module_templates/UTIL/E_currency_exchange.md) | [E_currency_exchange.md](./UTIL/E_currency_exchange.md) |
+| F | 离线/版本更新 | `OFFLINE_UPDATE` | [F_offline_update.md](../module_templates/UTIL/F_offline_update.md) | [F_offline_update.md](./UTIL/F_offline_update.md) |
+| G | GM 工具 | `GM_TOOL` | [G_gm_tool.md](../module_templates/UTIL/G_gm_tool.md) | [G_gm_tool.md](./UTIL/G_gm_tool.md) |
+| H | 测试脚本 | `TEST_SCRIPT` | [H_test_script.md](../module_templates/UTIL/H_test_script.md) | [H_test_script.md](./UTIL/H_test_script.md) |
+| I | 策划验收 | `ACCEPTANCE_CHECKLIST` | [I_acceptance_checklist.md](../module_templates/UTIL/I_acceptance_checklist.md) | [I_acceptance_checklist.md](./UTIL/I_acceptance_checklist.md) |
+| J | 本地存储 | `LOCAL_STORAGE` | [J_storage.md](../module_templates/UTIL/J_storage.md) | [J_storage.md](./UTIL/J_storage.md) |
+| K | 画质/性能 | `PERF_TOOL` | [K_perf_tool.md](../module_templates/UTIL/K_perf_tool.md) | [K_perf_tool.md](./UTIL/K_perf_tool.md) |
+| L | 运营辅助 | `OPS_TOOL` | [L_ops_tool.md](../module_templates/UTIL/L_ops_tool.md) | [L_ops_tool.md](./UTIL/L_ops_tool.md) |
+| M | 加密安全 | `SECURITY` | [M_security.md](../module_templates/UTIL/M_security.md) | [M_security.md](./UTIL/M_security.md) |
+| N | 异常兜底 | `ERROR_RECOVERY` | [N_error_recovery.md](../module_templates/UTIL/N_error_recovery.md) | [N_error_recovery.md](./UTIL/N_error_recovery.md) |
 
 ---
 
@@ -173,7 +173,7 @@
 
 ## 10. 4 类型 × 8 模块 速查表
 
-| 类型 \ 模块 | CONFIG | UI | BIZ | AUX | LINK | SPECIAL | LOG | HINT |
+| 类型 \ 模块 | CONFIG | UI | BIZ | UTIL | LINK | SPECIAL | LOG | HINT |
 |------------|--------|----|----|-----|------|---------|-----|------|
 | **POSITIVE**（正向）| ✅ A_field_legality / B_consistency | ✅ A_control_basic / B_pure_interaction | ✅ A_biz_logic / D_state_machine | ✅ A_common_util / G_gm_tool | ✅ A_internal_biz_linkage | ✅ A_boundary_extreme | ✅ A_event_track | ✅ D_modal_dialog / E_toast |
 | **BOUNDARY**（边界）| ✅ F_version_compat / G_value_logic | ✅ C_layout_adapt / H_edge_ui | ✅ E_db_persist / F_concurrency | ✅ C_cache_layer / D_resource_mgmt | ✅ C_multi_client_sync | ✅ A_boundary_extreme | ✅ F_level_storage | ✅ G_timed_reminder |

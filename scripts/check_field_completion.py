@@ -118,8 +118,8 @@ FIELD_SPECS = {
     },
 }
 
-# S5-lite ID 格式正则: {Module}-TP-{NNN}  (Module 是 CONFIG/UI/BIZ/AUX/LINK/SPECIAL/LOG/HINT)
-S5_ID_PATTERN = re.compile(r'^(CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT)-TP-\d{3,}$')
+# S5-lite ID 格式正则: {Module}-TP-{NNN}  (Module 是 CONFIG/UI/BIZ/UTIL/LINK/SPECIAL/LOG/HINT)
+S5_ID_PATTERN = re.compile(r'^(CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT)-TP-\d{3,}$')
 
 # S5-lite 优先级分布建议比例（字段溯源版）
 PRIORITY_GUIDE = {"P0": 0.20, "P1": 0.50, "P2": 0.30}  # 2:5:3 黄金比例

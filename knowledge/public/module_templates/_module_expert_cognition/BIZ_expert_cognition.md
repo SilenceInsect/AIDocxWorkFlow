@@ -127,7 +127,7 @@
 | LINK | BIZ 调用 LINK 跨服接口 | 跨服排行榜 → LINK 同步 |
 | LOG | BIZ 触发业务日志 | 扣款成功 → LOG 记录 |
 | SPECIAL | BIZ 处理异常/兜底 | 支付失败 → SPECIAL 容错 |
-| AUX | BIZ 调用 AUX 工具 | 调用缓存工具 → 读写 Redis |
+| UTIL | BIZ 调用 UTIL 工具 | 调用缓存工具 → 读写 Redis |
 | HINT | BIZ 触发提示时机 | 购买成功 → HINT 弹 Toast |
 
 ## 四、专业判断能力自检

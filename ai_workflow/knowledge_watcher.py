@@ -53,7 +53,7 @@ PID_FILE = REPO_ROOT / ".knowledge_watcher.pid"
 LOG_FILE = REPO_ROOT / ".knowledge_watcher.log"
 
 # 8 个合法模块 ID
-LEGAL_MODULES = ("CONFIG", "UI", "BIZ", "AUX", "LINK", "SPECIAL", "LOG", "HINT")
+LEGAL_MODULES = ("CONFIG", "UI", "BIZ", "UTIL", "LINK", "SPECIAL", "LOG", "HINT")
 
 # ── 日志 ────────────────────────────────────────────────────────────────────
 logging.basicConfig(

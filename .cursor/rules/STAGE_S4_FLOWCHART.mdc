@@ -109,10 +109,10 @@ alwaysApply: false
 | ID | 错误归属 | 正确归属 | 判定依据 |
 |----|----------|----------|----------|
 | S4-BIZ-1 | 把"游戏币支付"归 LINK | BIZ | 单系统业务，不是第三方交互 |
-| S4-BIZ-2 | 把"DB 事务"归 AUX | BIZ | 业务数据流，不是底层缓存 |
+| S4-BIZ-2 | 把"DB 事务"归 UTIL | BIZ | 业务数据流，不是底层缓存 |
 | S4-BIZ-3 | 把"业务审计日志"全归 LOG | BIZ+LOG 拆分 | BIZ-I 业务侧落点 + LOG-B 链路对账 |
 | S4-BIZ-4 | 把"系统邮件通知"模糊处理 | BIZ+HINT 拆分 | 邮件发送流程(BIZ)+邮件列表展示(HINT) |
-| S4-AUX-1 | 把"缓存数据损坏"归 BIZ | AUX | 底层缓存，不是业务逻辑 |
+| S4-UTIL-1 | 把"缓存数据损坏"归 BIZ | UTIL | 底层缓存，不是业务逻辑 |
 
 ### §1.5.2 异常树叶子归属判定
 
@@ -124,7 +124,7 @@ alwaysApply: false
 |----------|----------|
 | 该叶子描述的异常是"第三方回调异常"？ | LINK |
 | 该叶子描述的异常是"单系统业务异常（如余额不足）"？ | BIZ |
-| 该叶子描述的异常是"缓存/网络底层异常"？ | AUX |
+| 该叶子描述的异常是"缓存/网络底层异常"？ | UTIL |
 | 该叶子描述的异常是"安全/风控/弱网/合规"？ | SPECIAL |
 | 该叶子描述的是"UI 层交互异常"？ | UI |
 | 该叶子描述的是"配置校验失败"？ | CONFIG |
@@ -341,11 +341,11 @@ S4-{Epic1ID}-1.0  {Epic1.title} 异常决策树
 S4 产出物中所有"模块归属"字段（风险点表"模块"列、Epic 元信息表"模块"列）必须从 `MODULES.md §1` 8 模块中取值：
 
 ```
-CONFIG / UI / BIZ / AUX / LINK / LOG / SPECIAL / HINT
+CONFIG / UI / BIZ / UTIL / LINK / LOG / SPECIAL / HINT
 ```
 
 **HINT vs UI 边界判定**（误标高发区）见 `MODULES.md §4.11.2`。
-**BIZ vs AUX vs LINK vs SPECIAL 边界判定**（S4 高发区）见 `MODULES.md §3.5`。
+**BIZ vs UTIL vs LINK vs SPECIAL 边界判定**（S4 高发区）见 `MODULES.md §3.5`。
 
 ---
 

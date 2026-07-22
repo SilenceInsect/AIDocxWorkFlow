@@ -53,7 +53,7 @@ MODULE_TO_DIR = {
     "UI": "UI",
     "CONFIG": "CONFIG",
     "BIZ": "BIZ",
-    "AUX": "AUX",
+    "UTIL": "UTIL",
     "LINK": "LINK",
     "SPECIAL": "SPECIAL",
     "LOG": "LOG",

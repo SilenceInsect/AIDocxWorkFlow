@@ -122,7 +122,7 @@
    - 修复方向：删除 tc_id 或改名 case_id
 
 3. **8 模块 vs 实际 4 模块**：SSOT 与业务脱节
-   - 影响：S6 TC module 分布仅 4 种（UI/BIZ/LOG/SPECIAL），缺 CONFIG/AUX/LINK/HINT（A-016）
+   - 影响：S6 TC module 分布仅 4 种（UI/BIZ/LOG/SPECIAL），缺 CONFIG/UTIL/LINK/HINT（A-016）
    - 业务判定：游戏道具商城确实只有 4 个相关模块；SSOT 8 模块是通用 SSOT，本项目不必凑齐
    - **教训**：SSOT 应允许子集声明，避免"为了凑齐而凑齐"
 

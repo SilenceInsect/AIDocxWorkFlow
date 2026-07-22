@@ -59,7 +59,7 @@
 | CONFIG | `_module_expert_cognition/CONFIG_expert_cognition.md` | 9个子模板 |
 | UI | `_module_expert_cognition/UI_expert_cognition.md` | 8个子模板 |
 | BIZ | `_module_expert_cognition/BIZ_expert_cognition.md` | 9个子模板 |
-| AUX | `_module_expert_cognition/AUX_expert_cognition.md` | 10个子模板 |
+| UTIL | `_module_expert_cognition/util_expert_cognition.md` | 10个子模板 |
 | LINK | `_module_expert_cognition/LINK_expert_cognition.md` | 6个子模板 |
 | SPECIAL | `_module_expert_cognition/SPECIAL_expert_cognition.md` | 9个子模板 |
 | LOG | `_module_expert_cognition/LOG_expert_cognition.md` | 9个子模板 |
@@ -72,7 +72,7 @@
 | CONFIG | `CONFIG/O_boundary.md` |
 | UI | `UI/O_boundary.md` |
 | BIZ | `BIZ/O_boundary.md` |
-| AUX | `AUX/O_boundary.md` |
+| UTIL | `UTIL/O_boundary.md` |
 | LINK | `LINK/O_boundary.md` |
 | SPECIAL | `SPECIAL/O_boundary.md` |
 | LOG | `LOG/O_boundary.md` |

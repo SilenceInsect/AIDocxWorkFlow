@@ -42,7 +42,7 @@
 | CONFIG | ✅ Read 73 行 | ✅ §4.2 第 1 表 9 子类 | ✅ `J_boundary.md` Read 175 行 | ✅ 完整 |
 | UI | ✅ Read 87 行 | ✅ §4.2 第 2 表 11 子类 | ✅ `I_boundary.md` Read 171 行 | ✅ 完整 |
 | BIZ | ✅ Read 87 行 | ✅ §4.2 第 3 表 9 子类 | ✅ `O_boundary.md` Read 240 行 | ✅ 完整 |
-| AUX | ✅ Read 135 行 | ⚠️ §4.2 仅声明"见 SSOT"，未罗列 14 子类 | ✅ `O_boundary.md` Read 175 行 | ⚠️ 部分（草案 §11 声明"不重复 SSOT"） |
+| UTIL | ✅ Read 135 行 | ⚠️ §4.2 仅声明"见 SSOT"，未罗列 14 子类 | ✅ `O_boundary.md` Read 175 行 | ⚠️ 部分（草案 §11 声明"不重复 SSOT"） |
 | LINK | ✅ Read 84 行 | ⚠️ §4.2 仅声明"见 SSOT"，未罗列 6 子类 | ✅ `O_boundary.md` Read 278 行 | ⚠️ 部分（草案 §11 声明"不重复 SSOT"） |
 | SPECIAL | ✅ Read 127 行 | ⚠️ §4.2 仅声明"见 SSOT"，未罗列 9 子类 | ✅ `O_boundary.md` Read 295 行 | ⚠️ 部分（草案 §11 声明"不重复 SSOT"） |
 | LOG | ✅ Read 100 行 | ⚠️ §4.2 仅声明"见 SSOT"，未罗列 13 子类 | ✅ `O_boundary.md` Read 287 行 | ⚠️ 部分（草案 §11 声明"不重复 SSOT"） |
@@ -99,8 +99,8 @@
 **挑战**：DNA §9.4 先验后答。
 
 **验证证据**：本审计引用了以下文件，全部为本响应 Read：
-- `knowledge/public/module_templates/{CONFIG,UI,BIZ,AUX,LINK,SPECIAL,LOG,HINT}.md` × 8
-- `knowledge/public/module_templates/{CONFIG/J,UI/I,BIZ/O,AUX/O,LINK/O,SPECIAL/O,LOG/O,HINT/O}_boundary.md` × 8
+- `knowledge/public/module_templates/{CONFIG,UI,BIZ,UTIL,LINK,SPECIAL,LOG,HINT}.md` × 8
+- `knowledge/public/module_templates/{CONFIG/J,UI/I,BIZ/O,UTIL/O,LINK/O,SPECIAL/O,LOG/O,HINT/O}_boundary.md` × 8
 - `knowledge/public/test_point_library/README.md` + 8 模块 README.md
 - `workflow_assets/游戏道具商城系统/v3.01/「S4 流程图导出」/business_flow.json`（Python 解析）
 - `workflow_assets/游戏道具商城系统/v3.01/「S3 原型导出」/prototype.json`（Python 解析）

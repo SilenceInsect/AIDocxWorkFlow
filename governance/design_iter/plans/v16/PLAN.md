@@ -190,7 +190,7 @@
 
 **字段命名方案（C3 解决）**：
 - **保留 module**（不引入 primary_module，避免字段重复）
-- **新增 related_tags**：数组，元素为模块名（CONFIG / UI / BIZ / AUX / LINK / LOG / SPECIAL / HINT）
+- **新增 related_tags**：数组，元素为模块名（CONFIG / UI / BIZ / UTIL / LINK / LOG / SPECIAL / HINT）
 - **新增 verification_points**：数组，元素为 fp_id 或 s4_leaf_id
 
 **双轨不一致时优先级（C5 解决）**：

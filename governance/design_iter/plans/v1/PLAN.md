@@ -361,7 +361,7 @@ CHANGELOG 现在只记"功能/重构"，不记"规则变更"——
 | R-006 | S2 Epic 拆解精度 | ≥ 90%（v1.0 阈值，v2.0 重构未明文废除） | 2026-06-15 | STAGE_S2 §输入审查 |
 | R-007 | S7 审查判定 | v2.0 起**无硬阈值**（脚本只列事实，LLM 按业务写建议） | 2026-06-15 v2.0 废弃 v1.0 ≥ 0.85 | STAGE_S7 §核心原则、aidocx-s7-review SKILL |
 | R-008 | S8 自迭代 | 输出"判定"非"建议" | 2026-06-15 | STAGE_S8 §核心原则 |
-| R-009 | 模块边界严格隔离 | AUX vs BIZ vs LINK vs SPECIAL 四者无重叠 | 2026-06-15 v1.11 | MODULES §4.10.1 |
+| R-009 | 模块边界严格隔离 | UTIL vs BIZ vs LINK vs SPECIAL 四者无重叠 | 2026-06-15 v1.11 | MODULES §4.10.1 |
 | R-010 | 单写源原则 | "同样的内容只能在一个地方维护" | 2026-06-15 v1.3 | MODULES §11 |
 | R-011 | JSON Schema 字段名强约束 | 详见各阶段 SKILL.md | 2026-06-15 | STAGE_S5 §1.6、STAGE_S6 §输出规范 |
 | R-012 | S2.5 默认跳过 | `AIDOCX_INCLUDE_S2_5` 未设置 = 跳过 | 2026-06-15 | AIDocxWorkFlow.mdc 编排开关 |

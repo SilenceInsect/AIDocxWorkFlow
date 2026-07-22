@@ -25,15 +25,15 @@
 | CONFIG | ✅ 已创建 | PASS |
 | UI | ✅ 已创建 | PASS |
 | BIZ | ✅ 已存在 | PASS |
-| AUX | ✅ 已存在 | PASS |
+| UTIL | ✅ 已存在 | PASS |
 | LINK | ✅ 已存在 | PASS |
 | SPECIAL | ✅ 已存在 | PASS |
 | LOG | ✅ 已存在 | PASS |
 | HINT | ✅ 已存在 | PASS |
 
 **文件质量验证**：
-- CONFIG/O_boundary.md：含边界对照表（vs UI/BIZ/AUX/LINK/LOG/SPECIAL）、常见误判案例（5个）、判定流程图
-- UI/O_boundary.md：含边界对照表（vs BIZ/HINT/CONFIG/AUX/LINK/LOG）、常见误判案例（7个）、判定流程图
+- CONFIG/O_boundary.md：含边界对照表（vs UI/BIZ/UTIL/LINK/LOG/SPECIAL）、常见误判案例（5个）、判定流程图
+- UI/O_boundary.md：含边界对照表（vs BIZ/HINT/CONFIG/UTIL/LINK/LOG）、常见误判案例（7个）、判定流程图
 
 **判定**：PASS
 

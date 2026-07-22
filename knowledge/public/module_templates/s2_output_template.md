@@ -60,7 +60,7 @@
   "epics": [
     {
       "id": "string（如 CONFIG-001）",
-      "module": "string（CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT）",
+      "module": "string（CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT）",
       "title": "string（Epic 标题）",
       "estimated_weeks": "number",
       "priority": "boolean",
@@ -212,7 +212,7 @@
     {
       "id": "string（如 UI-SHOP-001-OBJ-01）",
       "obj_name": "string",
-      "belong_module": "string（CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT）",
+      "belong_module": "string（CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT）",
       "scene": "string（业务场景描述）",
       "input": "string（触发输入条件）",
       "normal_flow": "string（正向标准流程）",
@@ -305,7 +305,7 @@
 |------|--------|
 | `stage` | `S2` |
 | `quality_level` | `HIGH` / `MEDIUM` / `LOW` |
-| `module` / `belong_module` | `CONFIG` / `UI` / `BIZ` / `AUX` / `LINK` / `SPECIAL` / `LOG` / `HINT` |
+| `module` / `belong_module` | `CONFIG` / `UI` / `BIZ` / `UTIL` / `LINK` / `SPECIAL` / `LOG` / `HINT` |
 | `source` | `original` / `clarification` / `fallback` |
 | `data_change` | `配置` / `内存` / `DB` / `缓存` / `第三方` |
 | `output_display` | `UI弹窗` / `飘字` / `日志` / `推送` / `后台数据` |

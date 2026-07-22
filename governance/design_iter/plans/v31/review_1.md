@@ -12,7 +12,7 @@
 | # | 缺陷 | 严重度 | 根因 | 修复 Round |
 |---|------|--------|------|----------|
 | **D1** | TP 库（`test_point_library/<MODULE>/`）8 模块全部为空（⏳ 待补） | MEDIUM | 历史遗留（v1.0 仅建索引未填 TP）；S5 LLM 实际只能"按 STAGE 规则生成"，无成品 TP 模板作锚点 | Round 2 act 决策 → Round 5 act 实施 |
-| **D2** | 草案 §4.2 仅完整罗列 CONFIG/UI/BIZ 3 模块子类枚举；AUX/LINK/SPECIAL/LOG/HINT 5 模块以"见 SSOT"形式引用 | LOW | DNA §11 "不重复 SSOT"原则；如一次性展开 70+ 子类会违反分层 | Round 2 act 评估是否补全 |
+| **D2** | 草案 §4.2 仅完整罗列 CONFIG/UI/BIZ 3 模块子类枚举；UTIL/LINK/SPECIAL/LOG/HINT 5 模块以"见 SSOT"形式引用 | LOW | DNA §11 "不重复 SSOT"原则；如一次性展开 70+ 子类会违反分层 | Round 2 act 评估是否补全 |
 | **D3** | S2 OBJ/FP 数量未在本响应再次 Read 验证（轻度 §9.4 警告） | LOW | Round 1 焦点是方法论设计而非样本计算；前次会话已 Read S2 backlog/requirement_objects | Round 4 act 计算覆盖率时重新 Read |
 | **D4** | 草案未引入 `module_templates` 子模板（`CONFIG/A_field_legality.md` 等具体子模板文件）的内容做引用 | LOW | 草案目标是方法论骨架，不展开每个子模板的 TP 模板；S5 LLM 实际执行时需按需加载 | Round 2 act 补"按需加载清单" |
 | **D5** | 既有 v31 目录残留旧 S1.5 目标的 `audit_1.md` + `review_1.md` + `PLAN.md` + `GOAL.md` + `CONVERGENCE_VERDICT.md` | LOW | 前序目标（s1-clarification-redesign-001）已 CONVERGED，残留文件未清理 | Round 2 act 决定是否归档/删除 |
@@ -38,7 +38,7 @@
 
 **根因链**：
 1. 草案 §4.2 CONFIG/UI/BIZ 三模块用表格完整罗列子类（9 / 11 / 9 = 29 个枚举）
-2. AUX/LINK/SPECIAL/LOG/HINT 五模块以"见 SSOT"形式引用
+2. UTIL/LINK/SPECIAL/LOG/HINT 五模块以"见 SSOT"形式引用
 3. 一致性角度，五模块应当同样展开
 
 **影响**：

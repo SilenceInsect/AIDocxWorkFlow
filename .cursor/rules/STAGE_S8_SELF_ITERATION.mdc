@@ -401,7 +401,7 @@ archive_experience(result, version)
 |------|----------|
 | `.cursor/MODULES.md` §4.9 SPECIAL 边界 | 弱网/风控类场景边界 |
 | `.cursor/MODULES.md` §4.11.2 HINT vs UI 边界 | 提示类场景边界 |
-| `.cursor/MODULES.md` §3.5 交叉场景判定 | BIZ vs CONFIG / LINK vs AUX 等跨模块边界 |
+| `.cursor/MODULES.md` §3.5 交叉场景判定 | BIZ vs CONFIG / LINK vs UTIL 等跨模块边界 |
 
 ---
 

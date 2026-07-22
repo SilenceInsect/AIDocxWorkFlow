@@ -52,7 +52,7 @@ RCA_TYPES = {
 RCA_STAGES = {"S1", "S2", "S4", "S5", "S6"}
 
 # 8 模块（与 MODULES.md §1 一致）
-VALID_MODULES = {"CONFIG", "UI", "BIZ", "AUX", "LINK", "LOG", "SPECIAL", "HINT"}
+VALID_MODULES = {"CONFIG", "UI", "BIZ", "UTIL", "LINK", "LOG", "SPECIAL", "HINT"}
 
 # 项目根
 _ROOT = Path(__file__).resolve().parents[1]

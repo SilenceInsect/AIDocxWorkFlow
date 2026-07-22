@@ -24,7 +24,7 @@
 | # | 准则 | 证据 | 判定 |
 |---|------|------|------|
 | 2 | biz-expert 落档 | `95c0be4` commit，198 行，含「🏛️ 业务流建模节」| **PASS** |
-| 3 | aux-expert 落档 | `95c0be4` commit，204 行，含「📐 边界值枚举节」| **PASS** |
+| 3 | UTIL-expert 落档 | `95c0be4` commit，204 行，含「📐 边界值枚举节」| **PASS** |
 | 4 | hint-expert 落档 | `95c0be4` commit，225 行，含「🎯 提示节奏节」| **PASS** |
 
 **正向论证**：每个身份卡均含 8 节通用底座 + 1 节特色节 = 9 节。
@@ -34,7 +34,7 @@
 | 文件 | commit | 行数 ≥ 80 | 判定 |
 |------|--------|-----------|------|
 | `biz-expert/_identity_card.md` | `95c0be4` | 198 行 | **PASS** |
-| `aux-expert/_identity_card.md` | `95c0be4` | 204 行 | **PASS** |
+| `UTIL-expert/_identity_card.md` | `95c0be4` | 204 行 | **PASS** |
 | `hint-expert/_identity_card.md` | `95c0be4` | 225 行 | **PASS** |
 
 ### 准则 6：每个身份卡含 1 节反假设污染 + 1 节主动识别
@@ -42,7 +42,7 @@
 | 文件 | 反假设污染 | 主动识别 | 判定 |
 |------|----------|---------|------|
 | biz-expert | ✅ 节 8 共鸣节底线 1 | ✅ 节 8 共鸣节底线 2 | **PASS** |
-| aux-expert | ✅ 节 8 共鸣节底线 1 | ✅ 节 8 共鸣节底线 2 | **PASS** |
+| UTIL-expert | ✅ 节 8 共鸣节底线 1 | ✅ 节 8 共鸣节底线 2 | **PASS** |
 | hint-expert | ✅ 节 8 共鸣节底线 1 | ✅ 节 8 共鸣节底线 2 | **PASS** |
 
 ### 准则 7：后续 16 个专家的批量铺开不在本轮范围
@@ -70,7 +70,7 @@
 |---------|------|
 | 1. 通用底座 8 节提炼 | **PASS** |
 | 2. biz-expert 身份卡 | **PASS** |
-| 3. aux-expert 身份卡 | **PASS** |
+| 3. UTIL-expert 身份卡 | **PASS** |
 | 4. hint-expert 身份卡 | **PASS** |
 | 5. 3 身份卡 commit + 行数 | **PASS** |
 | 6. 3 身份卡含底线 2 节 | **PASS** |
@@ -87,11 +87,11 @@
 - **结论**：底座是骨架，特色节是灵魂，二者解耦。
 
 **挑战 2**：3 个样板会不会太相似？
-- **反例**：特色节差异显著——FSM（biz）/ 五值（aux）/ 3 维（hint），3 类方法论完全不同。
+- **反例**：特色节差异显著——FSM（biz）/ 五值（UTIL）/ 3 维（hint），3 类方法论完全不同。
 - **结论**：看似相似，实质差异化。
 
 **挑战 3**：直接复用 ui-expert 的承诺链条？
-- **反例**：每个专家的 5 条承诺都根据自身模块调整（如 biz 强调 FSM / aux 强调五值 / hint 强调 3 维），不是 ui 的"踢出 / 归并 / 补齐 / 质疑 / 留痕"原样复用。
+- **反例**：每个专家的 5 条承诺都根据自身模块调整（如 biz 强调 FSM / UTIL 强调五值 / hint 强调 3 维），不是 ui 的"踢出 / 归并 / 补齐 / 质疑 / 留痕"原样复用。
 - **结论**：5 条底线是通用骨架，但具体内容差异化。
 
 ---
@@ -103,8 +103,8 @@
 | 价值类标准 | 8 / 8 PASS |
 | 过程类标准 | （仅作为元约束，未单独审计） |
 | 交付物 | `governance/design_iter/plans/v36/base_template.md`（329 行，本地治理档不入 git）|
-| | `.cursor/skills/{biz,aux,hint}-expert/_identity_card.md`（627 行总，入 git）|
-| Commit | `95c0be4 [BIZ/AUX/HINT-专家直写] v36 阶段 2：3 个模块专家身份卡初版` |
+| | `.cursor/skills/{biz,UTIL,hint}-expert/_identity_card.md`（627 行总，入 git）|
+| Commit | `95c0be4 [BIZ/UTIL/HINT-专家直写] v36 阶段 2：3 个模块专家身份卡初版` |
 | 状态变更 | `active` → `achieved`（本审计通过，Round 1 收敛）|
 
 ---

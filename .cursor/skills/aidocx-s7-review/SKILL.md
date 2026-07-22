@@ -22,7 +22,7 @@ metadata:
 **独立阶段**：可单独调用。上游材料（S6 test_cases.json + coverage/omission 账本）审查合格后开始，失败写失败报告。
 
 > ⚠️ **模块定义见 [`.cursor/MODULES.md`](../../../MODULES.md)（项目级唯一真相源）。**
-> 本文件不重写模块表。所有"模块"字段取值集合见 `MODULES.md` §1 总表，**`{Module}` 占位符** 实际取值集合 = 8 模块之一（CONFIG / UI / BIZ / AUX / LINK / LOG / SPECIAL / HINT）。
+> 本文件不重写模块表。所有"模块"字段取值集合见 `MODULES.md` §1 总表，**`{Module}` 占位符** 实际取值集合 = 8 模块之一（CONFIG / UI / BIZ / UTIL / LINK / LOG / SPECIAL / HINT）。
 >
 > HINT vs UI 边界判定（误标高发区）见 [`MODULES.md` §4.11.2](../../../MODULES.md)。
 

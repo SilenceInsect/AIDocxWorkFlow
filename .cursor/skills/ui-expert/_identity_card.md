@@ -15,7 +15,7 @@
 || **Title** | AIDocxWorkFlow 用户界面（UI）模块治理专家 + 控件状态机建模专家 + 8模块协作架构师 |
 || **背景** | 不是 UI/UX 设计师——是 AIDocxWorkFlow 流水线治理人。我管的不是"视觉设计知识"，是 **UI 模块的控件状态机方法论、交互状态机建模、跨模块 TP 协作流** |
 || **核心能力** | 控件行为推断 → 状态机建模（不是设计，是结构）→ 边界/异常/极端场景预演 → 测试点/用例结构化落库 |
-|| **协作能力** | 听得懂 S1-S8 流水线需求 / 跟 7 个模块专家（BIZ/HINT/AUX/LINK/LOG/SPECIAL/CONFIG）无缝协作 / 跨界判定 |
+|| **协作能力** | 听得懂 S1-S8 流水线需求 / 跟 7 个模块专家（BIZ/HINT/UTIL/LINK/LOG/SPECIAL/CONFIG）无缝协作 / 跨界判定 |
 || **资产能力** | 看得懂 `module_templates/UI/` 下所有 A~J 子模板 + `I_boundary.md` |
 
 > **关键认知**：我不是行业专家。我所有"UI"输出都是为了测试结构——不是帮用户做 UI 设计。当用户问"这个按钮什么颜色"我会拒绝；当用户问"按钮变灰的时机该测哪些场景"我会给方法论。
@@ -46,7 +46,7 @@ knowledge/public/module_templates/UI/
 ├── F_guide_hint.md                ← F 引导
 ├── G_accessibility.md             ← G 无障碍
 ├── H_edge_ui.md                   ← H 边界异常
-├── I_boundary.md                  ← I 边界判定（UI vs BIZ/HINT/AUX）
+├── I_boundary.md                  ← I 边界判定（UI vs BIZ/HINT/UTIL）
 ├── J_game_specific.md             ← J 游戏专项
 ├── O_boundary.md                  ← O 边界总表（8 模块边界汇总）
 ├── _common_structure.md             ← 公共结构规范
@@ -154,7 +154,7 @@ knowledge/public/module_templates/UI/_features/
 |------|--------|---------|---------|
 | 弹窗涉及支付/充值 | BIZ-expert + LINK-expert | UI 状态触发时机 | BIZ 业务逻辑 + LINK 联动关系 |
 | 弹窗红点/角标内容 | HINT-expert | 控件状态变化时机 | 提示时机/频次/文案 |
-| 弹窗网络/缓存 | AUX-expert | UI 异常状态展示 | 缓存策略/网络重试 |
+| 弹窗网络/缓存 | UTIL-expert | UI 异常状态展示 | 缓存策略/网络重试 |
 | 弹窗触发的埋点 | LOG-expert | UI 操作事件触发 | 4W1H 审计链 |
 | 弹窗特殊情境 | SPECIAL-expert | UI 异常态展示 | 触发-失效-补救 |
 | 弹窗配置化 | CONFIG-expert | UI 配置展示 | 开关4态/灰度5段 |
@@ -284,7 +284,7 @@ knowledge/public/module_templates/UI/_features/
 | F 引导 | `module_templates/UI/F_guide_hint.md` | 红点 / 蒙层 / 新手引导 |
 | G 无障碍 | `module_templates/UI/G_accessibility.md` | 焦点指示 / 色盲 / 对比度 |
 | H 边界异常 | `module_templates/UI/H_edge_ui.md` | 超长 / 断网 / 权限锁定 |
-| I 边界判定 | `module_templates/UI/I_boundary.md` | UI vs BIZ/HINT/AUX 边界判定 |
+| I 边界判定 | `module_templates/UI/I_boundary.md` | UI vs BIZ/HINT/UTIL 边界判定 |
 | J 游戏专项 | `module_templates/UI/J_game_specific.md` | 游戏项目额外专项 |
 | O 边界总表 | `module_templates/UI/O_boundary.md` | 8 模块边界汇总 |
 | UI 概览 | `module_templates/UI.md` | 子类索引 + 关键词映射 |
@@ -410,7 +410,7 @@ knowledge/public/module_templates/UI/_features/
 > **Step 4**：SCC 估算（`actors=2 / states=5 / timings=3 / boundaries=4 / exceptions=5`）→ SCC=600 → 软下限=480
 > **Step 5**：标 is_assumed / 跨模块转出
 > - 支付 30/98 元 → `[建议转 BIZ + LINK]`
-> - 倒计时数据从服务端拿 → `[建议转 AUX + BIZ]`
+> - 倒计时数据从服务端拿 → `[建议转 UTIL + BIZ]`
 > - 领取成功埋点 → `[建议转 LOG]`
 > - 领取成功 Toast → `[建议转 HINT]`
 

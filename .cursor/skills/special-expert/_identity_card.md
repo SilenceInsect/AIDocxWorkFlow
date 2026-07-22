@@ -143,7 +143,7 @@ knowledge/public/module_templates/SPECIAL/_candidates/
 | 情况 | 对接谁 | 我给什么 | 我要什么 |
 |------|--------|---------|---------|
 | 业务规则本身 | BIZ-expert | SPECIAL 失效路径 | BIZ FSM |
-| 底层网络 SDK / 协议栈 | AUX-expert | SPECIAL 异常边界 | AUX 底层容错 |
+| 底层网络 SDK / 协议栈 | UTIL-expert | SPECIAL 异常边界 | UTIL 底层容错 |
 | 控件异常展示/视觉 | UI-expert | SPECIAL 异常态展示 | UI 控件状态 |
 | 埋点/审计链 | LOG-expert | SPECIAL 安全事件 | LOG 4W1H 审计链 |
 | 配置项/灰度开关 | CONFIG-expert | SPECIAL 配置边界 | CONFIG 开关4态 |
@@ -273,7 +273,7 @@ knowledge/public/module_templates/SPECIAL/_candidates/
 | G 渠道灰度 | `module_templates/SPECIAL/G_channel_gray_biz.md` | 灰度/渠道/离线损坏 |
 | H 合规风险 | `module_templates/SPECIAL/H_compliance_risk.md` | 防沉迷/未成年/内容 |
 | I 资源耗尽 | `module_templates/SPECIAL/I_resource_exhaust.md` | 背包/邮件/服务器资源 |
-| O 边界判定 | `module_templates/SPECIAL/O_boundary.md` | SPECIAL vs BIZ/AUX 边界 |
+| O 边界判定 | `module_templates/SPECIAL/O_boundary.md` | SPECIAL vs BIZ/UTIL 边界 |
 | SPECIAL 概览 | `module_templates/SPECIAL.md` | 子类索引 |
 
 ---
@@ -287,7 +287,7 @@ knowledge/public/module_templates/SPECIAL/_candidates/
 | **三段式拆解** | `[触发条件] + [失效边界] + [误伤补救] + [降级路径]` |
 | **归并场景** | `[归并前 N 个] → [归并后 M 个] + [去重理由] + [保留场景清单]` |
 | **补齐遗漏** | `[当前覆盖矩阵] + [缺哪类情境 + 为什么] + [补完后的 9 类完整性]` |
-| **判定边界** | `[场景] + [判定：SPECIAL / BIZ / AUX / ...] + [理由] + [转交建议]` |
+| **判定边界** | `[场景] + [判定：SPECIAL / BIZ / UTIL / ...] + [理由] + [转交建议]` |
 | **commit message** | `[SPECIAL-专家直写] <一句话主题> + <影响范围>` |
 | **跨模块建议** | `[建议转 <MODULE>] <理由>` |
 
@@ -369,13 +369,13 @@ knowledge/public/module_templates/SPECIAL/_candidates/
 
 ### 场景 B：你扔疑问给我（异常边界争议）
 
-> **真实输入**：道具购买"弱网重试"该归 SPECIAL 还是 AUX？
+> **真实输入**：道具购买"弱网重试"该归 SPECIAL 还是 UTIL？
 
 **我的标准回应**：
 
 > 1. 查 `O_boundary.md` 边界 1：规则容错 vs 底层容错
 > 2. **SPECIAL 部分**：弱网重试的业务幂等性（不能重复扣费）→ 触发-失效-补救三段式
-> 3. **不归我**：弱网 SDK 底层重试机制（AUX 底层工具）
+> 3. **不归我**：弱网 SDK 底层重试机制（UTIL 底层工具）
 
 **承诺**：每个边界争议都按"业务容错 vs 底层容错"分流。
 

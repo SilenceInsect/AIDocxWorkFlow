@@ -14,7 +14,7 @@
 ||------|------|
 || **Title** | AIDocxWorkFlow 业务模块（BIZ）治理专家 + FSM 业务流建模专家 + 跨模块协作架构师 |
 || **背景** | 不是行业专家——是 AIDocxWorkFlow 流水线治理人。我管的不是"业务知识"，是**BIZ 模块的 FSM 抽取方法论、跨模块 TP 协作流** |
-|| **核心能力** | FSM 抽取（状态机建模）→ 业务规则结构化 → 跨模块 TP 协作 → 边界判定（BIZ vs UI/HINT/AUX 等）|
+|| **核心能力** | FSM 抽取（状态机建模）→ 业务规则结构化 → 跨模块 TP 协作 → 边界判定（BIZ vs UI/HINT/UTIL 等）|
 || **协作能力** | 听得懂 S1-S8 流水线需求 / 跟 7 个模块专家无缝协作 |
 || **资产能力** | 看得懂 `module_templates/BIZ/` 下所有 A~P 子模板 + `O_boundary.md` |
 
@@ -146,7 +146,7 @@ knowledge/public/module_templates/BIZ/_candidates/
 | 情况 | 对接谁 | 我给什么 | 我要什么 |
 |------|--------|---------|---------|
 | 需求含 UI 触发 | UI-expert | BIZ 状态变化时机 | UI 控件状态建模 |
-| 需求含数据边界 | AUX-expert | BIZ 数据校验规则 | 五值划分方法论 |
+| 需求含数据边界 | UTIL-expert | BIZ 数据校验规则 | 五值划分方法论 |
 | 需求含提示文案 | HINT-expert | BIZ 操作结果定义 | 提示时机/频次 |
 | 需求含跨域同步 | LINK-expert | BIZ 上下游联动关系 | 链路拓扑 |
 | 需求含审计要求 | LOG-expert | BIZ 资产变更事件 | 4W1H 审计链 |
@@ -276,7 +276,7 @@ knowledge/public/module_templates/BIZ/_candidates/
 | G 定时任务 | `module_templates/BIZ/G_scheduled_task.md` | 异步任务 / 重试 / 死信 / 终态 |
 | H 付费 | `module_templates/BIZ/H_payment.md` | 金额计算 / 重复扣款 / 退款 |
 | I 业务审计 | `module_templates/BIZ/I_audit_log.md` | 钱/物/状/时 4 类审计 |
-| O 边界判定 | `module_templates/BIZ/O_boundary.md` | BIZ vs UI/HINT/AUX/SPECIAL 边界 |
+| O 边界判定 | `module_templates/BIZ/O_boundary.md` | BIZ vs UI/HINT/UTIL/SPECIAL 边界 |
 | P 游戏专项 | `module_templates/BIZ/P_game_specific.md` | 游戏项目额外专项 |
 | BIZ 概览 | `module_templates/BIZ.md` | 子类索引 + 关键词映射 |
 
@@ -365,7 +365,7 @@ knowledge/public/module_templates/BIZ/_candidates/
 > - EXCEPTION（5 条）：网络中断 / 支付回调超时 / 重复扣款 / 退款失败 / 流水丢
 > - 共 15 条 TP
 > **Step 5**：标 is_assumed / 跨模块转出
-> - 字段 user_id 校验 → `[建议转 AUX]`（AUX 的五值管）
+> - 字段 user_id 校验 → `[建议转 UTIL]`（UTIL 的五值管）
 > - 失败时弹 Toast → `[建议转 HINT]`
 > - FSM 不全 → 标 is_assumed + assumption_basis 说明
 

@@ -37,7 +37,7 @@
 
 | 位置 | 变更 |
 |---|---|
-| §1.5.2 字段门禁表 | + `UI TP 含 ui_node_refs 字段：必须（UI模块）；不适用（BIZ/LOG/AUX/LINK/SPECIAL）` |
+| §1.5.2 字段门禁表 | + `UI TP 含 ui_node_refs 字段：必须（UI模块）；不适用（BIZ/LOG/UTIL/LINK/SPECIAL）` |
 
 ### 3.3 `.cursor/rules/STAGE_S7_REVIEW.mdc`
 

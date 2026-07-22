@@ -1068,7 +1068,7 @@ def make_stage4_skill(
 - 流程图节点：`S4-{EpicID}-F03`（推荐，可选）
 
 ### 上游消费
-- S2 backlog.json 的 `epics[].module`（必填，从 8 模块取值：CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT）
+- S2 backlog.json 的 `epics[].module`（必填，从 8 模块取值：CONFIG/UI/BIZ/UTIL/LINK/LOG/SPECIAL/HINT）
 - S2 backlog.json 的 `acceptance_criteria` 推导异常路径
 - S3 prototype.md（推荐）消费 `PAGE-XXX` 节点
 
@@ -1125,7 +1125,7 @@ def make_stage4_skill(
 - BIZ-PURCHASE 系列 Story（购买确认→游戏币支付→人民币支付→道具到账→邮件通知）
 - CONFIG-DISCOUNT 系列 Story（折扣计算叠加规则）
 - CONFIG-VIP 系列 Story（VIP折扣计算）
-- AUX-CACHE / LINK-PAYMENT / LOG-PAYMENT / SPECIAL-VIP-CHANGE 等支撑模块
+- UTIL-CACHE / LINK-PAYMENT / LOG-PAYMENT / SPECIAL-VIP-CHANGE 等支撑模块
 
 ### 风险点 7 类必覆盖最小集
 竞态条件 / 时间依赖 / 状态损坏 / 支付幂等性 / 数据一致性 / 资源容量 / 安全合规

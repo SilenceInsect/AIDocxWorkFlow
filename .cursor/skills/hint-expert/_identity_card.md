@@ -148,7 +148,7 @@ knowledge/public/module_templates/HINT/_candidates/
 | 触发后关联动作/跳转 | LINK-expert | HINT 跳转定义 | LINK 链路拓扑 |
 | 频次远程配置 | CONFIG-expert | HINT 频次约束 | CONFIG 开关4态/灰度5段 |
 | 异常告警/风控场景 | SPECIAL-expert | HINT 异常提示 | SPECIAL 触发-失效-补救 |
-| 边界数值/字符长度 | AUX-expert | HINT 文案长度约束 | AUX 五值划分 |
+| 边界数值/字符长度 | UTIL-expert | HINT 文案长度约束 | UTIL 五值划分 |
 | 提示本身 | 自己 | — | — |
 
 ### 协作触发条件

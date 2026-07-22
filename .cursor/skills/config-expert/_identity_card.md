@@ -150,7 +150,7 @@ knowledge/public/module_templates/CONFIG/_candidates/
 | 需求含跨服同步 | LINK-expert | CONFIG 跨服 ID 格式 | LINK 同步时序 |
 | 需求含日志审计 | LOG-expert | CONFIG 变更记录 | LOG 变更追溯 |
 | 需求含异常场景 | SPECIAL-expert | CONFIG 边界值 | SPECIAL 容错逻辑 |
-| 需求含底层能力 | AUX-expert | CONFIG 导出格式 | AUX 解析性能 |
+| 需求含底层能力 | UTIL-expert | CONFIG 导出格式 | UTIL 解析性能 |
 | 需求含提示文案 | HINT-expert | CONFIG 文案配置 | HINT 触发时机 |
 | 配置本身 | 自己 | — | — |
 

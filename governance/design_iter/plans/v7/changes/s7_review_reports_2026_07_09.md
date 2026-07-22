@@ -48,7 +48,7 @@ snap = snapshot(test_cases_path, backlog_path, test_points_path)
 |---|---|---|---|
 | MF-1 | P1 | 10 个 TC 标 UNKNOWN | v3.3 方法可复用 |
 | MF-2 | P1 | S5 TP 填写率 77.8% | S5 强制必填字段 |
-| MF-3 | P0 | AUX/LINK/SPECIAL 用例 0 | v3.4 按 8 模块全量 |
+| MF-3 | P0 | UTIL/LINK/SPECIAL 用例 0 | v3.4 按 8 模块全量 |
 
 ## v3.01 vs v3.3 对比（关键判断）
 

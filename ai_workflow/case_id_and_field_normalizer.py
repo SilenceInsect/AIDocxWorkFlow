@@ -105,7 +105,7 @@ _MODULE_PREFIX = {
     "CONFIG": "CONFIG",
     "UI": "UI",
     "BIZ": "BIZ",
-    "AUX": "AUX",
+    "UTIL": "UTIL",
     "LINK": "LINK",
     "SPECIAL": "SPECIAL",
     "LOG": "LOG",
@@ -114,7 +114,7 @@ _MODULE_PREFIX = {
 _VALID_MODULES: frozenset[str] = frozenset(_MODULE_PREFIX)
 
 # case_id pattern (matches L1S6Validator.TC_ID_PAT).
-_TC_ID_PAT = re.compile(r"^(CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT)-TC-\d{3,}$")
+_TC_ID_PAT = re.compile(r"^(CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT)-TC-\d{3,}$")
 _LEGACY_TC_ID_PAT = re.compile(r"^TC-(\d+)$")
 
 
@@ -285,7 +285,7 @@ def _resolve_module(case: Mapping[str, Any]) -> str:
         "界面": "UI",
         "业务": "BIZ",
         "配置": "CONFIG",
-        "辅助": "AUX",
+        "辅助": "UTIL",
         "关联": "LINK",
         "特殊": "SPECIAL",
         "日志": "LOG",

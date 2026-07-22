@@ -79,7 +79,7 @@ alwaysApply: true
 >
 > **模块专家 Agent 定义**（8 模块 = 8 个专家，**v34 B1 已显式落地为 skill**）：
 > - **资产库位置**：`.cursor/skills/<module>-expert/SKILL.md`（项目内，与 `aidocx-s6-test-cases/` 平级，纳入 git）
-> - **8 个专家 skill**：`config-expert` / `ui-expert` / `biz-expert` / `aux-expert` / `link-expert` / `special-expert` / `log-expert` / `hint-expert`
+> - **8 个专家 skill**：`config-expert` / `ui-expert` / `biz-expert` / `UTIL-expert` / `link-expert` / `special-expert` / `log-expert` / `hint-expert`
 > - **索引**：`/Users/gleon/.cursor/skills/_module-experts/README.md`（项目内路径 `.cursor/skills/_module-experts/README.md`）
 > - **每个专家绑定**：自己模块的 `module_templates/<MY_MODULE>/` + `module_templates/<MY_MODULE>.md`
 > - **模块专家身份当前通过 skill metadata 字段显式建模**（`metadata.role: module-expert` + `metadata.module: <MODULE>`），

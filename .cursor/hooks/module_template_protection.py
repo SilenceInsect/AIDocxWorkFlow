@@ -49,7 +49,7 @@ NEVER_WRITE_PUBLIC_FILES = (
 BYPASS_ENV = "MODULE_TEMPLATE_EDIT_ALLOWED"
 
 # 8 个合法模块 ID（与 .cursor/MODULES.md §1 总表 1:1 对齐）
-LEGAL_MODULES = ("CONFIG", "UI", "BIZ", "AUX", "LINK", "SPECIAL", "LOG", "HINT")
+LEGAL_MODULES = ("CONFIG", "UI", "BIZ", "UTIL", "LINK", "SPECIAL", "LOG", "HINT")
 
 
 def _normalize_path(target_path: str) -> PurePosixPath:
@@ -228,7 +228,7 @@ def self_test() -> int:
         ("knowledge/public/module_templates/CONFIG/A_field_legality.md", False, "CONFIG 正式库"),
         ("knowledge/public/module_templates/UI/A_control_basic.md", False, "UI 正式库"),
         ("knowledge/public/module_templates/BIZ/A_biz_logic.md", False, "BIZ 正式库"),
-        ("knowledge/public/module_templates/AUX/A_common_util.md", False, "AUX 正式库"),
+        ("knowledge/public/module_templates/UTIL/A_common_util.md", False, "UTIL 正式库"),
         ("knowledge/public/module_templates/LINK/A_internal_biz_linkage.md", False, "LINK 正式库"),
         ("knowledge/public/module_templates/SPECIAL/A_boundary_extreme.md", False, "SPECIAL 正式库"),
         ("knowledge/public/module_templates/LOG/A_event_track.md", False, "LOG 正式库"),

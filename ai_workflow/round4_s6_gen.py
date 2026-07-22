@@ -55,7 +55,7 @@ tp_by_id = {tp["tp_id"]: tp for tp in tp_data["test_points"]}
 print(f"[S6 Gen] Loaded {len(tp_data['test_points'])} TPs, {len(obj_data['objects'])} OBJ, {len(bd_data['epics'])} Epics")
 
 # ── module prefix sequence ──────────────────────────────────────────────────────
-MODULE_SEQ = ["UI", "BIZ", "CONFIG", "AUX", "LINK", "LOG", "SPECIAL", "HINT"]
+MODULE_SEQ = ["UI", "BIZ", "CONFIG", "UTIL", "LINK", "LOG", "SPECIAL", "HINT"]
 module_counter = {m: 0 for m in MODULE_SEQ}
 
 def next_case_id(module: str) -> str:

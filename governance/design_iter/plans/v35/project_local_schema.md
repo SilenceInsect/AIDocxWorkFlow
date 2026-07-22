@@ -45,7 +45,7 @@
 | **G3** | S5 生成 TP 时**自动优先**项目级 | 查找顺序测试 |
 | **G4** | 项目级有完整生命周期（立项 → 运行 → 结项 → 回灌）| 每个项目有 `_lifecycle.md` |
 | **G5** | ui-expert 能听懂大白话并翻译成专业术语 | 身份卡训练样本 ≥ 10 条 |
-| **G6** | 8 个专家统一支持项目级（CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG / HINT）| 模式一致 |
+| **G6** | 8 个专家统一支持项目级（CONFIG / UI / BIZ / UTIL / LINK / SPECIAL / LOG / HINT）| 模式一致 |
 
 ---
 
@@ -57,7 +57,7 @@
 knowledge/
 ├── public/module_templates/                 ← 通用规则层（SSOT，入 git）
 │   ├── UI/                                  ← 通用 UI 模板（网页 8 态为基线）
-│   ├── BIZ/ ... AUX/ ... LOG/ ... HINT/ ... LINK/ ... SPECIAL/ ... CONFIG/
+│   ├── BIZ/ ... UTIL/ ... LOG/ ... HINT/ ... LINK/ ... SPECIAL/ ... CONFIG/
 │   └── ❌ 禁止放任何项目级 override（治理违规）
 │
 ├── project_local/                            ← 项目级私有层（不入 git）
@@ -69,7 +69,7 @@ knowledge/
 │       │   ├── _rules.md                     ← 入口索引
 │       │   ├── A_button_mobile_4state.md     ← AMRD 4 态按钮 override
 │       │   └── _excluded_states.md           ← 主动排除的通用规则 + 理由
-│       ├── biz/ ... aux/ ...                ← 其他模块项目级
+│       ├── biz/ ... UTIL/ ...                ← 其他模块项目级
 │       └── ...
 │
 └── (public) 治理方案 → governance/design_iter/plans/vN/    ← 治理 SSOT（不入 git）
@@ -184,7 +184,7 @@ amrd_rule_examples:
 
 ### 5.2 Phase 2：其他 7 专家补齐（本月）
 
-- CONFIG / BIZ / AUX / LINK / SPECIAL / LOG / HINT 7 个专家**各自补 `_identity_card.md`**
+- CONFIG / BIZ / UTIL / LINK / SPECIAL / LOG / HINT 7 个专家**各自补 `_identity_card.md`**
 - 每个专家**复用本架构**（`<PROJECT>/<MODULE>/_rules.md` 模式一致）
 - 每个专家**建立自己的大白话 → 术语样本**（如 BIZ 的"扣款" → "支付/扣款"）
 

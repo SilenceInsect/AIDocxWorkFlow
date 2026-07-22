@@ -75,7 +75,7 @@
 ## 四、本轮总结
 
 **本轮产出**：
-- 8份模块自我认知文档（CONFIG/UI/BIZ/AUX/LINK/SPECIAL/LOG/HINT）
+- 8份模块自我认知文档（CONFIG/UI/BIZ/UTIL/LINK/SPECIAL/LOG/HINT）
 - 路径：`knowledge/public/module_templates/_module_expert_cognition/*.md`
 
 **本轮遗留**：

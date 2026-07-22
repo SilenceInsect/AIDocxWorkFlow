@@ -84,7 +84,7 @@ ls /Users/gleon/Documents/TestDev/AIDocxWorkFlow/knowledge/public/test_point_lib
 **输出**：
 
 ```
-AUX/  BIZ/  CONFIG/  HINT/  LINK/  LOG/  README.md  SPECIAL/  UI/  _index.md
+UTIL/  BIZ/  CONFIG/  HINT/  LINK/  LOG/  README.md  SPECIAL/  UI/  _index.md
 ```
 
 → **TP 库有 8 模块子目录 + README，但每个子目录是否含 TP 模板未查**——不是样本库，是**模板库**。

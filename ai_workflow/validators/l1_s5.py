@@ -92,12 +92,12 @@ class L1S5Validator(L1BaseValidator):
 
             # module 枚举检查
             mod = tp.get("module", "")
-            if mod and mod not in {"CONFIG", "UI", "BIZ", "AUX", "LINK", "SPECIAL", "LOG", "HINT"}:
+            if mod and mod not in {"CONFIG", "UI", "BIZ", "UTIL", "LINK", "SPECIAL", "LOG", "HINT"}:
                 errors.append(self._standardize_error(
                     "INVALID_MODULE",
                     f"module '{mod}' 不在 8 模块枚举中",
                     index=i, field="module", id=tp_id,
-                    expected="CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT",
+                    expected="CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT",
                 ))
 
             # v17 新增：preconditions 非空校验（≥ 1 项）
@@ -138,7 +138,7 @@ class L1S5Validator(L1BaseValidator):
                 ))
             seen_ids.add(tp_id)
             simple = re.compile(r"^TP-\d{3,}$")
-            module = re.compile(r"^(CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT)-TP-\d{3,}$")
+            module = re.compile(r"^(CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT)-TP-\d{3,}$")
             if not (simple.match(tp_id) or module.match(tp_id)):
                 errors.append(self._standardize_error(
                     "INVALID_ID_FORMAT",

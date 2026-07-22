@@ -1,6 +1,6 @@
 # AMRD 项目基本盘
 
-> **本文件是 AMRD 项目级规则库的入口索引**。所有项目级 UI / BIZ / AUX / ... 规则都从本文件出发。
+> **本文件是 AMRD 项目级规则库的入口索引**。所有项目级 UI / BIZ / UTIL / ... 规则都从本文件出发。
 
 ---
 
@@ -36,7 +36,7 @@
 |------|------|------|------|
 | **UI** | [`ui/_rules.md`](./ui/_rules.md) | ✅ active | 按钮 4 态 override |
 | BIZ | biz/_rules.md | 📋 TODO | 待立项 |
-| AUX | aux/_rules.md | 📋 TODO | 待立项 |
+| UTIL | UTIL/_rules.md | 📋 TODO | 待立项 |
 | LINK | link/_rules.md | 📋 TODO | 待立项 |
 | SPECIAL | special/_rules.md | 📋 TODO | 待立项 |
 | LOG | log/_rules.md | 📋 TODO | 待立项 |

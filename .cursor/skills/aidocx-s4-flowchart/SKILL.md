@@ -367,11 +367,11 @@ S4-{Epic1ID}-1.0  {Epic1.title} 异常决策树
 S4 产出物中所有"模块归属"字段（如风险点表"模块"列、Epic 元信息表"模块"列）必须从 `MODULES.md §1` 8 模块中取值：
 
 ```
-CONFIG / UI / BIZ / AUX / LINK / LOG / SPECIAL / HINT
+CONFIG / UI / BIZ / UTIL / LINK / LOG / SPECIAL / HINT
 ```
 
 **HINT vs UI 边界判定**（误标高发区）见 `MODULES.md §4.11.2`。
-**BIZ vs AUX vs LINK vs SPECIAL 边界判定**（S4 高发区）见 `MODULES.md §3.5`。
+**BIZ vs UTIL vs LINK vs SPECIAL 边界判定**（S4 高发区）见 `MODULES.md §3.5`。
 
 ---
 
@@ -435,7 +435,7 @@ report = validate_s4_output(flow_md_path=result["md"], backlog_path=backlog_json
 **S4 写异常树叶子必走判定**:
 - 该叶子描述的异常是"第三方回调异常"?→ LINK
 - 该叶子描述的异常是"单系统业务异常(如余额不足)"?→ BIZ
-- 该叶子描述的异常是"缓存/网络底层异常"?→ AUX
+- 该叶子描述的异常是"缓存/网络底层异常"?→ UTIL
 - 该叶子描述的异常是"安全/风控/弱网"?→ SPECIAL
 
 **判定不对→S5 TP 模块归属必然错**。

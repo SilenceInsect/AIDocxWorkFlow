@@ -13,7 +13,7 @@
 | 1 | `config-expert` | `CONFIG` | 配置 | `knowledge/public/module_templates/CONFIG/` | `/config-expert` |
 | 2 | `ui-expert` | `UI` | 界面 | `knowledge/public/module_templates/UI/` | `/ui-expert` |
 | 3 | `biz-expert` | `BIZ` | 业务 | `knowledge/public/module_templates/BIZ/` | `/biz-expert` |
-| 4 | `aux-expert` | `AUX` | 辅助 | `knowledge/public/module_templates/AUX/` | `/aux-expert` |
+| 4 | `UTIL-expert` | `UTIL` | 辅助 | `knowledge/public/module_templates/UTIL/` | `/UTIL-expert` |
 | 5 | `link-expert` | `LINK` | 关联 | `knowledge/public/module_templates/LINK/` | `/link-expert` |
 | 6 | `special-expert` | `SPECIAL` | 特殊情境 | `knowledge/public/module_templates/SPECIAL/` | `/special-expert` |
 | 7 | `log-expert` | `LOG` | 日志 | `knowledge/public/module_templates/LOG/` | `/log-expert` |
@@ -46,7 +46,7 @@ knowledge/public/module_templates/
 ├── CONFIG/                       ← config-expert 的资产根
 ├── UI/                           ← ui-expert 的资产根
 ├── BIZ/                          ← biz-expert 的资产根
-├── AUX/                          ← aux-expert 的资产根
+├── UTIL/                          ← UTIL-expert 的资产根
 ├── LINK/                         ← link-expert 的资产根
 ├── SPECIAL/                      ← special-expert 的资产根
 ├── LOG/                          ← log-expert 的资产根

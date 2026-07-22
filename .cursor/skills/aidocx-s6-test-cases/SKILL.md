@@ -738,7 +738,7 @@ python3 ai_workflow/test_case_formatter.py --tc-json-to-xlsx <tc.json> \
 | `POSITIVE` | "正向流程" | "标准主流程" | 1. 进入功能<br>2. 按主流程操作<br>3. 验证业务结果 | UI/BIZ/SPECIAL |
 | `NEGATIVE` | "负向流程" | "拒绝分支" | 1. 输入不当数据<br>2. 执行操作<br>3. 验证拒绝逻辑 | UI/BIZ |
 | `EXCEPTION` | "异常流容错" | "系统异常场景" | 1. 模拟异常<br>2. 验证重试/回滚/告警 | BIZ/LINK/LOG |
-| `PERFORMANCE` | "性能测试" | "响应时间/并发量" | 1. 准备性能场景<br>2. 执行<br>3. 验证指标 | BIZ/AUX |
+| `PERFORMANCE` | "性能测试" | "响应时间/并发量" | 1. 准备性能场景<br>2. 执行<br>3. 验证指标 | BIZ/UTIL |
 | `SECURITY` | "安全测试" | "注入/越权/签名伪造" | 1. 构造攻击向量<br>2. 执行<br>3. 验证拒绝 | SPECIAL/LINK |
 | `CONFIG` | "配置变更测试" | "配置生效验证" | 1. 修改配置<br>2. 等待生效<br>3. 验证行为变化 | CONFIG |
 | `LOG` | "日志测试" | "日志内容/格式/级别" | 1. 触发事件<br>2. 查询日志<br>3. 验证字段 | LOG |
@@ -1125,7 +1125,7 @@ S6 生成 TC 时，**必须 Read** S5 test_points.json 中的 `test_point_type_d
 ## 用例格式（10列）
 
 > **重要（与 `ai_workflow/test_case_formatter.py` 严格一致）**：
-> - **用例ID 前缀**采用 8 模块英文全名（按 `MODULES.md` §1 总表顺序）：`CONFIG-TC-NNN` / `UI-TC-NNN` / `BIZ-TC-NNN` / `AUX-TC-NNN` / `LINK-TC-NNN` / `LOG-TC-NNN` / `SPECIAL-TC-NNN` / `HINT-TC-NNN`（**禁止**用旧 4 字母缩写 `CFG/LNK/SPC/HNT`）
+> - **用例ID 前缀**采用 8 模块英文全名（按 `MODULES.md` §1 总表顺序）：`CONFIG-TC-NNN` / `UI-TC-NNN` / `BIZ-TC-NNN` / `UTIL-TC-NNN` / `LINK-TC-NNN` / `LOG-TC-NNN` / `SPECIAL-TC-NNN` / `HINT-TC-NNN`（**禁止**用旧 4 字母缩写 `CFG/LNK/SPC/HNT`）
 > - **模块字段**支持中英双语并存：`UI` 或 `界面` 任一；S6 阶段统一由 `test_case_formatter.py` 的 `normalize_module_name()` 归一化为 8 模块全名
 > **旧枚举**（`RED_DOT` / `SYS_MSG` 等）由 `format_test_cases()` 自动迁移到现行枚举
 > - 中英并存规则见 [`.cursor/MODULES.md` §3 中英映射表](../../../MODULES.md)
@@ -1246,7 +1246,7 @@ S6 生成的 TC 必须满足优先级覆盖率分级：
 - [ ] **expected_results 单预期原则**：每条 TC 的 `expected_results` 数组只含 1 项，禁止多条预期并置。**Round 15 例外**：同上（仅 v3.01 历史数据）。
 - [ ] **5 项业务自检**：用例描述为需求对象名称 / 功能描述为需求对象功能点自然语言 / steps 单步 / expected_results 单预期 / 全文搜索"引用"为 0 处
 - [ ] **优先级分布合理**：**P0 覆盖率 ≥ 95%（刚性）/ P1 ≥ 80%（柔性）/ P2 ≥ 50%（指导值，不做强求）**
-- [ ] **8 模块覆盖**：CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT 至少 1 个用例
+- [ ] **8 模块覆盖**：CONFIG/UI/BIZ/UTIL/LINK/LOG/SPECIAL/HINT 至少 1 个用例
 - [ ] **OBJ 链接覆盖率 100%**：每个 TC 有 `obj_id`；`obj_id` 在 S2 OBJ 列表中；`用例描述 == obj_name`（字符串严格相等）；未引用 OBJ 进入 omission ledger + skip_reason
 - [ ] **字段溯源检查**：TC.obj_name == TP.obj_name（100% 继承）；TC.feature_point_ref == TP.feature_point_ref（100% 继承，结构化 FP ID）；TC.fp_name 已 Round 15 F-F 删除（新数据不再生成）；未通过 → S6 不合格
 - [ ] **assertion 字段完整性**（Round 15 F-E）：每条 TC.assertion 数组 ≥ 1 项，每项含 `assertion_type` 必填子字段；未通过 → S6 不合格

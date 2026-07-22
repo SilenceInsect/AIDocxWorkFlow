@@ -30,7 +30,7 @@ from typing import Any
 
 # ── 8 模块枚举（与 .cursor/MODULES.md §1 一致）───────────────
 VALID_MODULES = frozenset({
-    "CONFIG", "UI", "BIZ", "AUX", "LINK",
+    "CONFIG", "UI", "BIZ", "UTIL", "LINK",
     "SPECIAL", "LOG", "HINT",
 })
 
@@ -39,11 +39,11 @@ ID_PATTERNS: dict[str, re.Pattern] = {
     # S5 兼容简化格式（历史产物）
     "TP_SIMPLE": re.compile(r"^TP-\d{3,}$"),
     # S5 规范格式：{Module}-TP-{NNN}
-    "TP_MODULE": re.compile(r"^(CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT)-TP-\d{3,}$"),
+    "TP_MODULE": re.compile(r"^(CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT)-TP-\d{3,}$"),
     # S6 TC 格式：{Module}-TC-{NNN}
-    "TC_MODULE": re.compile(r"^(CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT)-TC-\d{3,}$"),
+    "TC_MODULE": re.compile(r"^(CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT)-TC-\d{3,}$"),
     # S2 Epic 格式：{Module}-{NNN}  如 CONFIG-001
-    "EPIC": re.compile(r"^(CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT)-\d{3,}$"),
+    "EPIC": re.compile(r"^(CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT)-\d{3,}$"),
     # S2 Story 格式：{EpicID}-{NN}  如 CONFIG-001-001
     "STORY": re.compile(r"^[A-Z]+-\d{3,}-\d{1,3}$"),
     # S2 OBJ 格式：{StoryID}-OBJ-{NN}  如 CONFIG-001-001-OBJ-01
@@ -859,7 +859,7 @@ def self_test() -> int:
         {"case_id": "TC-1", "module": "UI", "s5_ref": "UI-TP-001",
          "assertion": [{"assertion_type": "numeric", "assertion_target": "balance", "operator": "==", "expected_value": 0}]},
         {"case_id": "TC-2", "module": "BIZ", "s5_ref": "BIZ-TP-001"},  # 缺 assertion
-        {"case_id": "TC-3", "module": "AUX", "s5_ref": "AUX-TP-001", "assertion": []},  # 空数组
+        {"case_id": "TC-3", "module": "UTIL", "s5_ref": "UTIL-TP-001", "assertion": []},  # 空数组
     ]}
     e_violations3 = check_assertion_completeness(e_fail_data)
     assert len(e_violations3) == 2, f"F-E C3 应 2 violation（缺 assertion + 空数组）: {e_violations3}"

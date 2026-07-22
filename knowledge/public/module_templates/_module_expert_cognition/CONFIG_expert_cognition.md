@@ -130,7 +130,7 @@
 | LINK | LINK 层跨服同步时读取 CONFIG | 跨服排行榜读取排名配置 |
 | LOG | LOG 层记录 CONFIG 变更 | 配置热更后记录 audit log |
 | SPECIAL | SPECIAL 层防作弊读取 CONFIG | 反作弊读取开箱概率配置验证 |
-| AUX | AUX 层资源加载依赖 CONFIG | 资源加载路径从配置读取 |
+| UTIL | UTIL 层资源加载依赖 CONFIG | 资源加载路径从配置读取 |
 | HINT | HINT 层提示内容来自 CONFIG | 活动提示文案从配置读取 |
 
 ## 四、专业判断能力自检

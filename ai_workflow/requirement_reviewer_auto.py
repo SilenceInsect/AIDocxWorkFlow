@@ -233,7 +233,7 @@ def _infer_affected_modules(text: str) -> list[str]:
         "CONFIG": ["配置", "数值", "档位", "参数", "config"],
         "UI":     ["界面", "UI", "页面", "弹窗", "按钮", "布局", "展示"],
         "BIZ":    ["业务", "逻辑", "流程", "订单", "购买", "支付", "发奖", "biz"],
-        "AUX":    ["缓存", "网络", "SDK", "工具", "aux"],
+        "UTIL":    ["缓存", "网络", "SDK", "工具", "UTIL"],
         "LINK":   ["第三方", "回调", "接口", "对接", "link"],
         "LOG":    ["日志", "埋点", "监控", "log"],
         "SPECIAL":["异常", "风控", "边界", "边界值", "special"],
@@ -534,7 +534,7 @@ def auto_review_requirement(requirement_text: str) -> dict:
         "requirement_objects": {
             "description": "需求对象拆解 + 8 模块标签",
             "format": "角色 → 需求对象 → 功能 → 业务故事（1:1 配对 = 100%）",
-            "modules": ["CONFIG", "UI", "BIZ", "AUX", "LINK", "LOG", "SPECIAL", "HINT"],
+            "modules": ["CONFIG", "UI", "BIZ", "UTIL", "LINK", "LOG", "SPECIAL", "HINT"],
             "module_source": ".cursor/MODULES.md §1（项目级唯一真相源）",
         },
         "clarification_checklist": {

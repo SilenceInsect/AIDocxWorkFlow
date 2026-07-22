@@ -10,7 +10,7 @@
 ## §0 拍板依据（C3 解决）
 
 - **保留 `module`**（不引入 `primary_module`，避免字段重复）
-- **新增 `related_tags`**：数组，元素为模块名（CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG / HINT）
+- **新增 `related_tags`**：数组，元素为模块名（CONFIG / UI / BIZ / UTIL / LINK / SPECIAL / LOG / HINT）
 - **不新增 `verification_points`**（简化版：related_tags 直接承担跨模块关联职责）
 
 ---
@@ -72,7 +72,7 @@
 ### 2.1 枚举值（8 模块）
 
 ```
-CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG / HINT
+CONFIG / UI / BIZ / UTIL / LINK / SPECIAL / LOG / HINT
 ```
 
 > 枚举集合与 `module` 字段相同（同一 8 模块体系）。

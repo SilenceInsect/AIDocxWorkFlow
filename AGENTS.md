@@ -50,7 +50,7 @@
 
 > **重要**：`knowledge/public/module_templates/` 属公共知识库，新增 / 修改**不得由通用 Agent 直接入库**——先产候选，人工审核。
 >
-> **模块专家 Agent 已落地（v34 B1）**：8 业务模块（CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG / HINT）各自的模块专家 skill 位于 `.cursor/skills/<module>-expert/SKILL.md`，对**自己模块**（`module_templates/<MY_MODULE>/` + `<MY_MODULE>.md`）可直接写正式库（仍需 PR 留痕 + commit 标注 `[<MODULE>-专家直写]`）；跨模块 / 公共文件（`_common_structure.md` / `_decision_tree.md` / `s2_output_template.md`）任何 Agent 都不得直写。
+> **模块专家 Agent 已落地（v34 B1）**：8 业务模块（CONFIG / UI / BIZ / UTIL / LINK / SPECIAL / LOG / HINT）各自的模块专家 skill 位于 `.cursor/skills/<module>-expert/SKILL.md`，对**自己模块**（`module_templates/<MY_MODULE>/` + `<MY_MODULE>.md`）可直接写正式库（仍需 PR 留痕 + commit 标注 `[<MODULE>-专家直写]`）；跨模块 / 公共文件（`_common_structure.md` / `_decision_tree.md` / `s2_output_template.md`）任何 Agent 都不得直写。
 >
 > 索引：`.cursor/skills/_module-experts/README.md`
 > 详见 `.cursor/rules/DESIGN_AND_EXECUTION_STANDARDS.mdc` §0.1.3（主体权限对照表 + 边界自检流程）。

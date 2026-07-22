@@ -200,7 +200,7 @@
 - **precondition**：网络断开
 - **test_data**：操作
 - **expected**：文案"网络断开，请检查"
-- **notes**：与 AUX 网络检测配合
+- **notes**：与 UTIL 网络检测配合
 
 ### TP-013（TIMED_REMINDER）：跨服限制提示
 - **scenario**：场景 10

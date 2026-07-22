@@ -33,7 +33,7 @@ def compose_test_points_from_structure(
     骨架仅保留 Story 原始信息，不预填任何推导字段。
     `scenario_test_points[]` 完全由 LLM 按 SKILL.md §1.4 推理填入：
     - 4 类型枚举（POSITIVE/BOUNDARY/NEGATIVE/EXCEPTION）
-    - 8 模块（UI/BIZ/CONFIG/AUX/LINK/LOG/SPECIAL/HINT）
+    - 8 模块（UI/BIZ/CONFIG/UTIL/LINK/LOG/SPECIAL/HINT）
     - s4_reference、applies_rule、is_assumed 等必填字段
 
     返回:
@@ -113,14 +113,14 @@ def format_test_cases(
     - 规范化字段
     - 步骤编号
     - 去重
-    - 默认生成公共 JSON
-    - 仅当已确认项目且存在项目级导出配置时，再生成 .md + .xlsx
+    - 始终生成公共 JSON + 公共级 XLSX（v35 强制约束）
+    - 项目级 Markdown/XLSX 仅在已确认项目且存在项目级导出配置时生成
 
     参数:
         ai_raw_output: AI 生成的用例内容（字符串或列表）
         breakdown: backlog.json 数据
         test_points: S5 输出的测试点 JSON
-        project_name: 已确认的项目名。未确认时只允许生成公共 JSON
+        project_name: 已确认的项目名。公共级 xlsx 不受此参数影响，始终产出。
         output_dir: 输出目录（默认 <req_name>/v1.0/「S6 测试用例生成」/）
     """
     if output_dir is None:
@@ -179,18 +179,30 @@ def format_test_cases(
     template_path = _load_project_xlsx_template(project_name)
     md_path = None
     xlsx_path = None
+    xlsx_project_path = None
+
+    # v35 强制约束：公共级 xlsx 必须始终产出，不受 project_name 影响
+    xlsx_path = _save_xlsx(
+        cases,
+        output_dir,
+        export_profile=copy.deepcopy(_DEFAULT_XLSX_PROFILE),
+        template_path=None,  # 公共 xlsx 不使用项目模板
+    )
+    print(f"[S6] XLSX（公共级）→ {xlsx_path}")
+
+    # 项目级 xlsx：仅在已确认项目且存在项目级 profile 时生成
     if export_profile:
         md_path = _save_md(cases, output_dir)
         print(f"[S6] Markdown → {md_path}")
-        xlsx_path = _save_xlsx(
+        xlsx_project_path = _save_xlsx(
             cases,
             output_dir,
             export_profile=export_profile,
             template_path=template_path,
         )
-        print(f"[S6] XLSX → {xlsx_path}")
+        print(f"[S6] XLSX（项目级）→ {xlsx_project_path}")
     else:
-        print("[S6] 未确认项目或未检测到项目级导出配置，按公共格式仅生成 test_cases.json")
+        print("[S6] 未确认项目或未检测到项目级导出配置，仅生成公共级 xlsx")
 
     gate = None
     try:
@@ -202,7 +214,8 @@ def format_test_cases(
     return {
         "json": str(json_path),
         "md": str(md_path) if md_path else None,
-        "xlsx": str(xlsx_path) if xlsx_path else None,
+        "xlsx": str(xlsx_path),          # v35: 公共级 xlsx 始终有值
+        "xlsx_project": str(xlsx_project_path) if xlsx_project_path else None,  # v35: 项目级 xlsx（可选）
         "case_count": len(cases),
         "summary": result_json["summary"],
         "gate": gate,
@@ -220,9 +233,9 @@ def format_test_cases(
 #
 # 重要规则（与 MODULES.md §1 严格一致）：
 # 1. HINT **不**作为 Epic ID 前缀——HINT 仅作为 TP module 字段的取值
-# 2. 测试用例 case_id 的"模块"前缀必须从 8 模块中取全名（UI/BIZ/CONFIG/AUX/LINK/LOG/SPECIAL/HINT）
+# 2. 测试用例 case_id 的"模块"前缀必须从 8 模块中取全名（UI/BIZ/CONFIG/UTIL/LINK/LOG/SPECIAL/HINT）
 # 3. 模块字段支持中英双语（"界面" = "UI"），但 case_id 前缀统一用英文全名
-_MODULE_SEQ = ["UI", "BIZ", "CONFIG", "AUX", "LINK", "LOG", "SPECIAL", "HINT"]
+_MODULE_SEQ = ["UI", "BIZ", "CONFIG", "UTIL", "LINK", "LOG", "SPECIAL", "HINT"]
 _MODULE_COUNTER = {m: 0 for m in _MODULE_SEQ}
 
 # 中英模块名归一化映射（"界面" / "UI" / "ui" → "UI"）
@@ -233,7 +246,7 @@ _MODULE_NAME_NORMALIZE = {
     "界面":   "UI",
     "业务":   "BIZ",
     "配置":   "CONFIG",
-    "辅助":   "AUX",
+    "辅助":   "UTIL",
     "关联":   "LINK",
     "日志":   "LOG",
     "特殊":   "SPECIAL",
@@ -242,7 +255,7 @@ _MODULE_NAME_NORMALIZE = {
     "ui":   "UI",
     "biz":  "BIZ",
     "config": "CONFIG",
-    "aux":  "AUX",
+    "UTIL":  "UTIL",
     "link": "LINK",
     "log":  "LOG",
     "special": "SPECIAL",
@@ -250,7 +263,7 @@ _MODULE_NAME_NORMALIZE = {
     "UI":   "UI",
     "BIZ":  "BIZ",
     "CONFIG": "CONFIG",
-    "AUX":  "AUX",
+    "UTIL":  "UTIL",
     "LINK": "LINK",
     "LOG":  "LOG",
     "SPECIAL": "SPECIAL",
@@ -274,7 +287,7 @@ _V11_TO_CURRENT = {
     "INTERACTION":        "PURE_INTERACTION", # 默认归 PURE；UI 基础功能可拆出 CONTROL_BASE_FUNC
     "LAYOUT":             "LAYOUT_ADAPT",
     "RESOLUTION_COMPAT":  "LAYOUT_ADAPT",
-    # AUX v1.1 4 枚举 → v1.2 14 枚举
+    # UTIL v1.1 4 枚举 → v1.2 14 枚举
     "TOOL_UTIL":          "COMMON_UTIL",
     "NETWORK_LAYER":      "NETWORK_LAYER",
     "CACHE_HIT_RATE":     "CACHE_HIT_RATE",
@@ -283,7 +296,7 @@ _V11_TO_CURRENT = {
     "ACTIVITY_OPEN_CLOSE": "BIZ_STATE_MACHINE",  # 状态流转类；业务结果→BIZ_LOGIC
     "PROTOCOL":            "BIZ_PROTOCOL",
     "DB_PERSIST":          "BIZ_DB_PERSIST",
-    "ENTITY_CACHE":        "CACHE_HIT_RATE",     # v1.1 旧 BIZ 枚举 → v1.2 移交 AUX
+    "ENTITY_CACHE":        "CACHE_HIT_RATE",     # v1.1 旧 BIZ 枚举 → v1.2 移交 UTIL
     # LINK v1.1 3 枚举 → v1.2 6 枚举
     "CORRELATION_TEST":    "INTERNAL_BIZ_LINKAGE",
     "REGRESSION_TEST":     "CROSS_SERVER_SYNC",  # 跨服部分；第三方部分→EXTERNAL_THIRD_PARTY
@@ -326,7 +339,7 @@ def normalize_module_name(name: str) -> str | None:
         name: 任意形式的模块名
 
     Returns:
-        8 模块之一（CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT），不识别返回 None
+        8 模块之一（CONFIG/UI/BIZ/UTIL/LINK/LOG/SPECIAL/HINT），不识别返回 None
     """
     if not name:
         return None
@@ -476,7 +489,7 @@ def _attach_story_metadata(cases: list, breakdown: dict, test_points: dict) -> l
 def _module_prefix(module: str) -> str:
     """模块 → ID 前缀映射（与 .cursor/MODULES.md §1 严格一致）。
 
-    返回 8 模块英文全名（CONFIG/UI/BIZ/AUX/LINK/LOG/SPECIAL/HINT）。
+    返回 8 模块英文全名（CONFIG/UI/BIZ/UTIL/LINK/LOG/SPECIAL/HINT）。
     不识别时返回 None（禁止 fallback 到 "MISC"——必须 raise 由 S6 fail_report 处理）。
     """
     return normalize_module_name(module)

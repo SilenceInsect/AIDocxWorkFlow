@@ -21,7 +21,7 @@
 | R1 | **CONFIG-专家** | CONFIG | 配置表 / 字段 / 版本兼容 / 导出规则专家 | `module_templates/CONFIG/A_field_legality.md` ~ `I_server_specific.md`（9 子类）+ `J_boundary.md` + `K_game_specific.md` |
 | R2 | **UI-专家** | UI | 页面控件 / 布局 / 动效 / 多端适配 / 无障碍专家 | `module_templates/UI/A_control_basic.md` ~ `H_edge_ui.md`（8 子类）+ `I_boundary.md` + `J_game_specific.md` |
 | R3 | **BIZ-专家** | BIZ | 服务端业务逻辑 / 状态机 / 协议 / 并发 / 付费 / 审计专家 | `module_templates/BIZ/A_biz_logic.md` ~ `I_audit_log.md`（9 子类）+ `O_boundary.md` + `P_game_specific.md` |
-| R4 | **AUX-专家** | AUX | 底层 SDK / 网络 / 缓存 / 加密 / 资源 / 离线更新专家 | `module_templates/AUX/A_common_util.md` ~ `N_error_recovery.md`（14 子类）+ `O_boundary.md` + `P_game_specific.md` |
+| R4 | **UTIL-专家** | UTIL | 底层 SDK / 网络 / 缓存 / 加密 / 资源 / 离线更新专家 | `module_templates/UTIL/A_common_util.md` ~ `N_error_recovery.md`（14 子类）+ `O_boundary.md` + `P_game_specific.md` |
 | R5 | **LINK-专家** | LINK | 跨服务 / 跨端 / 外部三方 / 业务关联 + 变更视角回归专家 | `module_templates/LINK/A_internal_biz_linkage.md` ~ `F_outbound_data.md`（6 子类）+ `O_boundary.md` + `P_game_specific.md` + `link_module_chain_map.md`（v34 已落档双职责）|
 | R6 | **SPECIAL-专家** | SPECIAL | 异常 / 对抗 / 边界 / 弱网 / 反作弊 / 前后台 / 合规 / 资源耗尽专家 | `module_templates/SPECIAL/A_boundary_extreme.md` ~ `I_resource_exhaust.md`（9 子类）+ `O_boundary.md` + `P_game_specific.md` |
 | R7 | **LOG-专家** | LOG | 行为轨迹 / 审计 / 埋点 / 监控 / 崩溃 / 业务规范专家 | `module_templates/LOG/A_event_track.md` ~ `M_report_fault_tolerant.md`（13 子类）+ `O_boundary.md` + `P_game_specific.md` |
@@ -54,7 +54,7 @@
 ### 2.1 角色创造（Role Creation）
 
 - **用户原话**：#6 "生成对应的模块专项资深的专家"
-- **机制**：8 角色卡 §1 已固化（CONFIG/UI/BIZ/AUX/LINK/SPECIAL/LOG/HINT）
+- **机制**：8 角色卡 §1 已固化（CONFIG/UI/BIZ/UTIL/LINK/SPECIAL/LOG/HINT）
 - **核心约束**：**8 角色是 SSOT**（`.cursor/MODULES.md` §4.X 已定义）—— 不允许 Agent 在 8 角色基础上"再细分 / 再合并 / 再创造新角色"
 - **待用户拍板（Q-001）**：每个角色"专家身份"的具体深度（如 BIZ 角色 = 服务端业务逻辑专家 vs 业务架构师 vs DBA）| 状态：**PENDING**
 
@@ -79,7 +79,7 @@
 - **用户原话**：#7 "行为推进"
 - **机制**：8 角色在阶段内的推进顺序（**并行 vs 串行**）
   - **并行**：8 角色同时启动 → `goal_parallel_executor.py` 调度（v33 §10 已规划但未实现）
-  - **串行**：CONFIG → UI → BIZ → AUX → LINK → SPECIAL → LOG → HINT（按依赖关系）
+  - **串行**：CONFIG → UI → BIZ → UTIL → LINK → SPECIAL → LOG → HINT（按依赖关系）
 - **核心约束**：行为推进**必须有可审计产物**（不能"默默跑完"）
 - **待用户拍板（Q-002）**：并行执行是 goal_parallel_executor.py 真并行，还是 LLM 上下文分块思考 | 状态：**PENDING**
 

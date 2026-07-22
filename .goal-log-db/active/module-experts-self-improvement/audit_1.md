@@ -14,7 +14,7 @@
 | 验收项 | 证据 | 判定 |
 |--------|------|------|
 | 8份认知文档产出 | `knowledge/public/module_templates/_module_expert_cognition/*.md` (8个文件) | ✅ PASS |
-| 每模块≥5个关键认知点 | CONFIG(9个) UI(8个) BIZ(9个) AUX(10个) LINK(6个) SPECIAL(9个) LOG(9个) HINT(11个) | ✅ PASS |
+| 每模块≥5个关键认知点 | CONFIG(9个) UI(8个) BIZ(9个) UTIL(10个) LINK(6个) SPECIAL(9个) LOG(9个) HINT(11个) | ✅ PASS |
 | 每份文档包含模块定位 | 8份文档第一章"模块定位"均有内容 | ✅ PASS |
 
 **反向挑战**：文档内容是否基于真实文件记载，还是有编造成分？
@@ -46,7 +46,7 @@
 
 | 验收项 | 证据 | 判定 |
 |--------|------|------|
-| MODULE.md 文件存在 | CONFIG.md/UI.md/BIZ.md/AUX.md/LINK.md/SPECIAL.md/LOG.md/HINT.md 均已读取 | ✅ PASS |
+| MODULE.md 文件存在 | CONFIG.md/UI.md/BIZ.md/UTIL.md/LINK.md/SPECIAL.md/LOG.md/HINT.md 均已读取 | ✅ PASS |
 | 边界总览章节存在 | 8份概览均含"边界总览"章节 | ✅ PASS |
 
 **反向挑战**：边界总览是否完整？

@@ -139,7 +139,7 @@
 | LOG | 4 | 14.3% |
 | 总计 | 28 | 100% |
 
-> 注：未涉及 CONFIG/AUX/LINK/SPECIAL/HINT 模块（合理，折扣模块以业务逻辑为主）
+> 注：未涉及 CONFIG/UTIL/LINK/SPECIAL/HINT 模块（合理，折扣模块以业务逻辑为主）
 
 ---
 

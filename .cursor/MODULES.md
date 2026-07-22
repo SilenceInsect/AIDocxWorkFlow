@@ -6,7 +6,7 @@
 >
 > **修改原则**：模块定义有调整时，**只改本文件**，下游文件通过引用自动同步。
 
-**目录**：§1 总表 → §2 废弃 → §3 映射 → §3.5 交叉场景判定规则 → §4 矩阵 → §4.5 UI 细分索引 → §4.6 CONFIG 细分索引 → §4.7 AUX 细分索引 → §4.8 BIZ 细分索引 → §4.9 LINK 细分索引 → §4.10 SPECIAL 细分索引（v1.11 落地）→ §4.11 HINT 细分索引（v1.11 编号迁移，§4.10 → §4.11；v1.7+ 16 文件全落地）→ §4.12 LOG 细分索引（v1.9 落地）→ §5 引用规范 → §6 维护流程 → §8 影响审计 → §9 兼容映射 → §10 模块测试点模板 → §11 单写源规则 → 附录（版本历史）
+**目录**：§1 总表 → §2 废弃 → §3 映射 → §3.5 交叉场景判定规则 → §4 矩阵 → §4.5 UI 细分索引 → §4.6 CONFIG 细分索引 → §4.7 UTIL 细分索引 → §4.8 BIZ 细分索引 → §4.9 LINK 细分索引 → §4.10 SPECIAL 细分索引（v1.11 落地）→ §4.11 HINT 细分索引（v1.11 编号迁移，§4.10 → §4.11；v1.7+ 16 文件全落地）→ §4.12 LOG 细分索引（v1.9 落地）→ §5 引用规范 → §6 维护流程 → §8 影响审计 → §9 兼容映射 → §10 模块测试点模板 → §11 单写源规则 → 附录（版本历史）
 
 ---
 
@@ -17,10 +17,10 @@
 | 1  | 配置     | `CONFIG`  | 配置     | CONFIG   | 配置表结构与字段合法性、枚举/资源/ID/时间格式约束；同表/全表/环境一致性；跨表 ID 依赖 + 循环依赖；解析与加载（双端一致/性能/容错）；数值逻辑（概率/公式/上限/平衡）；热更（流程/状态/异常）；版本兼容与灰度；导出/导入/发布流程；服务端业务配置（开服/防沉迷/GM/多服）（9 大类详见 §4.5 + `module_templates/CONFIG/`）|
 | 2  | 界面     | `UI`      | 界面     | UI       | 纯前端 UI 层：控件渲染/状态/交互/布局/静态展示/动效/引导/无障碍/异常场景（详见 §4.5 + `module_templates/UI/`）|
 | 3  | 业务     | `BIZ`     | 业务     | BIZ      | 服务端业务逻辑、端服数据流、前后端协议交互、对象/活动状态机、数据库持久化、并发事务、付费/定时异步任务、业务联动（9 大类详见 §4.8 + `module_templates/BIZ/`）|
-| 4  | 辅助     | `AUX`     | 辅助     | AUX      | 底层全局公共工具类、通用基础框架组件；网络底层传输封装、消息队列、断线重连底层能力；客户端本地缓存、服务端 Redis 缓存、缓存生命周期管理；游戏资源加载/引用计数/卸载/分包更新底层能力；多货币汇率换算工具、数值格式化组件；离线资源包底层下载/校验/修复；分级 GM 后台工具、批量造数/自动化测试脚本；本地玩家设置持久化存储；画质帧率性能监控底层组件；整包/增量热更底层更新框架；资源&协议加密安全工具；全局崩溃捕获、底层异常兜底组件（详见 §4.7 + `module_templates/AUX/`）|
-| 5  | 关联     | `LINK`    | 关联     | LINK     | 内部业务上下游联动、多活动并行相交 / 重复开赛季重置逻辑；跨分布式服务数据同步、跨服互通业务与时序一致性；多端同账号数据实时对齐、多端登录冲突约束；第三方渠道登录 / 支付 / 上报业务对接、外部开放 API 交互与回调幂等处理；跨模块通用资源 / 限购互通约束；业务异步消息队列上下游透传；灰度 / 多服环境数据隔离与同步；游戏数据对外平台透出、客服 / 对账数据同步（**与 AUX 底层传输框架隔离，仅覆盖业务互通规则**）|
-| 6  | 特殊情境 | `SPECIAL` | 特殊     | SPECIAL  | 全系统数值/时间/权限/中断类边界极端场景、非正常业务异常分支处理；客户端本地篡改、伪造协议、挂机脚本等反作弊校验与非法数据拦截；本地存档、传输参数数据安全防护；弱网/抖动/断网环境业务操作容错、高频重复请求限流防刷；移动端前后台切换、进程杀除后状态与资源恢复逻辑；服务宕机、数据库抖动、版本回档、万人并发极限场景事务兜底；背包/邮件/服务器资源耗尽降级策略；新旧客户端版本兼容异常拦截；防沉迷、未成年付费、敏感内容等合规风控；批量清零/大额发奖/全服重置等高风险操作二次校验；灰度/渠道/离线资源损坏环境降级处理（底层网络、缓存工具等基础设施归 AUX 模块，本模块仅覆盖业务层对抗、容错、安全风控规则）（9 大类详见 §4.10 v1.10 待建 + `module_templates/SPECIAL/`）|
-| 7  | 日志     | `LOG`     | 日志     | LOG      | 全场景玩家生命周期 & 功能操作行为埋点；货币/道具/付费全链路资产审计流水；玩家、GM 运营、定时任务全量业务操作日志；服务性能指标、业务转化率、异常拦截监控埋点；客户端崩溃堆栈、业务报错异常日志并附带上下文快照；日志分级区分存储、冷热数据归档、定时生命周期清理；全链路 TraceID 串联、日志完整性对账校验、宕机断线缓存补报；埋点必填字段统一规范、隐私信息脱敏、渠道合规字段校验；安全反作弊拦截日志、第三方外部交互链路日志；日志检索溯源、线上问题复盘导出校验（**日志底层采集/存储 SDK、文件读写工具归 AUX 模块，本模块仅覆盖日志业务规范、审计、埋点触发与合规校验规则**）（13 大类详见 §4.12 + `module_templates/LOG/`）|
+| 4  | 辅助     | `UTIL`     | 辅助     | UTIL      | 底层全局公共工具类、通用基础框架组件；网络底层传输封装、消息队列、断线重连底层能力；客户端本地缓存、服务端 Redis 缓存、缓存生命周期管理；游戏资源加载/引用计数/卸载/分包更新底层能力；多货币汇率换算工具、数值格式化组件；离线资源包底层下载/校验/修复；分级 GM 后台工具、批量造数/自动化测试脚本；本地玩家设置持久化存储；画质帧率性能监控底层组件；整包/增量热更底层更新框架；资源&协议加密安全工具；全局崩溃捕获、底层异常兜底组件（详见 §4.7 + `module_templates/UTIL/`）|
+| 5  | 关联     | `LINK`    | 关联     | LINK     | 内部业务上下游联动、多活动并行相交 / 重复开赛季重置逻辑；跨分布式服务数据同步、跨服互通业务与时序一致性；多端同账号数据实时对齐、多端登录冲突约束；第三方渠道登录 / 支付 / 上报业务对接、外部开放 API 交互与回调幂等处理；跨模块通用资源 / 限购互通约束；业务异步消息队列上下游透传；灰度 / 多服环境数据隔离与同步；游戏数据对外平台透出、客服 / 对账数据同步（**与 UTIL 底层传输框架隔离，仅覆盖业务互通规则**）|
+| 6  | 特殊情境 | `SPECIAL` | 特殊     | SPECIAL  | 全系统数值/时间/权限/中断类边界极端场景、非正常业务异常分支处理；客户端本地篡改、伪造协议、挂机脚本等反作弊校验与非法数据拦截；本地存档、传输参数数据安全防护；弱网/抖动/断网环境业务操作容错、高频重复请求限流防刷；移动端前后台切换、进程杀除后状态与资源恢复逻辑；服务宕机、数据库抖动、版本回档、万人并发极限场景事务兜底；背包/邮件/服务器资源耗尽降级策略；新旧客户端版本兼容异常拦截；防沉迷、未成年付费、敏感内容等合规风控；批量清零/大额发奖/全服重置等高风险操作二次校验；灰度/渠道/离线资源损坏环境降级处理（底层网络、缓存工具等基础设施归 UTIL 模块，本模块仅覆盖业务层对抗、容错、安全风控规则）（9 大类详见 §4.10 v1.10 待建 + `module_templates/SPECIAL/`）|
+| 7  | 日志     | `LOG`     | 日志     | LOG      | 全场景玩家生命周期 & 功能操作行为埋点；货币/道具/付费全链路资产审计流水；玩家、GM 运营、定时任务全量业务操作日志；服务性能指标、业务转化率、异常拦截监控埋点；客户端崩溃堆栈、业务报错异常日志并附带上下文快照；日志分级区分存储、冷热数据归档、定时生命周期清理；全链路 TraceID 串联、日志完整性对账校验、宕机断线缓存补报；埋点必填字段统一规范、隐私信息脱敏、渠道合规字段校验；安全反作弊拦截日志、第三方外部交互链路日志；日志检索溯源、线上问题复盘导出校验（**日志底层采集/存储 SDK、文件读写工具归 UTIL 模块，本模块仅覆盖日志业务规范、审计、埋点触发与合规校验规则**）（13 大类详见 §4.12 + `module_templates/LOG/`）|
 | 8  | 提示     | `HINT`    | 提示     | HINT     | 全局临时反馈类提示组件：红点/角标/数字提醒（功能入口/数值/特殊标记）、资源/状态/结算飘字、轻量 Toast 短时弹窗、模态阻断式系统弹窗（错误/确认/公告/奖励汇总）、浮动通知/悬浮浮窗、错误提示文案专项、活动/Buff/资源过期限时提醒；新增 6 大类原定义缺失场景——新手引导高亮提示、聊天&社交提示、运营推送类提示、状态变更全局提示（升级/段位/赛季）、风控合规提示（防沉迷/付费限额/实名）、离线补偿&补发提示；与 UI 模块严格边界隔离——本模块仅覆盖临时弹出、一次性反馈、操作后自动消失的提示组件；页面常驻控件/固定布局/页面内置按钮输入框分页/静态展示/页面内常驻数值显示统归 UI 模块，二者无重叠（13 大类详见 §4.10 + `module_templates/HINT/`）|
 
 > **模块专家 skill 交叉引用（v34 B1 落地）**：8 业务模块各自对应一个**模块专家 skill**（项目内，纳入 git），
@@ -31,7 +31,7 @@
 > | 1 | `config-expert` | `.cursor/skills/config-expert/SKILL.md` | `/config-expert` |
 > | 2 | `ui-expert` | `.cursor/skills/ui-expert/SKILL.md` | `/ui-expert` |
 > | 3 | `biz-expert` | `.cursor/skills/biz-expert/SKILL.md` | `/biz-expert` |
-> | 4 | `aux-expert` | `.cursor/skills/aux-expert/SKILL.md` | `/aux-expert` |
+> | 4 | `UTIL-expert` | `.cursor/skills/UTIL-expert/SKILL.md` | `/UTIL-expert` |
 > | 5 | `link-expert` | `.cursor/skills/link-expert/SKILL.md` | `/link-expert` |
 > | 6 | `special-expert` | `.cursor/skills/special-expert/SKILL.md` | `/special-expert` |
 > | 7 | `log-expert` | `.cursor/skills/log-expert/SKILL.md` | `/log-expert` |
@@ -42,7 +42,7 @@
 > **本表与专家 skill 是 1:1 绑定关系**——本表加/删模块 = 同步加/删专家 skill + 同步 §0.1.3 权限表。
 
 > **ID 前缀说明**：
-> - `CONFIG / UI / BIZ / AUX / LINK / SPECIAL / LOG` — 用作 Epic ID 前缀（如 `CONFIG-VIP-001`）
+> - `CONFIG / UI / BIZ / UTIL / LINK / SPECIAL / LOG` — 用作 Epic ID 前缀（如 `CONFIG-VIP-001`）
 > - `HINT` — **不**用作 Epic ID 前缀；HINT 仅作为 `scenario_test_points[].module` 字段的取值，
 >   表示"该测试点属于 UI 交互中的提示/反馈"（如 `BIZ-PURCHASE-002-TP-002`，Story 是 BIZ 类，但 TP 标 HINT）
 
@@ -52,7 +52,7 @@
 
 | 旧前缀  | 中文       | 废弃版本 | 替代方案                                                                       |
 | ------- | ---------- | -------- | ------------------------------------------------------------------------------ |
-| `BASE`  | 基础       | v1.1     | 重新归类到上述 8 模块之一（多数情况归 `AUX`）                                  |
+| `BASE`  | 基础       | v1.1     | 重新归类到上述 8 模块之一（多数情况归 `UTIL`）                                  |
 
 > **迁移规则**：旧数据中如有 `BASE-*` Epic，需在 S2 重跑时重新分配到现行 8 模块之一。
 > 旧 JSON 文件不强制回改，但 S2 生成的 epic.module 字段必须从 8 模块中取值。
@@ -66,7 +66,7 @@
 | CONFIG   | 配置 | CONFIG| `CONFIG-VIP-001`                     |
 | UI       | 界面 | UI    | `UI-SHOP-001-TP-001`                 |
 | BIZ      | 业务 | BIZ   | `BIZ-PURCHASE-001`                   |
-| AUX      | 辅助 | AUX   | `AUX-CACHE-001`                      |
+| UTIL      | 辅助 | UTIL   | `UTIL-CACHE-001`                      |
 | LINK     | 关联 | LINK  | `LINK-PAYMENT-001`                   |
 | SPECIAL  | 特殊 | SPECIAL| `SPECIAL-VIP-CHANGE-001`           |
 | LOG      | 日志 | LOG   | `LOG-PAYMENT-001`                    |
@@ -84,7 +84,7 @@
 
 | 场景 / 关键字                                          | 归模块 |
 | ------------------------------------------------------ | ------ |
-| 底层框架/工具代码、SDK 封装、通用工具函数              | **AUX** |
+| 底层框架/工具代码、SDK 封装、通用工具函数              | **UTIL** |
 | 第三方渠道、外部接口、跨服数据同步业务                 | **LINK** |
 | 反作弊、限流、弱网业务异常、并发边界安全逻辑           | **SPECIAL** |
 | 资产审计、行为埋点、监控日志完整性校验                 | **LOG** |
@@ -97,13 +97,13 @@
 
 | 模块 | 不归它（归其他模块）                       |
 | ---- | ------------------------------------------ |
-| AUX  | 业务提示/日志/第三方/风控 → HINT/LOG/LINK/SPECIAL |
-| LINK | 网络底层传输、纯内部协议 → AUX / BIZ     |
-| SPECIAL | 通用异常框架、网络超时 → AUX / B         |
+| UTIL  | 业务提示/日志/第三方/风控 → HINT/LOG/LINK/SPECIAL |
+| LINK | 网络底层传输、纯内部协议 → UTIL / BIZ     |
+| SPECIAL | 通用异常框架、网络超时 → UTIL / B         |
 | LOG  | 业务计算、UI 渲染 → BIZ / UI             |
 | HINT | 页面布局控件、永久 UI 元素 → UI           |
 | UI   | 全局临时通知、飘字 → HINT                 |
-| BIZ  | 配置字段、UI 渲染、底层 SDK → CONFIG/UI/AUX |
+| BIZ  | 配置字段、UI 渲染、底层 SDK → CONFIG/UI/UTIL |
 | CONFIG | 业务流程、UI 交互 → BIZ / UI            |
 
 ---
@@ -123,7 +123,7 @@
 | 3 | 配置驱动 vs 业务逻辑 | **CONFIG > BIZ** | 行为由配置表 / 数值 / 热更控制时优先归 CONFIG |
 | 4 | 纯日志验证 vs 业务附带日志 | **纯日志归 LOG / 附带归 BIZ** | 主目标是验证日志输出归 LOG，业务验证顺带日志归 BIZ |
 | 5 | 红点 / 弹窗样式 vs 内容触发 | **样式归 UI / 触发归 HINT** | 验证 UI 样式归 UI，验证触发条件和内容归 HINT |
-| 6 | 辅助功能 vs 业务功能 | **AUX < BIZ（业务优先）** | 主要是业务逻辑附带辅助归 BIZ，纯辅助归 AUX |
+| 6 | 辅助功能 vs 业务功能 | **UTIL < BIZ（业务优先）** | 主要是业务逻辑附带辅助归 BIZ，纯辅助归 UTIL |
 | 7 | 关联影响 vs 主业务 | **LINK 独立 / BIZ 主归** | 主流程验证归 BIZ，跨模块影响验证单独归 LINK |
 | 8 | 特殊配置 vs 配置通用 | **SPECIAL > CONFIG** | 极端配置值 / 异常配置场景归 SPECIAL，常规配置验证归 CONFIG |
 
@@ -144,7 +144,7 @@
 | CONFIG   | **9 个 v1.2 枚举**（详见 §4.5）：`FIELD_LEGALITY` / `FIELD_INTRA_DEP` / `FIELD_CROSS_DEP` / `RELOAD_4_MODE` / `PARSE_LOAD` / `VERSION_COMPAT` / `VALUE_LOGIC` / `EXPORT_PUBLISH` / `SERVER_CONFIG` |
 | UI       | **11 个 v1.2 枚举**（详见 §4.5）：`CONTROL_RENDER` / `CONTROL_STATE` / `CONTROL_BASE_FUNC` / `CONTROL_BOUNDARY` / `PURE_INTERACTION` / `LAYOUT_ADAPT` / `STATIC_DISPLAY` / `ANIMATION` / `GUIDE_HINT` / `ACCESSIBILITY` / `EDGE_UI` |
 | BIZ      | **9 个 v1.2 枚举**（详见 §4.8）：`BIZ_LOGIC` / `BIZ_DATA_FLOW` / `BIZ_PROTOCOL` / `BIZ_STATE_MACHINE` / `BIZ_DB_PERSIST` / `BIZ_CONCURRENCY` / `BIZ_SCHEDULED_TASK` / `BIZ_PAYMENT` / `BIZ_AUDIT_LOG` |
-| AUX      | **14 个 v1.2 枚举**（详见 §4.7）：`COMMON_UTIL` / `NETWORK_LAYER` / `CACHE_HIT_RATE` / `RESOURCE_MGMT` / `CURRENCY_EXCHANGE` / `OFFLINE_UPDATE` / `GM_TOOL` / `TEST_SCRIPT` / `ACCEPTANCE_CHECKLIST` / `STORAGE_LOG` / `PERF_TOOL` / `OPS_TOOL` / `SECURITY` / `ERROR_RECOVERY`（v1.6.1 起：日志/埋点/崩溃业务侧已迁出 LOG 详见 §4.12；AUX 仅保留"底层 SDK/采集/上报框架"能力）|
+| UTIL      | **14 个 v1.2 枚举**（详见 §4.7）：`COMMON_UTIL` / `NETWORK_LAYER` / `CACHE_HIT_RATE` / `RESOURCE_MGMT` / `CURRENCY_EXCHANGE` / `OFFLINE_UPDATE` / `GM_TOOL` / `TEST_SCRIPT` / `ACCEPTANCE_CHECKLIST` / `STORAGE_LOG` / `PERF_TOOL` / `OPS_TOOL` / `SECURITY` / `ERROR_RECOVERY`（v1.6.1 起：日志/埋点/崩溃业务侧已迁出 LOG 详见 §4.12；UTIL 仅保留"底层 SDK/采集/上报框架"能力）|
 | LINK     | **6 个 v1.2 枚举**（详见 §4.9）：`INTERNAL_BIZ_LINKAGE` / `CROSS_SERVER_SYNC` / `MULTI_CLIENT_SYNC` / `EXTERNAL_THIRD_PARTY` / `CROSS_MODULE_RESOURCE` / `OUTBOUND_DATA` |
 | SPECIAL  | **9 个 v1.2 枚举**（详见 §4.10）：`BOUNDARY_EXTREME` / `ANTI_CHEAT` / `WEAK_NET_RATE_LIMIT` / `BG_FG_SWITCH` / `SERVER_HA_RISK` / `VERSION_COMPAT_BIZ` / `CHANNEL_GRAY_BIZ` / `COMPLIANCE_RISK` / `RESOURCE_EXHAUST` |
 | LOG      | **13 个 v1.9 枚举**（详见 §4.12）：`LOG_EVENT_TRACK` / `LOG_ASSET_AUDIT` / `LOG_OPERATION` / `LOG_MONITOR` / `LOG_CRASH_REPORT` / `LOG_LEVEL_STORAGE` / `LOG_INTEGRITY` / `LOG_FIELD_COMPLIANCE` / `LOG_TRACE` / `LOG_SECURITY` / `LOG_THIRD_PARTY` / `LOG_ISOLATION` / `LOG_REPORT_FAULT_TOLERANT` |
@@ -183,7 +183,7 @@
 > **明细、场景、种子 TP、验证证据** 全部在 `knowledge/public/module_templates/UI/` 下，
 > 本节不再重复（避免双写漂移）。
 >
-> 其他 7 模块（CONFIG/BIZ/AUX/LINK/SPECIAL/LOG/HINT）保持总表定义，不在本节展开。
+> 其他 7 模块（CONFIG/BIZ/UTIL/LINK/SPECIAL/LOG/HINT）保持总表定义，不在本节展开。
 
 ### 概览（10 大类 × 11 个 v1.2 枚举）
 
@@ -267,9 +267,9 @@
 | 归 UI                              | 不归 UI（归其他模块）                                                  |
 | ---------------------------------- | ---------------------------------------------------------------------- |
 | 只改页面视觉、前端本地逻辑         | 点击按钮后调接口、提交表单落库 → 归 **BIZ**                            |
-| 不请求后端接口的本地状态变更       | 后端数据返回渲染 → 归 **BIZ** / **AUX**                                |
+| 不请求后端接口的本地状态变更       | 后端数据返回渲染 → 归 **BIZ** / **UTIL**                                |
 | 纯前端本地筛选、排序、分页         | 付费弹窗拉起支付、跨系统跳转 → 归 **LINK**（第三方）/ **BIZ**（业务）  |
-| 静态资源展示（无业务）             | 资源下载逻辑、缓存命中率 → 归 **AUX**                                  |
+| 静态资源展示（无业务）             | 资源下载逻辑、缓存命中率 → 归 **UTIL**                                  |
 | 动效展示                           | 动效触发的数据变化、日志埋点 → 归 **LOG**                              |
 | 提示的承载样式（红点图标、Toast UI）| 提示内容本身（飘字文案、状态码）→ 归 **HINT**                          |
 
@@ -283,31 +283,31 @@
 
 ---
 
-## 4.7 AUX 模块细分（概览 + 索引）
+## 4.7 UTIL 模块细分（概览 + 索引）
 
-> 本节是 AUX 模块的**索引**——概览 + 枚举映射。
-> **明细、场景、种子 TP、验证证据** 全部在 `knowledge/public/module_templates/AUX/` 下，本节不重复。
+> 本节是 UTIL 模块的**索引**——概览 + 枚举映射。
+> **明细、场景、种子 TP、验证证据** 全部在 `knowledge/public/module_templates/UTIL/` 下，本节不重复。
 
 ### 概览（16 大类）
 
 | 字母 | 子类          | 测试类型枚举（v1.2）                | 模板                                                                |
 | ---- | ------------- | ----------------------------------- | ------------------------------------------------------------------- |
-| A    | 公共工具      | `COMMON_UTIL`                       | [`A_common_util.md`](../knowledge/public/module_templates/AUX/A_common_util.md)        |
-| B    | 网络层        | `NETWORK_LAYER`                     | [`B_network_layer.md`](../knowledge/public/module_templates/AUX/B_network_layer.md)    |
-| C    | 缓存层        | `CACHE_HIT_RATE`                    | [`C_cache_layer.md`](../knowledge/public/module_templates/AUX/C_cache_layer.md)        |
-| D    | 资源管理      | `RESOURCE_MGMT`                     | [`D_resource_mgmt.md`](../knowledge/public/module_templates/AUX/D_resource_mgmt.md)    |
-| E    | 汇率换算      | `CURRENCY_EXCHANGE`                 | [`E_currency_exchange.md`](../knowledge/public/module_templates/AUX/E_currency_exchange.md) |
-| F    | 离线/版本更新 | `OFFLINE_UPDATE`                    | [`F_offline_update.md`](../knowledge/public/module_templates/AUX/F_offline_update.md)  |
-| G    | GM 工具       | `GM_TOOL`                           | [`G_gm_tool.md`](../knowledge/public/module_templates/AUX/G_gm_tool.md)                |
-| H    | 测试脚本      | `TEST_SCRIPT`                       | [`H_test_script.md`](../knowledge/public/module_templates/AUX/H_test_script.md)        |
-| I    | 策划验收      | `ACCEPTANCE_CHECKLIST`              | [`I_acceptance_checklist.md`](../knowledge/public/module_templates/AUX/I_acceptance_checklist.md) |
-| J    | 存储         | `LOCAL_STORAGE`（v1.6.1 重命名 + 收窄为本地存档）  | [`J_storage.md`](../knowledge/public/module_templates/AUX/J_storage.md)                  |
-| K    | 画质/性能     | `PERF_TOOL`                         | [`K_perf_tool.md`](../knowledge/public/module_templates/AUX/K_perf_tool.md)            |
-| L    | 运营辅助      | `OPS_TOOL`                          | [`L_ops_tool.md`](../knowledge/public/module_templates/AUX/L_ops_tool.md)              |
-| M    | 加密安全      | `SECURITY`                          | [`M_security.md`](../knowledge/public/module_templates/AUX/M_security.md)              |
-| N    | 异常兜底      | `ERROR_RECOVERY`                    | [`N_error_recovery.md`](../knowledge/public/module_templates/AUX/N_error_recovery.md)  |
-| O    | 边界区分      | —（判定规则，非测试类型）          | [`O_boundary.md`](../knowledge/public/module_templates/AUX/O_boundary.md)              |
-| P    | 游戏项目补充  | —（游戏项目专属，非通用测试类型）  | [`P_game_specific.md`](../knowledge/public/module_templates/AUX/P_game_specific.md)    |
+| A    | 公共工具      | `COMMON_UTIL`                       | [`A_common_util.md`](../knowledge/public/module_templates/UTIL/A_common_util.md)        |
+| B    | 网络层        | `NETWORK_LAYER`                     | [`B_network_layer.md`](../knowledge/public/module_templates/UTIL/B_network_layer.md)    |
+| C    | 缓存层        | `CACHE_HIT_RATE`                    | [`C_cache_layer.md`](../knowledge/public/module_templates/UTIL/C_cache_layer.md)        |
+| D    | 资源管理      | `RESOURCE_MGMT`                     | [`D_resource_mgmt.md`](../knowledge/public/module_templates/UTIL/D_resource_mgmt.md)    |
+| E    | 汇率换算      | `CURRENCY_EXCHANGE`                 | [`E_currency_exchange.md`](../knowledge/public/module_templates/UTIL/E_currency_exchange.md) |
+| F    | 离线/版本更新 | `OFFLINE_UPDATE`                    | [`F_offline_update.md`](../knowledge/public/module_templates/UTIL/F_offline_update.md)  |
+| G    | GM 工具       | `GM_TOOL`                           | [`G_gm_tool.md`](../knowledge/public/module_templates/UTIL/G_gm_tool.md)                |
+| H    | 测试脚本      | `TEST_SCRIPT`                       | [`H_test_script.md`](../knowledge/public/module_templates/UTIL/H_test_script.md)        |
+| I    | 策划验收      | `ACCEPTANCE_CHECKLIST`              | [`I_acceptance_checklist.md`](../knowledge/public/module_templates/UTIL/I_acceptance_checklist.md) |
+| J    | 存储         | `LOCAL_STORAGE`（v1.6.1 重命名 + 收窄为本地存档）  | [`J_storage.md`](../knowledge/public/module_templates/UTIL/J_storage.md)                  |
+| K    | 画质/性能     | `PERF_TOOL`                         | [`K_perf_tool.md`](../knowledge/public/module_templates/UTIL/K_perf_tool.md)            |
+| L    | 运营辅助      | `OPS_TOOL`                          | [`L_ops_tool.md`](../knowledge/public/module_templates/UTIL/L_ops_tool.md)              |
+| M    | 加密安全      | `SECURITY`                          | [`M_security.md`](../knowledge/public/module_templates/UTIL/M_security.md)              |
+| N    | 异常兜底      | `ERROR_RECOVERY`                    | [`N_error_recovery.md`](../knowledge/public/module_templates/UTIL/N_error_recovery.md)  |
+| O    | 边界区分      | —（判定规则，非测试类型）          | [`O_boundary.md`](../knowledge/public/module_templates/UTIL/O_boundary.md)              |
+| P    | 游戏项目补充  | —（游戏项目专属，非通用测试类型）  | [`P_game_specific.md`](../knowledge/public/module_templates/UTIL/P_game_specific.md)    |
 
 > **完整覆盖范围**（一句话）：
 > 底层全局公共工具类、通用基础框架组件；网络底层传输封装、消息队列、断线重连底层能力；
@@ -319,10 +319,10 @@
 
 ### 边界区分（vs 其他 7 模块）
 
-> ⚠️ **完整边界规则 + 误判案例 + 决策树** 见 [`AUX/O_boundary.md`](../knowledge/public/module_templates/AUX/O_boundary.md)。
-> 本节只保留**核心对照**（防止误标 AUX 标签）。
+> ⚠️ **完整边界规则 + 误判案例 + 决策树** 见 [`UTIL/O_boundary.md`](../knowledge/public/module_templates/UTIL/O_boundary.md)。
+> 本节只保留**核心对照**（防止误标 UTIL 标签）。
 
-| 归 AUX                              | 不归 AUX（归其他模块）              |
+| 归 UTIL                              | 不归 UTIL（归其他模块）              |
 | ----------------------------------- | ---------------------------------- |
 | 底层通用基础能力、工具、框架组件    | 业务流程、玩家交互逻辑 → BIZ       |
 | GM / 测试 / 运营工具（底层）       | 配置表字段、跨表数值依赖 → CONFIG  |
@@ -334,34 +334,34 @@
 |                                     | 风控/反作弊 → SPECIAL（v1.10+）    |
 |                                     | 业务异常处理 / 运营业务 → BIZ（v1.11+）|
 
-#### AUX 与各模块的边界区分（一一对照）
+#### UTIL 与各模块的边界区分（一一对照）
 
 **vs HINT**：
-- AUX：底层通知框架 API（弹窗 API、红点 API、Toast API）
+- UTIL：底层通知框架 API（弹窗 API、红点 API、Toast API）
 - HINT：通知内容、触发逻辑、玩家可见的反馈表现
 
 **vs LOG**：
-- AUX：日志/埋点底层 SDK、采集框架
+- UTIL：日志/埋点底层 SDK、采集框架
 - LOG：业务埋点规范、审计日志完整性、监控日志业务规则
 
 **vs LINK**：
-- AUX：网络底层传输框架（TCP/长连接封装）
+- UTIL：网络底层传输框架（TCP/长连接封装）
 - LINK：业务层面第三方/跨服通信逻辑（调用外部接口、解析渠道回调、跨服数据同步业务）
 
 **vs SPECIAL**：
-- AUX：底层网络重连、崩溃捕获框架能力
+- UTIL：底层网络重连、崩溃捕获框架能力
 - SPECIAL：基于底层能力的业务安全/极端场景校验逻辑（反作弊、限流、弱网业务补偿）
 
 **vs UI**：
-- AUX：UI 框架底层 API（弹窗 API、路由 API）
+- UTIL：UI 框架底层 API（弹窗 API、路由 API）
 - UI：页面控件渲染、布局、静态结构
 
 **vs BIZ**：
-- AUX：底层工具（断线重连、缓存）
+- UTIL：底层工具（断线重连、缓存）
 - BIZ：业务流程（充值购买、任务结算、运营批量发奖/公告后台业务）
 
 **vs CONFIG**：
-- AUX：GM 工具底层（执行层）
+- UTIL：GM 工具底层（执行层）
 - CONFIG：GM 权限/参数配置（声明层）
 
 ### v1.6.1 裁剪说明（**已全部完成**）
@@ -376,15 +376,15 @@
 | **运营批量发奖/公告后台业务** | **BIZ 模块** | ✅ **v1.7 已落地** |
 
 > **占位文件清理**：
-> - `AUX/J_log_moved_to_LOG.md`（v1.6.1 占位）—— LOG v1.9 落地后已**删除**
-> - `AUX/L_ops_moved_to_BIZ.md`（v1.6.1+ 占位）—— BIZ v1.7 落地后已**删除**
+> - `UTIL/J_log_moved_to_LOG.md`（v1.6.1 占位）—— LOG v1.9 落地后已**删除**
+> - `UTIL/L_ops_moved_to_BIZ.md`（v1.6.1+ 占位）—— BIZ v1.7 落地后已**删除**
 
 **保留子模板**：A/B/C/D/E/F/G/H/I/J/K/L/M/N/O/P（其中 J 已重命名 J_storage_log → J_storage，N 缩窄为底层）|
 
 ### 维护原则
 
 - **MODULES.md §4.7**：只写概览 + 边界 + 索引（不写明细/场景/种子 TP）
-- **`module_templates/AUX/`**：写明细 + 场景 + 种子 TP + 验证证据
+- **`module_templates/UTIL/`**：写明细 + 场景 + 种子 TP + 验证证据
 - **禁止双写**：明细/场景/种子 TP 只能出现在模板里——`§4.7` 和模板**只**通过**链接**同步
 - 改模板**无需**改 §4.7（链接稳定即可）
 - 改 §4.7 的边界规则**必须**同步改 `O_boundary.md`（边界是 SSoT 核心）
@@ -430,7 +430,7 @@
 | ----------------------------------- | ---------------------------------- |
 | 服务端业务逻辑、协议字段、错误码体系 | 仅页面视觉、前端本地交互 → UI     |
 | 业务流程、数值计算、保底、风控约束 | 配置表字段、跨表数值依赖 → CONFIG  |
-| 端服跨服数据流、推送、限流、幂等   | 网络底层、Redis 缓存 → AUX         |
+| 端服跨服数据流、推送、限流、幂等   | 网络底层、Redis 缓存 → UTIL         |
 | 状态机流转、非法状态拦截           | 弱网/切后台/反作弊 → SPECIAL       |
 | DB 落库、事务、并发锁、宕机恢复   | 通用行为日志/埋点 → LOG            |
 | 多玩家并发（拍卖/抢购/全服奖励） | 第三方 SDK/支付集成 → LINK         |
@@ -453,11 +453,11 @@
 > 本节是 LINK 模块的**索引**——概览 + 边界规则 + 完整覆盖范围。
 > **明细、场景、种子 TP、验证证据** 在 [`knowledge/public/module_templates/LINK/`](../knowledge/public/module_templates/LINK.md) 下（**v1.8 已建** 1 概览 + 6 子模板 + O 边界 + P 游戏专项 = 8 文件），本节不重复（避免双写漂移）。
 >
-> **AUX 隔离（核心）**：LINK = 业务互通规则；AUX = 底层能力底座。详见 §4.9.1。
+> **UTIL 隔离（核心）**：LINK = 业务互通规则；UTIL = 底层能力底座。详见 §4.9.1。
 
 ### 4.9.0 核心一句话
 
-**LINK 聚焦多系统、多服务、多端、外部第三方之间的业务互通规则与数据同步一致性校验；底层网络、SDK 封装、通信工具能力归属 AUX 辅助模块，二者无重叠。**
+**LINK 聚焦多系统、多服务、多端、外部第三方之间的业务互通规则与数据同步一致性校验；底层网络、SDK 封装、通信工具能力归属 UTIL 辅助模块，二者无重叠。**
 
 > **LINK 双职责（v34 用户拍板 · 修正版 3）**：
 >
@@ -491,14 +491,14 @@
 >
 > 详见 `governance/design_iter/plans/v34/link_module_chain_map.md`
 
-### 4.9.1 AUX vs LINK 核心区分（"水管 vs 业务"规则）
+### 4.9.1 UTIL vs LINK 核心区分（"水管 vs 业务"规则）
 
-| 维度 | AUX 辅助 | LINK 关联 |
+| 维度 | UTIL 辅助 | LINK 关联 |
 | --- | --- | --- |
 | 定位 | 底层通用框架、工具、SDK 封装、传输基础设施 | 业务层面的关联、互通、外部对接逻辑 |
-| 职责 | 提供"能力底座"，**不含业务联动逻辑** | 基于 AUX 底层能力，实现**业务互通规则、数据同步约束、上下游联动** |
+| 职责 | 提供"能力底座"，**不含业务联动逻辑** | 基于 UTIL 底层能力，实现**业务互通规则、数据同步约束、上下游联动** |
 | 典型 | 网络长连接、协议编解码、SDK 加密、消息队列底层、HTTP 请求工具、TCP 重连 | 支付下单+回调解析+补发、跨服组队数据同步、多端登录冲突、第三方登录角色绑定 |
-| 一句话 | **AUX 是"水管"** | **LINK 是"水管里流通什么业务数据、两端业务怎么对齐"** |
+| 一句话 | **UTIL 是"水管"** | **LINK 是"水管里流通什么业务数据、两端业务怎么对齐"** |
 
 ### 4.9.2 完整覆盖范围（5 大类）
 
@@ -517,13 +517,13 @@
 
 | 归 LINK | 不归 LINK（归其他模块）|
 | --- | --- |
-| 内部多系统业务联动规则（上游解锁下游、模块互通数据流转）| 底层网络传输、SDK 底层封装、消息队列底层框架 → **AUX** |
+| 内部多系统业务联动规则（上游解锁下游、模块互通数据流转）| 底层网络传输、SDK 底层封装、消息队列底层框架 → **UTIL** |
 | 多活动并行相交、活动复开/重置业务规则 | 单系统独立业务流程（单独商城购买、单独任务领取）→ **BIZ** |
 | 跨分布式服务数据同步、跨服业务与时序一致性 | 第三方接口恶意篡改、跨服数据作弊拦截 → **SPECIAL** |
-| 多端同账号数据实时对齐、多端登录冲突约束 | 客户端本地缓存实现、缓存命中与淘汰 → **AUX** |
-| 第三方渠道登录/支付/上报业务对接、回调幂等 | 支付 SDK 底层加密、TCP 重连、HTTP 工具 → **AUX** |
-| 平台外部开放 API 交互（运营后台、客服工单、防沉迷）| 资源下载、断点续传、整包增量热更 → **AUX** |
-| 跨模块通用资源/限购互通约束（通用货币/道具全系统流通）| 业务资源加载、引用计数、卸载 → **AUX** |
+| 多端同账号数据实时对齐、多端登录冲突约束 | 客户端本地缓存实现、缓存命中与淘汰 → **UTIL** |
+| 第三方渠道登录/支付/上报业务对接、回调幂等 | 支付 SDK 底层加密、TCP 重连、HTTP 工具 → **UTIL** |
+| 平台外部开放 API 交互（运营后台、客服工单、防沉迷）| 资源下载、断点续传、整包增量热更 → **UTIL** |
+| 跨模块通用资源/限购互通约束（通用货币/道具全系统流通）| 业务资源加载、引用计数、卸载 → **UTIL** |
 | 业务异步消息队列上下游透传（充值完成推送活动服）| 业务流程内部状态机、业务异常处理 → **BIZ** |
 | 灰度/多服环境数据隔离与同步 | 灰度流量调度、防刷限流、外部接口限流 → **SPECIAL** |
 | 游戏数据对外平台透出（排行榜/客服/对账）、脱敏 | UI 弹窗、飘字、红点 → **HINT** |
@@ -535,8 +535,8 @@
 - **`module_templates/LINK/`**（v1.8 已建）：1 概览 + 6 子模板（A 内部业务关联 / B 跨服务 / C 多端一致性 / D 外部第三方 / E 跨模块资源互通 / F 对外数据透出）+ 1 边界 O_boundary + 1 游戏专项 P_game_specific = **8 文件**；写明细 + 场景 + 种子 TP + 验证证据
 - **禁止双写**：明细/场景/种子 TP 只能出现在模板里——`§4.9` 和模板**只**通过**链接**同步
 - 改 §4.9 边界规则**必须**同步改 [`LINK/O_boundary.md`](../knowledge/public/module_templates/LINK/O_boundary.md)（v1.8 已建，含 7 大类边界对照 + 7 个误判案例 + 判定流程图 + 6 子类判定口诀）
-- **与 AUX §4.7 严格隔离**：AUX 管"底层能力"、LINK 管"业务互通规则"——任何重叠项归 AUX（基础设施）/ LINK（业务规则），**无第三选项**
-- 判不出来的回归到 **3 步判定法**：（1）是底层能力/工具/SDK？→ AUX；（2）是单系统独立业务？→ BIZ；（3）都不属于 + 涉及多系统/多服务/多端/外部互通？→ LINK
+- **与 UTIL §4.7 严格隔离**：UTIL 管"底层能力"、LINK 管"业务互通规则"——任何重叠项归 UTIL（基础设施）/ LINK（业务规则），**无第三选项**
+- 判不出来的回归到 **3 步判定法**：（1）是底层能力/工具/SDK？→ UTIL；（2）是单系统独立业务？→ BIZ；（3）都不属于 + 涉及多系统/多服务/多端/外部互通？→ LINK
 - 改模板**无需**改 §4.9（链接稳定即可）；改 §4.9 边界规则**必须**同步改 O_boundary.md 双向同步（按 §11.2 同步机制）
 
 ---
@@ -546,20 +546,20 @@
 > 本节是 SPECIAL 模块的**索引**——概览 + 边界规则 + 完整覆盖范围。
 > **明细、场景、种子 TP、验证证据** 全部在 `knowledge/public/module_templates/SPECIAL/` 下，本节不重复（避免双写漂移）。
 >
-> **AUX 隔离（核心）**：SPECIAL = 业务层对抗/容错/安全风控规则；AUX = 底层能力底座。详见 §4.10.1。
+> **UTIL 隔离（核心）**：SPECIAL = 业务层对抗/容错/安全风控规则；UTIL = 底层能力底座。详见 §4.10.1。
 
 ### 4.10.0 核心一句话
 
-**SPECIAL 聚焦非正常、高危、极端、对抗性场景的业务风控与容错逻辑（边界极端/反作弊/弱网限流/前后台/宕机高危/版本兼容/渠道灰度/合规/资源耗尽）；底层网络重连、崩溃捕获、缓存工具等基础设施归 AUX 模块，正常正向业务流程归 BIZ 模块，第三方/跨服互通异常归 LINK 模块——四者无重叠。**
+**SPECIAL 聚焦非正常、高危、极端、对抗性场景的业务风控与容错逻辑（边界极端/反作弊/弱网限流/前后台/宕机高危/版本兼容/渠道灰度/合规/资源耗尽）；底层网络重连、崩溃捕获、缓存工具等基础设施归 UTIL 模块，正常正向业务流程归 BIZ 模块，第三方/跨服互通异常归 LINK 模块——四者无重叠。**
 
-### 4.10.1 AUX vs BIZ vs LINK vs SPECIAL 核心区分（"水管 vs 业务 vs 对抗"规则）
+### 4.10.1 UTIL vs BIZ vs LINK vs SPECIAL 核心区分（"水管 vs 业务 vs 对抗"规则）
 
-| 维度 | AUX 辅助 | BIZ 业务 | LINK 关联 | SPECIAL 特殊 |
+| 维度 | UTIL 辅助 | BIZ 业务 | LINK 关联 | SPECIAL 特殊 |
 | --- | --- | --- | --- | --- |
 | 定位 | 底层通用框架、工具、SDK 封装、传输基础设施 | 业务层正常流转规则 | 业务层多系统互通规则 | 业务层对抗/容错/安全风控 |
 | 职责 | 提供"能力底座"，**不含业务联动逻辑** | 单系统独立业务流程 | 多系统/多端/外部互通规则 | 异常/高危/对抗/极限/合规/资源耗尽 |
 | 典型 | 网络长连接、Redis、SDK 加密、崩溃捕获、TCP 重连 | 充值购买、任务领取、状态机、数据库持久化 | 跨服组队、第三方支付回调、多端登录 | 反作弊、限流、弱网降级、宕机 Failover、防沉迷、版本兼容 |
-| 一句话 | **AUX 是"水管"** | **BIZ 是"水管里流什么"** | **LINK 是"两管怎么对接"** | **SPECIAL 是"水管破裂/泄漏/污染时怎么办"** |
+| 一句话 | **UTIL 是"水管"** | **BIZ 是"水管里流什么"** | **LINK 是"两管怎么对接"** | **SPECIAL 是"水管破裂/泄漏/污染时怎么办"** |
 
 ### 4.10.2 完整覆盖范围（9 大类）
 
@@ -583,14 +583,14 @@
 | 归 SPECIAL | 不归 SPECIAL（归其他模块）|
 | --- | --- |
 | 异常/高危/对抗/极限/合规/资源耗尽 业务规则 | 业务流程、玩家交互逻辑 → **BIZ** |
-| 反作弊检测/数据篡改识别/作弊行为检测 | 底层网络/工具/SDK/加密算法 → **AUX** |
+| 反作弊检测/数据篡改识别/作弊行为检测 | 底层网络/工具/SDK/加密算法 → **UTIL** |
 | 弱网业务容错/限流防刷/雪崩保护 | 跨服/第三方正常业务 → **LINK** |
 | 切后台状态恢复/进程被杀后资源释放 | 页面视觉/前端交互/页面渲染 → **UI** |
 | 宕机 Failover/事务回滚/补偿/高危风控 | 提示内容/弹窗样式/飘字 → **HINT** |
 | 反作弊审计/作弊日志留痕（执行层）| 通用行为日志/埋点/审计完整性 → **LOG** |
 | 版本兼容/资源缺失兜底/协议版本校验 | 配置表字段/跨表数值/版本号配置 → **CONFIG** |
 | 防沉迷/未成年付费限额/敏感词/地区合规（执行层）| 合规配置字段（防沉迷时长配置）→ **CONFIG** |
-| 业务资源耗尽（背包满/CPU 高/DB 满）降级 | 资源管理底层（加载/释放/引用计数）→ **AUX D** |
+| 业务资源耗尽（背包满/CPU 高/DB 满）降级 | 资源管理底层（加载/释放/引用计数）→ **UTIL D** |
 
 ### 4.10.4 枚举值与子类映射（9 个 v1.2 枚举）
 
@@ -613,18 +613,18 @@
 - **禁止双写**：明细/场景/种子 TP 只能出现在模板里——`§4.10` 和模板**只**通过**链接**同步
 - 改模板**无需**改 §4.10（链接稳定即可）
 - 改 §4.10 边界规则**必须**同步改 `O_boundary.md`（边界是 SSoT 核心）
-- **AUX vs BIZ vs LINK vs SPECIAL 严格隔离**：AUX 管"底层能力"、BIZ 管"正常业务流程"、LINK 管"业务互通规则"、SPECIAL 管"异常/对抗/容错/合规/资源耗尽 业务规则"——四者无重叠
-- 判不出来的回归到 **3 步判定法**：（1）涉及底层能力/工具/SDK？→ AUX；（2）涉及单系统独立业务？→ BIZ；（3）涉及多系统/多端/外部互通？→ LINK；（4）涉及异常/高危/对抗/极限/合规/资源耗尽？→ SPECIAL
+- **UTIL vs BIZ vs LINK vs SPECIAL 严格隔离**：UTIL 管"底层能力"、BIZ 管"正常业务流程"、LINK 管"业务互通规则"、SPECIAL 管"异常/对抗/容错/合规/资源耗尽 业务规则"——四者无重叠
+- 判不出来的回归到 **3 步判定法**：（1）涉及底层能力/工具/SDK？→ UTIL；（2）涉及单系统独立业务？→ BIZ；（3）涉及多系统/多端/外部互通？→ LINK；（4）涉及异常/高危/对抗/极限/合规/资源耗尽？→ SPECIAL
 
 ### 4.10.6 v1.11 SPECIAL 核心定位
 
 > **SPECIAL = "非正常、高危、极端、对抗性场景"**
-> 1. **底层能力归 AUX**（网络 SDK/缓存工具/崩溃框架等）——SPECIAL 校验**这套能力之上**的业务容错
+> 1. **底层能力归 UTIL**（网络 SDK/缓存工具/崩溃框架等）——SPECIAL 校验**这套能力之上**的业务容错
 > 2. **正常业务归 BIZ**（正常流程/常规分支）——SPECIAL 只处理**异常**场景
 > 3. **第三方/跨服正常互通归 LINK**——SPECIAL 只处理**第三方接口异常 + 跨服数据作弊拦截**
 > 4. **界面加载失败归 UI**（纯视觉）——SPECIAL 处理**界面异常导致的业务错乱**
 > 5. **SPECIAL 专精**：异常/高危/对抗/极限/合规/资源耗尽——9 大类（A-I）各管一段，无重叠
-> 6. **本模块仅覆盖异常、高危、对抗、极限、合规限制类业务规则；正常正向业务流程归入 BIZ，底层通信/工具框架归入 AUX，第三方跨服正常互通归入 LINK，各模块无用例范围重叠**
+> 6. **本模块仅覆盖异常、高危、对抗、极限、合规限制类业务规则；正常正向业务流程归入 BIZ，底层通信/工具框架归入 UTIL，第三方跨服正常互通归入 LINK，各模块无用例范围重叠**
 
 ---
 
@@ -678,15 +678,15 @@
 
 | 归 HINT | 不归 HINT（归其他模块）|
 | --- | --- |
-| 玩家可见的临时反馈、提示内容、文案 | 通知的底层 API、SDK、框架能力 → **AUX** |
+| 玩家可见的临时反馈、提示内容、文案 | 通知的底层 API、SDK、框架能力 → **UTIL** |
 | 红点/飘字/Toast/弹窗文案/触发逻辑 | 业务流程中"什么条件下触发" → **BIZ** |
 | 错误提示文案分级样式 | 错误码体系、错误处理业务逻辑 → **BIZ** |
 | 活动弹窗的 UI 表现（弹窗本身）| 活动状态机、活动业务规则 → **BIZ** |
-| 限时倒计时浮窗的展示 | 倒计时定时器、定时任务调度 → **AUX** / **BIZ** |
+| 限时倒计时浮窗的展示 | 倒计时定时器、定时任务调度 → **UTIL** / **BIZ** |
 | 合规弹窗内容（防沉迷文案）| 合规校验、风控逻辑 → **SPECIAL H** |
 | 离线补偿弹窗的展示 | 离线补偿数据生成、回档补偿业务 → **BIZ** |
-| 引导气泡、遮罩指引 | 引导底层框架（步骤管理器）→ **AUX** |
-| 飘字/Toast 多队列管理 | 通知底层队列框架 → **AUX** |
+| 引导气泡、遮罩指引 | 引导底层框架（步骤管理器）→ **UTIL** |
+| 飘字/Toast 多队列管理 | 通知底层队列框架 → **UTIL** |
 | **承载样式（红点图标、Toast UI）** → **UI** | **提示内容本身（飘字文案、状态码）** → **HINT** |
 
 ### 4.11.4 枚举值与子类映射（13 个 v1.7 规划枚举）
@@ -754,7 +754,7 @@
 > 本节是 LOG 模块的**索引**——概览 + 边界规则 + 枚举映射。
 > **明细、场景、种子 TP、验证证据** 全部在 `knowledge/public/module_templates/LOG/` 下，本节不重复。
 >
-> **v1.9 核心定位**：**LOG = 日志业务规范 + 审计 + 埋点触发 + 合规**；**AUX = 日志底层采集 SDK + 文件读写 + 网络上报框架**——两者**严格隔离、无职责重叠**。
+> **v1.9 核心定位**：**LOG = 日志业务规范 + 审计 + 埋点触发 + 合规**；**UTIL = 日志底层采集 SDK + 文件读写 + 网络上报框架**——两者**严格隔离、无职责重叠**。
 
 ### 概览（15 文件 = 13 测试子模板 + 2 规则）
 
@@ -781,28 +781,28 @@
 > 服务性能指标、业务转化率、异常拦截监控埋点；客户端崩溃堆栈、业务报错异常日志并附带上下文快照；
 > 日志分级区分存储、冷热数据归档、定时生命周期清理；全链路 TraceID 串联、日志完整性对账校验、宕机断线缓存补报；
 > 埋点必填字段统一规范、隐私信息脱敏、渠道合规字段校验；安全反作弊拦截日志、第三方外部交互链路日志；
-> 日志检索溯源、线上问题复盘导出校验。**日志底层采集/存储/上报 SDK、文件读写工具归 AUX 模块，本模块仅覆盖日志业务规范、审计、埋点触发与合规校验规则**。
+> 日志检索溯源、线上问题复盘导出校验。**日志底层采集/存储/上报 SDK、文件读写工具归 UTIL 模块，本模块仅覆盖日志业务规范、审计、埋点触发与合规校验规则**。
 
-### LOG vs AUX 严格隔离（核心边界）
+### LOG vs UTIL 严格隔离（核心边界）
 
 > ⚠️ **完整边界规则 + 误判案例 + 决策树** 见 [`LOG/O_boundary.md`](../knowledge/public/module_templates/LOG/O_boundary.md)。
-> 本节只保留**核心对照**（防止误标 LOG / AUX 标签）。
+> 本节只保留**核心对照**（防止误标 LOG / UTIL 标签）。
 
 | 归 LOG | 不归 LOG（归其他模块）              |
 | ------ | ---------------------------------- |
-| 业务埋点触发规则、字段规范、链路串联 | 日志采集 SDK、断网缓存 → **AUX**     |
-| 资产审计流水、batch_id 聚合对账     | 本地文件读写、Redis 缓存 → **AUX**     |
-| 全量操作日志留痕、覆盖率 100%       | 通用网络层、断线重连 → **AUX**         |
-| 服务监控业务指标埋点、告警          | 通用性能组件、FPS 监控 → **AUX K**     |
-| 客户端崩溃日志内容（堆栈+上下文+设备）| 崩溃底层 Native 捕获 → **AUX N**     |
-| 日志分级/生命周期/冷热分离          | 通用 localStorage 工具 → **AUX J**    |
-| 日志完整性、幂等、链路一致          | 加密算法（AES/SHA）→ **AUX M**        |
+| 业务埋点触发规则、字段规范、链路串联 | 日志采集 SDK、断网缓存 → **UTIL**     |
+| 资产审计流水、batch_id 聚合对账     | 本地文件读写、Redis 缓存 → **UTIL**     |
+| 全量操作日志留痕、覆盖率 100%       | 通用网络层、断线重连 → **UTIL**         |
+| 服务监控业务指标埋点、告警          | 通用性能组件、FPS 监控 → **UTIL K**     |
+| 客户端崩溃日志内容（堆栈+上下文+设备）| 崩溃底层 Native 捕获 → **UTIL N**     |
+| 日志分级/生命周期/冷热分离          | 通用 localStorage 工具 → **UTIL J**    |
+| 日志完整性、幂等、链路一致          | 加密算法（AES/SHA）→ **UTIL M**        |
 | 字段必填、隐私脱敏、未成年人隔离    | —                                    |
 | 全链路 TraceID 串联、检索、导出     | 业务流程本身（购买扣款/发货）→ **BIZ**  |
 | 安全/反作弊/封禁/异地/批量建号日志留痕 | 反作弊业务逻辑、检测算法 → **SPECIAL** |
 | 第三方交互日志留痕、回调全链路      | 第三方业务集成（微信/支付宝）→ **LINK** |
 | 多语言/多渠道/灰度/测试服日志隔离   | 渠道业务（iOS/Android 分包）→ **LINK** |
-| 断网缓存、批量合并、重试、分片、压缩 | 通用网络层（HTTP 客户端）→ **AUX B**   |
+| 断网缓存、批量合并、重试、分片、压缩 | 通用网络层（HTTP 客户端）→ **UTIL B**   |
 
 ### 维护原则
 
@@ -811,7 +811,7 @@
 - **禁止双写**：明细/场景/种子 TP 只能出现在模板里——`§4.12` 和模板**只**通过**链接**同步
 - 改模板**无需**改 §4.12（链接稳定即可）
 - 改 §4.12 的边界规则**必须**同步改 `O_boundary.md`（边界是 SSoT 核心）
-- **LOG vs AUX 严格隔离**：LOG 管"业务规范/审计/埋点触发/合规"，AUX 管"底层 SDK/采集/上报框架"——**判不出来的回归到 1 句话判定法**：（1）测"业务侧应该写什么日志、写什么字段、字段怎么脱敏、链路怎么串联" → **LOG**；（2）测"S SDK 怎么采集、文件怎么写、网络怎么传" → **AUX**
+- **LOG vs UTIL 严格隔离**：LOG 管"业务规范/审计/埋点触发/合规"，UTIL 管"底层 SDK/采集/上报框架"——**判不出来的回归到 1 句话判定法**：（1）测"业务侧应该写什么日志、写什么字段、字段怎么脱敏、链路怎么串联" → **LOG**；（2）测"S SDK 怎么采集、文件怎么写、网络怎么传" → **UTIL**
 - **LOG vs BIZ-I 区分**：LOG-B 测"资产对账可导出/全链路流水"，BIZ-I `BIZ_AUDIT_LOG` 测"业务侧落点是否完整"——同一笔业务 → BIZ-I 校验"是否写日志"，LOG 校验"日志能否对账"
 
 ---
@@ -838,7 +838,7 @@
 ```python
 # 模块定义见 .cursor/MODULES.md（项目级唯一真相源）
 # 本文件不重写模块表，仅引用
-_MODULE_SEQ = ["UI", "BIZ", "CONFIG", "AUX", "LINK", "LOG", "SPECIAL", "HINT"]
+_MODULE_SEQ = ["UI", "BIZ", "CONFIG", "UTIL", "LINK", "LOG", "SPECIAL", "HINT"]
 ```
 
 ### ❌ 反例（禁止在下游重写模块表）
@@ -955,7 +955,7 @@ _MODULE_SEQ = ["UI", "BIZ", "CONFIG", ...]   # 列出但不引用 MODULES.md
 | `EXPORT_PUBLISH`     | H.导出发布     | （新增）                | 历史数据无对应项，v1.2 首次出现 |
 | `SERVER_CONFIG`      | I.服务端专属   | （新增）                | 历史数据无对应项，v1.2 首次出现 |
 
-### 9.4 AUX 测试类型兼容映射
+### 9.4 UTIL 测试类型兼容映射
 
 | v1.2 枚举（现行）         | 归属子类       | v1.1 旧枚举（已废弃）   | 兼容规则（数据加载时执行）|
 | ------------------------- | -------------- | ----------------------- | -------------------------|
@@ -993,7 +993,7 @@ _MODULE_SEQ = ["UI", "BIZ", "CONFIG", ...]   # 列出但不引用 MODULES.md
 > - 状态流转（如"活动状态机 未开启→进行中→结束"）→ `BIZ_STATE_MACHINE`
 > - 涉及"定时器触发" → `BIZ_SCHEDULED_TASK`
 >
-> 旧 `ENTITY_CACHE` 在 v1.2 中**移交给 AUX C**（`CACHE_HIT_RATE`），不再属于 BIZ。
+> 旧 `ENTITY_CACHE` 在 v1.2 中**移交给 UTIL C**（`CACHE_HIT_RATE`），不再属于 BIZ。
 
 ### 9.6 LINK 测试类型兼容映射
 
@@ -1071,9 +1071,9 @@ _MODULE_SEQ = ["UI", "BIZ", "CONFIG", ...]   # 列出但不引用 MODULES.md
 | `LOG_ISOLATION`                   | L.隔离     | （新增）       | v1.9 首次出现（v1.1 完全缺失） |
 | `LOG_REPORT_FAULT_TOLERANT`       | M.上报容错 | （新增）       | v1.9 首次出现（v1.1 完全缺失） |
 
-> **v1.6 → v1.9 重大变更**：v1.6 时代日志/埋点/崩溃归属 AUX J（`STORAGE_LOG`）；
-> v1.6.1 AUX 收窄到"底层 SDK"，日志业务侧迁出；
-> v1.9 LOG 完整承接——LOG 管"业务规范/审计/埋点触发/合规"、AUX 管"底层 SDK/采集/上报框架"。
+> **v1.6 → v1.9 重大变更**：v1.6 时代日志/埋点/崩溃归属 UTIL J（`STORAGE_LOG`）；
+> v1.6.1 UTIL 收窄到"底层 SDK"，日志业务侧迁出；
+> v1.9 LOG 完整承接——LOG 管"业务规范/审计/埋点触发/合规"、UTIL 管"底层 SDK/采集/上报框架"。
 >
 > **拆分说明（与 BIZ-I `BIZ_AUDIT_LOG` 边界切分）**：
 > - **`LOG_ASSET_AUDIT`**：测"全链路流水可对账"——跨业务正负匹配、batch_id 聚合、跨服对账、可导出
@@ -1147,11 +1147,11 @@ S5 启动时检查：
 | ------ | ---- | -------- | --------- | -------------------------- |
 | UI     | ✅    | 10       | v1.0 完整 | 你已给 8 大类细化          |
 | CONFIG | ✅    | 11       | v1.0 完整 | 你已给 5 段+5 大类细化（含服务端/游戏专项）|
-| AUX    | ✅    | 16       | v1.6.1 裁剪 | 你已给 9 原有+7 新增 16 大类细化（含游戏专项）；v1.6.1 收窄为底层基础工具 |
+| UTIL    | ✅    | 16       | v1.6.1 裁剪 | 你已给 9 原有+7 新增 16 大类细化（含游戏专项）；v1.6.1 收窄为底层基础工具 |
 | BIZ    | ✅    | 11       | v1.7 完整 | 你已给 5 段+4 新增大类细化（含游戏专项/边界区分）；建立 §4.8 BIZ 细分索引 + §9.5 兼容映射 + §1 总表完整描述 + §4 矩阵扩展；238 个种子 TP（A-I 各 20-30）+ P 40 = 278 |
-| LINK   | ✅    | 8        | v1.8 完整 | 6 子模板（A 内部业务关联 / B 跨服务 / C 多端一致性 / D 外部第三方 / E 跨模块资源互通 / F 对外数据透出）+ O_boundary（7 大类边界 + 7 误判案例 + 判定流程图）+ P_game_specific（5 游戏子领域）= 共 8 文件；AUX vs LINK "水管 vs 业务"边界规则在 8 文件中持续交叉引用 |
-| SPECIAL| ✅    | 11（9 测试子模板 + O 边界 + P 游戏专项）| v1.11 完整 | 你已给 5 原有+4 新增 9 大类细化（含边界/反作弊/弱网/前后台/宕机/版本兼容/渠道灰度/合规/资源耗尽）+ 边界隔离 vs AUX/BIZ/LINK/UI/HINT/LOG/CONFIG 7 模块；建立 §4.10 SPECIAL 细分索引 + §9.7 兼容映射 + §1 总表完整描述 + §4 矩阵扩展；192 个种子 TP（A-I 各 20 + P 12）；SPECIAL = 异常/高危/对抗/极限/合规/资源耗尽 业务规则；底层归 AUX、正常归 BIZ、跨服正常归 LINK |
-| LOG    | ✅    | 15（13 测试子模板 + O 边界 + P 游戏专项）| 13 | v1.9 完整 | 你已给 9 段+4 新增大类细化（含游戏专项/边界区分/与 AUX 严格隔离）；建立 §4.12 LOG 细分索引 + §9.9 兼容映射 + §1 总表完整描述 + §4 矩阵扩展；321 个种子 TP（A-M 各 25-30）+ P 32 = 353；LOG vs BIZ-I `BIZ_AUDIT_LOG` 边界切分（LOG-B 测"全链路对账"、BIZ-I 测"业务侧落点"）；AUX/J_log_moved_to_LOG.md 占位文件已删除 |
+| LINK   | ✅    | 8        | v1.8 完整 | 6 子模板（A 内部业务关联 / B 跨服务 / C 多端一致性 / D 外部第三方 / E 跨模块资源互通 / F 对外数据透出）+ O_boundary（7 大类边界 + 7 误判案例 + 判定流程图）+ P_game_specific（5 游戏子领域）= 共 8 文件；UTIL vs LINK "水管 vs 业务"边界规则在 8 文件中持续交叉引用 |
+| SPECIAL| ✅    | 11（9 测试子模板 + O 边界 + P 游戏专项）| v1.11 完整 | 你已给 5 原有+4 新增 9 大类细化（含边界/反作弊/弱网/前后台/宕机/版本兼容/渠道灰度/合规/资源耗尽）+ 边界隔离 vs UTIL/BIZ/LINK/UI/HINT/LOG/CONFIG 7 模块；建立 §4.10 SPECIAL 细分索引 + §9.7 兼容映射 + §1 总表完整描述 + §4 矩阵扩展；192 个种子 TP（A-I 各 20 + P 12）；SPECIAL = 异常/高危/对抗/极限/合规/资源耗尽 业务规则；底层归 UTIL、正常归 BIZ、跨服正常归 LINK |
+| LOG    | ✅    | 15（13 测试子模板 + O 边界 + P 游戏专项）| 13 | v1.9 完整 | 你已给 9 段+4 新增大类细化（含游戏专项/边界区分/与 UTIL 严格隔离）；建立 §4.12 LOG 细分索引 + §9.9 兼容映射 + §1 总表完整描述 + §4 矩阵扩展；321 个种子 TP（A-M 各 25-30）+ P 32 = 353；LOG vs BIZ-I `BIZ_AUDIT_LOG` 边界切分（LOG-B 测"全链路对账"、BIZ-I 测"业务侧落点"）；UTIL/J_log_moved_to_LOG.md 占位文件已删除 |
 | HINT   | ✅    | 16（1 概览 + 13 测试子模板 + O 边界 + P 游戏专项）| v1.7+ 完整 | 13 大类职责边界 + 与 UI 关键边界隔离 + 临时 vs 常驻 判定法已落地；建立 16 文件子模板（A_*.md ~ M_*.md + O_boundary.md 含 7 模块边界对照 + 8 误判案例 + 判定流程图 + P_game_specific.md 含 5 游戏子领域）；**250 个种子 TP**（A20+B25+C20+D20+E20+F15+G20+H15+I15+J15+K15+L20+M15=235 + P 15）；§1 总表 / §4.11 完整索引 / §4.11.5 子类索引 / §9.7 兼容映射已建立；HINT vs UI 严格隔离——HINT 测"内容/触发/文案"、UI F.GUIDE_HINT 测"样式/位置/动画"，无重叠 |
 
 ### 10.6 维护流程
@@ -1163,17 +1163,17 @@ S5 启动时检查：
 
 ### 10.7 LOG 模块特殊维护说明
 
-- **LOG vs AUX 严格隔离是 v1.9 核心**：每次 LOG 子模板新增/修改时，必须复核 `LOG/O_boundary.md` §4 速查表是否需要追加
+- **LOG vs UTIL 严格隔离是 v1.9 核心**：每次 LOG 子模板新增/修改时，必须复核 `LOG/O_boundary.md` §4 速查表是否需要追加
 - **LOG vs BIZ-I 边界切分**：
   - 测"业务侧落点是否完整" → `BIZ_AUDIT_LOG`
   - 测"全链路流水对账可导出" → `LOG_ASSET_AUDIT`
   - 同一笔业务 → BIZ-I 校验"是否写日志"，LOG 校验"日志能否对账"
-- **v1.6.1 占位文件清理**：LOG 子模板落地后必须删除 `AUX/J_log_moved_to_LOG.md`（已完成）
+- **v1.6.1 占位文件清理**：LOG 子模板落地后必须删除 `UTIL/J_log_moved_to_LOG.md`（已完成）
 
 ### 10.8 跨版本编号管理
 
-- **§4.5-§4.12 编号保留**：UI=§4.5 / CONFIG=§4.6 / AUX=§4.7 / BIZ=§4.8 / LINK=§4.9 / SPECIAL=§4.10 / HINT=§4.11 / LOG=§4.12
-- **§9.1-§9.9 编号保留**：UI=§9.1 / CONFIG=§9.3 / AUX=§9.4 / BIZ=§9.5 / LINK=§9.6 / HINT=§9.7 / SPECIAL=§9.8 / LOG=§9.9
+- **§4.5-§4.12 编号保留**：UI=§4.5 / CONFIG=§4.6 / UTIL=§4.7 / BIZ=§4.8 / LINK=§4.9 / SPECIAL=§4.10 / HINT=§4.11 / LOG=§4.12
+- **§9.1-§9.9 编号保留**：UI=§9.1 / CONFIG=§9.3 / UTIL=§9.4 / BIZ=§9.5 / LINK=§9.6 / HINT=§9.7 / SPECIAL=§9.8 / LOG=§9.9
 - **新增模块时插入已有编号之间**（不要 append 到末尾，避免编号漂移）
 
 ---
@@ -1241,12 +1241,12 @@ S5 启动时检查：
 | v1.3  | 2026-06-15 | **模块测试点模板**（S5 准入物料）落地：建立 `knowledge/public/module_templates/` 仓库 + 通用 5 段结构；UI 模块首发 10 子模板（A 控件基础 / B 纯前端交互 / C 布局适配 / D 静态展示 / E 动效 / F 引导浮窗 / G 无障碍 / H 异常场景 / I 边界区分 / J 游戏专项）+ 模块概览；新增 §10 章节；维护流程加 `[MODULES-TEMPLATE]` commit 前缀|
 | v1.4  | 2026-06-15 | **职责归位 + 单写源收敛**：MODULES.md §4.5 从明细展开（100+ 行）→ 概览/边界/索引（67 行）；明细/场景/种子 TP 全部委托给 `module_templates/UI/`；新增 §11「单写源规则」章节（内容归属表 + 同步机制 + 反模式）；§1 总表 UI 职责行从 200+ 字 → 30 字；§4 矩阵 UI 行从「8 大类全覆盖」修正为「11 个 v1.2 枚举」 |
 | v1.5  | 2026-06-15 | **CONFIG 模块深化**：从 4 个 v1.1 枚举扩展为 9 个 v1.2 枚举（保留 4 个 + 新增 5 个：PARSE_LOAD / VERSION_COMPAT / VALUE_LOGIC / EXPORT_PUBLISH / SERVER_CONFIG）；建立 11 大类细分（A 字段 / B 一致性 / C 跨表 / D 热更 / E 解析 / F 版本 / G 数值 / H 导出 / I 服务端 / J 边界 / K 游戏专项），覆盖用户给的 5 段+5 大类细化；新增 §4.6 CONFIG 细分索引章节；同步更新 §1 总表 + §4 矩阵 + §10 进度表 |
-| v1.6  | 2026-06-15 | **AUX 模块深化**：从 4 个 v1.1 枚举扩展为 14 个 v1.2 枚举（保留 4 个 + 新增 10 个：CURRENCY_EXCHANGE / OFFLINE_UPDATE / GM_TOOL / TEST_SCRIPT / ACCEPTANCE_CHECKLIST / STORAGE_LOG / PERF_TOOL / OPS_TOOL / SECURITY / ERROR_RECOVERY）；建立 16 大类细分（A 公共工具 / B 网络层 / C 缓存层 / D 资源管理 / E 汇率换算 / F 离线更新 / G GM 工具 / H 测试脚本 / I 策划验收 / J 存储日志 / K 性能画质 / L 运营辅助 / M 加密安全 / N 异常兜底 / O 边界 / P 游戏专项），覆盖用户给的 9 原有+7 新增 16 大类；新增 §4.7 AUX 细分索引章节 + §9.3-9.4 兼容映射；同步更新 §1 总表 + §4 矩阵 + §10 进度表 |
-| v1.7  | 2026-06-15 | **BIZ 模块深化**：从 4 个 v1.1 枚举扩展为 9 个 v1.2 枚举（`ACTIVITY_OPEN_CLOSE` 拆分为 `BIZ_LOGIC` / `BIZ_STATE_MACHINE` / `BIZ_SCHEDULED_TASK` 三类；`PROTOCOL` 升级为 `BIZ_PROTOCOL`；`DB_PERSIST` 升级为 `BIZ_DB_PERSIST`；新增 4 个完全缺失大类 `BIZ_CONCURRENCY` / `BIZ_SCHEDULED_TASK` / `BIZ_PAYMENT` / `BIZ_AUDIT_LOG`；`ENTITY_CACHE` 移交 AUX C）；建立 11 文件细分（A 核心业务逻辑 / B 端服数据流 / C 协议交互 / D 状态机 / E 数据库持久化 / F 并发多玩家 / G 定时异步任务 / H 付费商业化 / I 日志审计 / O 边界 / P 游戏专项），覆盖用户给的 5 段原有 + 4 大类原定义完全缺失补充（并发/定时/付费/审计）+ 5 类游戏专项（战斗/社交/运营/回滚）；新增 §4.8 BIZ 细分索引章节 + §9.5 兼容映射（含 `ACTIVITY_OPEN_CLOSE` 拆分规则 + `ENTITY_CACHE` 迁移说明）；同步更新 §1 总表 + §4 矩阵 + §10 进度表 |
-| v1.6.1| 2026-06-15 | **AUX 模块职责收窄（裁剪）**：剔除 4 类高层业务辅助——日志/埋点（→LOG v1.8）、提示（→HINT v1.7）、第三方 SDK（→LINK，原计划 v1.9 提前至 v1.8 完成）、风控/反作弊（→SPECIAL v1.10）；J_storage_log 重命名为 J_storage（日志部分迁出）、N_error_recovery 缩窄为底层（业务异常迁出→BIZ v1.11）；A/B/L/M 顶部描述增加 v1.6.1 变更说明；新增 J_log_moved_to_LOG.md 占位文件（待 LOG v1.8 完成后删除）；§1 总表/§4.7 边界/§10 进度同步更新 |
-| v1.6.1+| 2026-06-15 | **8 模块职责最终版 + 交叉判定规则**：BIZ/LINK/SPECIAL/LOG/HINT/CONFIG/UI 7 个模块描述按用户最终版重写；AUX 描述加"运营批量发奖/公告后台业务 → BIZ"剔除项；新增 **§3.5 交叉场景归属判定规则**（8 条 + 8 条反向参考）；§4.7 AUX 索引加"与各模块边界区分"一一对照（HINT/LOG/LINK/SPECIAL/UI/BIZ/CONFIG 7 个）；§4 矩阵 v1.2 枚举预规划（HINT 6 / LOG 5 / LINK 5 / SPECIAL 6 / BIZ 9）|
-| v1.8  | 2026-06-15 | **LINK 模块完整落地（定义 + 子模板 + 边界）**：从原 v1.1 模糊的 3 个枚举 + v1.6.1 临时版 5 个枚举，重新归整为 **6 个 v1.2 枚举**（`INTERNAL_BIZ_LINKAGE` / `CROSS_SERVER_SYNC` / `MULTI_CLIENT_SYNC` / `EXTERNAL_THIRD_PARTY` / `CROSS_MODULE_RESOURCE` / `OUTBOUND_DATA`）；§1 总表替换为用户最终版"5 大类"定义（**与 AUX 底层传输框架隔离**）；新增 **§4.9 LINK 细分索引**（4 子节：核心一句话 + **AUX vs LINK "水管 vs 业务"核心区分表** + 5 大类完整覆盖 + 7 个其他模块边界对照表 + 维护原则含 3 步判定法）；新增 **§9.6 LINK 兼容映射**（含 `REGRESSION_TEST` 按场景拆分规则 + `MULTI_TENANT_SYNC` 改名为 `MULTI_CLIENT_SYNC` 语义纠正）；与 AUX v1.6.1 "第三方 SDK→LINK" 裁剪方向 + §4.7 "vs LINK" 边界保持严格一致——AUX 管底层能力底座、LINK 管业务互通规则、**无重叠**；**8 个模板文件全部到位**（`LINK.md` 概览 + `A_internal_biz_linkage.md` ~ `F_outbound_data.md` 6 子模板含 110 个种子 TP + `O_boundary.md` 含 7 大类边界 + 7 误判案例 + 判定流程图 + 6 子类口诀 + `P_game_specific.md` 含 5 游戏子领域含 15 个种子 TP）；同步更新 §1 总表 / §4 矩阵 / §4.9 维护原则（链接接通）/ §10 进度表 / 目录 |
+| v1.6  | 2026-06-15 | **UTIL 模块深化**：从 4 个 v1.1 枚举扩展为 14 个 v1.2 枚举（保留 4 个 + 新增 10 个：CURRENCY_EXCHANGE / OFFLINE_UPDATE / GM_TOOL / TEST_SCRIPT / ACCEPTANCE_CHECKLIST / STORAGE_LOG / PERF_TOOL / OPS_TOOL / SECURITY / ERROR_RECOVERY）；建立 16 大类细分（A 公共工具 / B 网络层 / C 缓存层 / D 资源管理 / E 汇率换算 / F 离线更新 / G GM 工具 / H 测试脚本 / I 策划验收 / J 存储日志 / K 性能画质 / L 运营辅助 / M 加密安全 / N 异常兜底 / O 边界 / P 游戏专项），覆盖用户给的 9 原有+7 新增 16 大类；新增 §4.7 UTIL 细分索引章节 + §9.3-9.4 兼容映射；同步更新 §1 总表 + §4 矩阵 + §10 进度表 |
+| v1.7  | 2026-06-15 | **BIZ 模块深化**：从 4 个 v1.1 枚举扩展为 9 个 v1.2 枚举（`ACTIVITY_OPEN_CLOSE` 拆分为 `BIZ_LOGIC` / `BIZ_STATE_MACHINE` / `BIZ_SCHEDULED_TASK` 三类；`PROTOCOL` 升级为 `BIZ_PROTOCOL`；`DB_PERSIST` 升级为 `BIZ_DB_PERSIST`；新增 4 个完全缺失大类 `BIZ_CONCURRENCY` / `BIZ_SCHEDULED_TASK` / `BIZ_PAYMENT` / `BIZ_AUDIT_LOG`；`ENTITY_CACHE` 移交 UTIL C）；建立 11 文件细分（A 核心业务逻辑 / B 端服数据流 / C 协议交互 / D 状态机 / E 数据库持久化 / F 并发多玩家 / G 定时异步任务 / H 付费商业化 / I 日志审计 / O 边界 / P 游戏专项），覆盖用户给的 5 段原有 + 4 大类原定义完全缺失补充（并发/定时/付费/审计）+ 5 类游戏专项（战斗/社交/运营/回滚）；新增 §4.8 BIZ 细分索引章节 + §9.5 兼容映射（含 `ACTIVITY_OPEN_CLOSE` 拆分规则 + `ENTITY_CACHE` 迁移说明）；同步更新 §1 总表 + §4 矩阵 + §10 进度表 |
+| v1.6.1| 2026-06-15 | **UTIL 模块职责收窄（裁剪）**：剔除 4 类高层业务辅助——日志/埋点（→LOG v1.8）、提示（→HINT v1.7）、第三方 SDK（→LINK，原计划 v1.9 提前至 v1.8 完成）、风控/反作弊（→SPECIAL v1.10）；J_storage_log 重命名为 J_storage（日志部分迁出）、N_error_recovery 缩窄为底层（业务异常迁出→BIZ v1.11）；A/B/L/M 顶部描述增加 v1.6.1 变更说明；新增 J_log_moved_to_LOG.md 占位文件（待 LOG v1.8 完成后删除）；§1 总表/§4.7 边界/§10 进度同步更新 |
+| v1.6.1+| 2026-06-15 | **8 模块职责最终版 + 交叉判定规则**：BIZ/LINK/SPECIAL/LOG/HINT/CONFIG/UI 7 个模块描述按用户最终版重写；UTIL 描述加"运营批量发奖/公告后台业务 → BIZ"剔除项；新增 **§3.5 交叉场景归属判定规则**（8 条 + 8 条反向参考）；§4.7 UTIL 索引加"与各模块边界区分"一一对照（HINT/LOG/LINK/SPECIAL/UI/BIZ/CONFIG 7 个）；§4 矩阵 v1.2 枚举预规划（HINT 6 / LOG 5 / LINK 5 / SPECIAL 6 / BIZ 9）|
+| v1.8  | 2026-06-15 | **LINK 模块完整落地（定义 + 子模板 + 边界）**：从原 v1.1 模糊的 3 个枚举 + v1.6.1 临时版 5 个枚举，重新归整为 **6 个 v1.2 枚举**（`INTERNAL_BIZ_LINKAGE` / `CROSS_SERVER_SYNC` / `MULTI_CLIENT_SYNC` / `EXTERNAL_THIRD_PARTY` / `CROSS_MODULE_RESOURCE` / `OUTBOUND_DATA`）；§1 总表替换为用户最终版"5 大类"定义（**与 UTIL 底层传输框架隔离**）；新增 **§4.9 LINK 细分索引**（4 子节：核心一句话 + **UTIL vs LINK "水管 vs 业务"核心区分表** + 5 大类完整覆盖 + 7 个其他模块边界对照表 + 维护原则含 3 步判定法）；新增 **§9.6 LINK 兼容映射**（含 `REGRESSION_TEST` 按场景拆分规则 + `MULTI_TENANT_SYNC` 改名为 `MULTI_CLIENT_SYNC` 语义纠正）；与 UTIL v1.6.1 "第三方 SDK→LINK" 裁剪方向 + §4.7 "vs LINK" 边界保持严格一致——UTIL 管底层能力底座、LINK 管业务互通规则、**无重叠**；**8 个模板文件全部到位**（`LINK.md` 概览 + `A_internal_biz_linkage.md` ~ `F_outbound_data.md` 6 子模板含 110 个种子 TP + `O_boundary.md` 含 7 大类边界 + 7 误判案例 + 判定流程图 + 6 子类口诀 + `P_game_specific.md` 含 5 游戏子领域含 15 个种子 TP）；同步更新 §1 总表 / §4 矩阵 / §4.9 维护原则（链接接通）/ §10 进度表 / 目录 |
 | v1.7  | 2026-06-15 | **HINT 模块深化 + HINT vs UI 严格边界隔离**：从 v1.6.1 暂存版 6 枚举（`RED_DOT` / `ITEM_FLOAT` / `CURRENCY_FLOAT` / `MODAL_DIALOG` / `TOAST` / `FLOAT_NOTIFY`）扩展为 **13 个 v1.7 枚举**——保留 6 个 + 新增 7 个（`RED_DOT_BADGE` 语义升级 + `GUIDE_HIGHLIGHT` / `SOCIAL_PROMPT` / `OPS_PUSH_PROMPT` / `STATE_CHANGE_DIALOG` / `COMPLIANCE_PROMPT` / `OFFLINE_COMPENSATION` / `TIMED_REMINDER`），覆盖用户给的 7 原有细化（红点/飘字/Toast/模态/浮窗/错误文案/限时提醒）+ 6 大类原定义完全缺失补充（引导/社交/推送/状态变更/合规/离线补偿）；§1 总表 HINT 行从 1 行 30 字 → 13 大类一句话定义（含 HINT vs UI 边界声明）；新增 **§4.10 HINT 细分索引**（5 子节：核心一句话 + 13 大类完整覆盖表 + **HINT vs UI 关键边界隔离规则**（临时 vs 常驻 判定法 + 4 个举例区分）+ 8 个其他模块边界对照表 + 13 个 v1.7 枚举映射 + 维护原则）；新增 **§9.7 HINT 兼容映射**（v1.6.1 旧 6 枚举→v1.7 新 13 枚举 1:1 映射 + 7 个新枚举首现说明）；与 UI §4.5「提示的承载样式归 UI、提示内容本身归 HINT」边界声明保持严格一致；同步更新 §1 总表 / §4 矩阵 / §10 进度表 / 目录；HINT 子模板（A_*.md ~ M_*.md + O_boundary + P_game_specific）v1.7+ 后续补全 |
-| v1.11 | 2026-06-15 | **SPECIAL 模块深化 + 与 AUX/BIZ/LINK/UI/HINT/LOG/CONFIG 7 模块严格边界隔离**：从 v1.1 模糊的 5 个枚举（`DUPLICATE_PACKET` / `HIGH_FREQ_PACKET` / `WEAK_NETWORK` / `SWITCH_TO_BACKGROUND` / `ANTI_CHEAT`）+ v1.6.1+ 临时版 6 枚举，重新归整为 **9 个 v1.2 枚举**（`BOUNDARY_EXTREME` / `ANTI_CHEAT` / `WEAK_NET_RATE_LIMIT` / `BG_FG_SWITCH` / `SERVER_HA_RISK` / `VERSION_COMPAT_BIZ` / `CHANNEL_GRAY_BIZ` / `COMPLIANCE_RISK` / `RESOURCE_EXHAUST`）；§1 总表 SPECIAL 行替换为用户最终版"5 原有+4 新增 9 大类"完整定义（边界极端/反作弊/弱网/前后台/宕机/版本兼容/渠道灰度/合规/资源耗尽 + 底层归 AUX/正常归 BIZ/跨服正常归 LINK 边界声明）；新增 **§4.10 SPECIAL 细分索引**（6 子节：核心一句话 + **AUX vs BIZ vs LINK vs SPECIAL "水管 vs 业务 vs 互通 vs 对抗"核心区分表** + 9 大类完整覆盖表 + 9 个其他模块边界对照表 + 9 个 v1.2 枚举映射 + 维护原则含 4 步判定法 + v1.11 SPECIAL 核心定位 6 条）；新增 **§9.7 SPECIAL 兼容映射**（v1.1 旧 5 枚举→v1.2 新 9 枚举：`DUPLICATE_PACKET` / `HIGH_FREQ_PACKET` 按"业务层/流量层/服务端 HA"三维度拆分；`WEAK_NETWORK` 升级为 `WEAK_NET_RATE_LIMIT`；`SWITCH_TO_BACKGROUND` 升级为 `BG_FG_SWITCH`；5 个全新枚举首现说明）；§4.10 HINT 索引迁移到 §4.11（HINT 子模板待 v1.8 实施）；SPECIAL 子模板 11 个 = 9 测试子模板（A~I）+ O_boundary + P_game_specific，192 个种子 TP（A~I 各 20 + P 12）；与 AUX v1.6.1 "风控/反作弊→SPECIAL" 裁剪方向 + §3.5 交叉判定规则 + §4.7 "vs SPECIAL" 边界保持严格一致——AUX 管底层能力底座、BIZ 管正常业务、LINK 管业务互通、SPECIAL 管异常/对抗/容错/合规/资源耗尽，**四者无重叠**；同步更新 §1 总表 / §4 矩阵 / §10 进度表 / 目录 / 附录版本历史 |
-| v1.9  | 2026-06-15 | **LOG 模块深化 + 与 AUX 严格边界隔离**：从 v1.1 模糊的 4 个枚举（`ASSET_CHANGE` / `PROGRESS_TRIGGER` / `ANOMALY` / `AUDIT_TRAIL`）+ v1.6.1 暂存版 5 枚举（`EVENT_TRACK` / `ASSET_AUDIT` / `OPERATION_LOG` / `MONITOR` / `CRASH_REPORT`），重新归整为 **13 个 v1.9 枚举**（`LOG_EVENT_TRACK` / `LOG_ASSET_AUDIT` / `LOG_OPERATION` / `LOG_MONITOR` / `LOG_CRASH_REPORT` / `LOG_LEVEL_STORAGE` / `LOG_INTEGRITY` / `LOG_FIELD_COMPLIANCE` / `LOG_TRACE` / `LOG_SECURITY` / `LOG_THIRD_PARTY` / `LOG_ISOLATION` / `LOG_REPORT_FAULT_TOLERANT`）——按"业务规范/审计/埋点/合规"重新组织，覆盖用户给的 9 段原有（行为埋点/资产审计/操作日志/服务监控/客户端崩溃/分级存储/完整性/字段合规/问题溯源）+ 4 大类原定义完全缺失补充（安全反作弊/第三方关联/多渠道隔离/上报容错）+ 4 类游戏专项（战斗/社交/运营/兜底回滚）；§1 总表 LOG 行从 1 行 8 短语 → 13 大类一句话定义（含 LOG vs AUX 边界声明"日志底层采集/存储 SDK、文件读写工具归 AUX"）；新增 **§4.12 LOG 细分索引**（核心一句话 + 15 文件明细表 + 完整覆盖一句话 + **LOG vs AUX 严格隔离对照表 12 行** + 维护原则含 2 句判定法 + LOG vs BIZ-I `BIZ_AUDIT_LOG` 边界切分说明）；新增 **§9.9 LOG 兼容映射**（v1.1 旧 4 枚举→v1.9 新 13 枚举：`ASSET_CHANGE` / `PROGRESS_TRIGGER` 按"业务侧/聚合"分；`ANOMALY` 按"崩溃/业务异常"分；`AUDIT_TRAIL` 按"审计链/溯源"分；4 个 v1.9 全新枚举首现说明）；LOG 子模板 15 文件 = 13 测试子模板（A~M）+ O_boundary（重点 vs AUX 12 场景 + 10 误判案例 + LOG vs AUX 严格隔离速查表）+ P_game_specific（4 类游戏专项 32 个 TP）；LOG 子模板 TP 统计 A25 + B30 + C30 + D25 + E30 + F25 + G25 + H26 + I25 + J25 + K25 + L25 + M25 = **321 个种子 TP** + P 32 = **353 个种子 TP**；与 AUX v1.6.1 "日志/埋点/崩溃→LOG" 裁剪方向 + §3.5 交叉判定规则 + §4.7 "vs LOG" 边界保持严格一致——**AUX 管底层 SDK/采集/上报框架、LOG 管业务规范/审计/埋点触发/合规，无重叠**；同步更新 §1 总表 / §4 矩阵 / §4.7 AUX J 行注释 / §10 进度表 / 目录 / 附录版本历史；AUX/J_log_moved_to_LOG.md 占位文件删除 |
-| v1.7+ | 2026-06-15 | **HINT 模块完整落地（16 文件全到位）+ HINT vs UI 严格边界隔离**：在 v1.7"边界+职责优化"基础上，补全 16 个子模板文件——`HINT.md` 模块概览 + 13 测试子模板（A 红点 / B 资源飘字 / C 战斗飘字 / D 模态弹窗 / E Toast / F 浮窗 / G 限时提醒+错误文案 / H 新手引导 / I 社交 / J 运营推送 / K 状态变更 / L 风控合规 / M 离线补偿）+ O_boundary（含 7 模块边界对照 + 8 误判案例 + 判定流程图 + HINT vs UI "临时 vs 常驻"判定法 + 5 个举例区分）+ P_game_specific（含 5 类游戏专项 战斗/社交/运营/合规/补偿）；HINT 子模板 TP 统计 A20 + B25 + C20 + D20 + E20 + F15 + G20 + H15 + I15 + J15 + K15 + L20 + M15 = **235 个种子 TP** + P 15 = **250 个种子 TP**；与 UI §4.5 F 子类 `GUIDE_HINT`（承载样式）严格隔离——UI F 测样式/位置/动画、HINT H 测内容/触发逻辑/事件驱动；与 v1.6.1 AUX 裁剪"红点/弹窗/Toast/飘字→HINT"方向 + §3.5 交叉判定规则 + §4.7 AUX "vs HINT" 边界保持严格一致——AUX 管底层通知 API 框架、HINT 管玩家可见的反馈内容与触发逻辑，**无重叠**；v1.6.1 旧 `RED_DOT` 已升级为 v1.7 `RED_DOT_BADGE`（语义扩展"角标+数字"）；同步更新 §1 总表 / §4 矩阵 / §4.11 HINT 索引（"v1.7 规划"→"v1.7+ 已建"）/ §4.11.5 子类索引（新增）/ §4.11.6 维护原则（新增含 3 步判定法）/ §10 进度表 / 附录版本历史 / `module_templates/HINT.md` 概览 |
+| v1.11 | 2026-06-15 | **SPECIAL 模块深化 + 与 UTIL/BIZ/LINK/UI/HINT/LOG/CONFIG 7 模块严格边界隔离**：从 v1.1 模糊的 5 个枚举（`DUPLICATE_PACKET` / `HIGH_FREQ_PACKET` / `WEAK_NETWORK` / `SWITCH_TO_BACKGROUND` / `ANTI_CHEAT`）+ v1.6.1+ 临时版 6 枚举，重新归整为 **9 个 v1.2 枚举**（`BOUNDARY_EXTREME` / `ANTI_CHEAT` / `WEAK_NET_RATE_LIMIT` / `BG_FG_SWITCH` / `SERVER_HA_RISK` / `VERSION_COMPAT_BIZ` / `CHANNEL_GRAY_BIZ` / `COMPLIANCE_RISK` / `RESOURCE_EXHAUST`）；§1 总表 SPECIAL 行替换为用户最终版"5 原有+4 新增 9 大类"完整定义（边界极端/反作弊/弱网/前后台/宕机/版本兼容/渠道灰度/合规/资源耗尽 + 底层归 UTIL/正常归 BIZ/跨服正常归 LINK 边界声明）；新增 **§4.10 SPECIAL 细分索引**（6 子节：核心一句话 + **UTIL vs BIZ vs LINK vs SPECIAL "水管 vs 业务 vs 互通 vs 对抗"核心区分表** + 9 大类完整覆盖表 + 9 个其他模块边界对照表 + 9 个 v1.2 枚举映射 + 维护原则含 4 步判定法 + v1.11 SPECIAL 核心定位 6 条）；新增 **§9.7 SPECIAL 兼容映射**（v1.1 旧 5 枚举→v1.2 新 9 枚举：`DUPLICATE_PACKET` / `HIGH_FREQ_PACKET` 按"业务层/流量层/服务端 HA"三维度拆分；`WEAK_NETWORK` 升级为 `WEAK_NET_RATE_LIMIT`；`SWITCH_TO_BACKGROUND` 升级为 `BG_FG_SWITCH`；5 个全新枚举首现说明）；§4.10 HINT 索引迁移到 §4.11（HINT 子模板待 v1.8 实施）；SPECIAL 子模板 11 个 = 9 测试子模板（A~I）+ O_boundary + P_game_specific，192 个种子 TP（A~I 各 20 + P 12）；与 UTIL v1.6.1 "风控/反作弊→SPECIAL" 裁剪方向 + §3.5 交叉判定规则 + §4.7 "vs SPECIAL" 边界保持严格一致——UTIL 管底层能力底座、BIZ 管正常业务、LINK 管业务互通、SPECIAL 管异常/对抗/容错/合规/资源耗尽，**四者无重叠**；同步更新 §1 总表 / §4 矩阵 / §10 进度表 / 目录 / 附录版本历史 |
+| v1.9  | 2026-06-15 | **LOG 模块深化 + 与 UTIL 严格边界隔离**：从 v1.1 模糊的 4 个枚举（`ASSET_CHANGE` / `PROGRESS_TRIGGER` / `ANOMALY` / `AUDIT_TRAIL`）+ v1.6.1 暂存版 5 枚举（`EVENT_TRACK` / `ASSET_AUDIT` / `OPERATION_LOG` / `MONITOR` / `CRASH_REPORT`），重新归整为 **13 个 v1.9 枚举**（`LOG_EVENT_TRACK` / `LOG_ASSET_AUDIT` / `LOG_OPERATION` / `LOG_MONITOR` / `LOG_CRASH_REPORT` / `LOG_LEVEL_STORAGE` / `LOG_INTEGRITY` / `LOG_FIELD_COMPLIANCE` / `LOG_TRACE` / `LOG_SECURITY` / `LOG_THIRD_PARTY` / `LOG_ISOLATION` / `LOG_REPORT_FAULT_TOLERANT`）——按"业务规范/审计/埋点/合规"重新组织，覆盖用户给的 9 段原有（行为埋点/资产审计/操作日志/服务监控/客户端崩溃/分级存储/完整性/字段合规/问题溯源）+ 4 大类原定义完全缺失补充（安全反作弊/第三方关联/多渠道隔离/上报容错）+ 4 类游戏专项（战斗/社交/运营/兜底回滚）；§1 总表 LOG 行从 1 行 8 短语 → 13 大类一句话定义（含 LOG vs UTIL 边界声明"日志底层采集/存储 SDK、文件读写工具归 UTIL"）；新增 **§4.12 LOG 细分索引**（核心一句话 + 15 文件明细表 + 完整覆盖一句话 + **LOG vs UTIL 严格隔离对照表 12 行** + 维护原则含 2 句判定法 + LOG vs BIZ-I `BIZ_AUDIT_LOG` 边界切分说明）；新增 **§9.9 LOG 兼容映射**（v1.1 旧 4 枚举→v1.9 新 13 枚举：`ASSET_CHANGE` / `PROGRESS_TRIGGER` 按"业务侧/聚合"分；`ANOMALY` 按"崩溃/业务异常"分；`AUDIT_TRAIL` 按"审计链/溯源"分；4 个 v1.9 全新枚举首现说明）；LOG 子模板 15 文件 = 13 测试子模板（A~M）+ O_boundary（重点 vs UTIL 12 场景 + 10 误判案例 + LOG vs UTIL 严格隔离速查表）+ P_game_specific（4 类游戏专项 32 个 TP）；LOG 子模板 TP 统计 A25 + B30 + C30 + D25 + E30 + F25 + G25 + H26 + I25 + J25 + K25 + L25 + M25 = **321 个种子 TP** + P 32 = **353 个种子 TP**；与 UTIL v1.6.1 "日志/埋点/崩溃→LOG" 裁剪方向 + §3.5 交叉判定规则 + §4.7 "vs LOG" 边界保持严格一致——**UTIL 管底层 SDK/采集/上报框架、LOG 管业务规范/审计/埋点触发/合规，无重叠**；同步更新 §1 总表 / §4 矩阵 / §4.7 UTIL J 行注释 / §10 进度表 / 目录 / 附录版本历史；UTIL/J_log_moved_to_LOG.md 占位文件删除 |
+| v1.7+ | 2026-06-15 | **HINT 模块完整落地（16 文件全到位）+ HINT vs UI 严格边界隔离**：在 v1.7"边界+职责优化"基础上，补全 16 个子模板文件——`HINT.md` 模块概览 + 13 测试子模板（A 红点 / B 资源飘字 / C 战斗飘字 / D 模态弹窗 / E Toast / F 浮窗 / G 限时提醒+错误文案 / H 新手引导 / I 社交 / J 运营推送 / K 状态变更 / L 风控合规 / M 离线补偿）+ O_boundary（含 7 模块边界对照 + 8 误判案例 + 判定流程图 + HINT vs UI "临时 vs 常驻"判定法 + 5 个举例区分）+ P_game_specific（含 5 类游戏专项 战斗/社交/运营/合规/补偿）；HINT 子模板 TP 统计 A20 + B25 + C20 + D20 + E20 + F15 + G20 + H15 + I15 + J15 + K15 + L20 + M15 = **235 个种子 TP** + P 15 = **250 个种子 TP**；与 UI §4.5 F 子类 `GUIDE_HINT`（承载样式）严格隔离——UI F 测样式/位置/动画、HINT H 测内容/触发逻辑/事件驱动；与 v1.6.1 UTIL 裁剪"红点/弹窗/Toast/飘字→HINT"方向 + §3.5 交叉判定规则 + §4.7 UTIL "vs HINT" 边界保持严格一致——UTIL 管底层通知 API 框架、HINT 管玩家可见的反馈内容与触发逻辑，**无重叠**；v1.6.1 旧 `RED_DOT` 已升级为 v1.7 `RED_DOT_BADGE`（语义扩展"角标+数字"）；同步更新 §1 总表 / §4 矩阵 / §4.11 HINT 索引（"v1.7 规划"→"v1.7+ 已建"）/ §4.11.5 子类索引（新增）/ §4.11.6 维护原则（新增含 3 步判定法）/ §10 进度表 / 附录版本历史 / `module_templates/HINT.md` 概览 |

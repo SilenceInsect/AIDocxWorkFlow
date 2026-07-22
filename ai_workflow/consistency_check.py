@@ -91,7 +91,7 @@ _CHECK_CACHE: dict[str, dict[str, Any]] = {}
 
 # 8 模块枚举（从 MODULES.md §1 总表）
 _MODULE_ENUMS = {
-    "CONFIG", "UI", "BIZ", "AUX", "LINK",
+    "CONFIG", "UI", "BIZ", "UTIL", "LINK",
     "SPECIAL", "LOG", "HINT",
 }
 

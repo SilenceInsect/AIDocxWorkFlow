@@ -80,7 +80,7 @@
 **完整判定规则**：
 - **模块判定**：参考 `.cursor/MODULES.md` §3.5「交叉场景归属判定规则」
 - **类型判定**：参考 §3 4 类型枚举强制覆盖
-- **数量原则**：按命中模块的子模板数量下限（**AUX ≥ 4 / UI ≥ 6 / BIZ ≥ 6 / CONFIG ≥ 4 / HINT ≥ 4 / LINK ≥ 3 / LOG ≥ 3 / SPECIAL ≥ 4**）
+- **数量原则**：按命中模块的子模板数量下限（**UTIL ≥ 4 / UI ≥ 6 / BIZ ≥ 6 / CONFIG ≥ 4 / HINT ≥ 4 / LINK ≥ 3 / LOG ≥ 3 / SPECIAL ≥ 4**）
 
 ---
 
@@ -177,7 +177,7 @@
       "CONFIG": {"covered": false, "points": []},
       "UI": {"covered": true, "points": ["UI-001-001-TP-001", "UI-001-001-TP-002"]},
       "BIZ": {"covered": true, "points": ["UI-001-001-TP-003"]},
-      "AUX": {"covered": false, "points": []},
+      "UTIL": {"covered": false, "points": []},
       "LINK": {"covered": false, "points": []},
       "SPECIAL": {"covered": true, "points": ["UI-001-001-TP-004"]},
       "LOG": {"covered": false, "points": []},
@@ -223,7 +223,7 @@
 | **CONFIG** | ≥ 4 | 9 个 v1.2 枚举按命中按需 |
 | **UI** | ≥ 6 | 11 个 v1.2 枚举按命中按需 |
 | **BIZ** | ≥ 6 | 9 个 v1.2 枚举按命中按需 |
-| **AUX** | ≥ 4 | 14 个 v1.2 枚举按命中按需 |
+| **UTIL** | ≥ 4 | 14 个 v1.2 枚举按命中按需 |
 | **LINK** | ≥ 3 | 6 个 v1.2 枚举按命中按需 |
 | **LOG** | ≥ 3 | 13 个 v1.9 枚举按命中按需 |
 | **SPECIAL** | ≥ 4 | 9 个 v1.2 枚举按命中按需 |

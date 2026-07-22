@@ -35,7 +35,7 @@ from typing import Any
 # ─────────────────────────────────────────────
 # 8 模块枚举（与 MODULES.md §1 同步）
 # ─────────────────────────────────────────────
-VALID_MODULES = {"CONFIG", "UI", "BIZ", "AUX", "LINK", "SPECIAL", "LOG", "HINT"}
+VALID_MODULES = {"CONFIG", "UI", "BIZ", "UTIL", "LINK", "SPECIAL", "LOG", "HINT"}
 
 
 def load_json(path: str | Path) -> Any:

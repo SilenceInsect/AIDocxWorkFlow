@@ -27,8 +27,8 @@ __all__ = ["L1S6Validator"]
 # 常量
 # ---------------------------------------------------------------------------
 
-TC_ID_PAT = re.compile(r"^(CONFIG|UI|BIZ|AUX|LINK|SPECIAL|LOG|HINT)-TC-\d{3,}$")
-VALID_MODULES = {"CONFIG", "UI", "BIZ", "AUX", "LINK", "SPECIAL", "LOG", "HINT"}
+TC_ID_PAT = re.compile(r"^(CONFIG|UI|BIZ|UTIL|LINK|SPECIAL|LOG|HINT)-TC-\d{3,}$")
+VALID_MODULES = {"CONFIG", "UI", "BIZ", "UTIL", "LINK", "SPECIAL", "LOG", "HINT"}
 VALID_PRIORITIES = {"P0", "P1", "P2", "P3"}
 
 

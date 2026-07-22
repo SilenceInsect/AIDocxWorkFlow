@@ -204,8 +204,8 @@ recommendations = report["recommendations"]
     {
       "problem": "R-12 缓存击穿风险点未覆盖",
       "evidence": "S4风险点覆盖率 95% (19/20)",
-      "root_cause": "S5 执行时遗漏了 AUX-CACHE Epic 的 R-12 风险点",
-      "fix": "为 AUX-CACHE-001 补充缓存击穿 EXCEPTION 测试点",
+      "root_cause": "S5 执行时遗漏了 UTIL-CACHE Epic 的 R-12 风险点",
+      "fix": "为 UTIL-CACHE-001 补充缓存击穿 EXCEPTION 测试点",
       "affected_stage": "S5 规则"
     }
   ],

@@ -173,8 +173,8 @@
 
 ### A-016 [P1] S6 TC `module` 字段未严格收敛到 8 模块 SSOT
 
-- **现状**：SSOT L137 规定 8 模块：`UI / BIZ / CONFIG / AUX / LINK / SPECIAL / LOG / HINT`
-- **但** S6 TC `module` 分布：`UI: 66, BIZ: 249, LOG: 4, SPECIAL: 12`（仅 4 种模块，缺 `CONFIG / AUX / LINK / HINT`）
+- **现状**：SSOT L137 规定 8 模块：`UI / BIZ / CONFIG / UTIL / LINK / SPECIAL / LOG / HINT`
+- **但** S6 TC `module` 分布：`UI: 66, BIZ: 249, LOG: 4, SPECIAL: 12`（仅 4 种模块，缺 `CONFIG / UTIL / LINK / HINT`）
 - **影响**：是否 v3.01 项目确实只有 4 模块（不需要 8 模块）？若否，模块覆盖不全
 - **修复方向**：业务侧确认模块清单；如需 8 模块则 S5/S6 应补 TP/TC
 

@@ -26,11 +26,11 @@ module_templates/
     F_guide_hint.md
     G_accessibility.md
     H_edge_ui.md
-    I_boundary.md            ← UI 与 HINT/BIZ/AUX 边界区分
+    I_boundary.md            ← UI 与 HINT/BIZ/UTIL 边界区分
     J_game_specific.md       ← 游戏专项
   BIZ.md + BIZ/              ← 业务（待补全）
   CONFIG.md + CONFIG/        ← 配置（待补全）
-  AUX.md + AUX/              ← 辅助（v1.6.1 裁剪完成）
+  UTIL.md + UTIL/              ← 辅助（v1.6.1 裁剪完成）
   LINK.md + LINK/            ← 关联（待补全）
   SPECIAL.md + SPECIAL/      ← 特殊情境（待补全）
   LOG.md + LOG/              ← 日志（待补全）
@@ -133,7 +133,7 @@ S5 prompt 在生成前**先检查**：
 | 模块     | 概览 | 子类数 | 状态   | 备注                         |
 | -------- | ---- | ------ | ------ | ---------------------------- |
 | UI       | ✅    | 10     | v1.0   | 首发：10 子模板 + 1 概览 + 1 通用结构 |
-| AUX      | ✅    | 16（v1.6.1 裁剪后）| v1.6.1 | v1.6.1 裁剪：J/L 子类已迁出至 LOG/BIZ |
+| UTIL      | ✅    | 16（v1.6.1 裁剪后）| v1.6.1 | v1.6.1 裁剪：J/L 子类已迁出至 LOG/BIZ |
 | HINT     | ✅    | 15（A-M + O + P）| v1.7+  | 13 大类细化 + 与 UI 边界隔离；2026-06-15 重构 |
 | BIZ      | ⏳    | -      | 待补全 | 需提供 BIZ 细化明细         |
 | CONFIG   | ⏳    | -      | 待补全 | 需提供 CONFIG 细化明细      |
@@ -146,6 +146,6 @@ S5 prompt 在生成前**先检查**：
 ## 版本
 
 - v1.0 (2026-06-15)：UI 模块首发（10 子模板 + 1 概览 + 1 通用结构）
-- v1.6.1 (2026-06-15)：AUX 模块 v1.6.1 裁剪（J/L 子类迁出，J_log_moved_to_LOG.md / L_ops_moved_to_BIZ.md 占位文件已删除）
+- v1.6.1 (2026-06-15)：UTIL 模块 v1.6.1 裁剪（J/L 子类迁出，J_log_moved_to_LOG.md / L_ops_moved_to_BIZ.md 占位文件已删除）
 - v1.7+ (2026-06-15)：HINT 模块完整（13 大类细化 + 边界隔离 + 历史数据迁移；见 CHANGELOG.md）
 - 后续：每个模块补全后版本号 +0.1

@@ -4,7 +4,7 @@
   "value_criteria": [
     "通用底座（8 节）从 ui-expert v5 提炼，落到 governance/design_iter/plans/v36/base_template.md",
     "biz-expert 身份卡落档 .cursor/skills/biz-expert/_identity_card.md（含专家特色节）",
-    "aux-expert 身份卡落档 .cursor/skills/aux-expert/_identity_card.md（含专家特色节）",
+    "UTIL-expert 身份卡落档 .cursor/skills/UTIL-expert/_identity_card.md（含专家特色节）",
     "hint-expert 身份卡落档 .cursor/skills/hint-expert/_identity_card.md（含专家特色节）",
     "每个身份卡通过 _identity_card.md 路径自检且通过 git commit",
     "每个身份卡含 1 节反假设污染 + 1 节主动识别（v4/v5 通用底线）",
@@ -15,7 +15,7 @@
     "Round 内每轮产 audit_<round>.md + review_<round>.md",
     "通用底座文档 ≥ 80 行",
     "每个样板专家身份卡 ≥ 80 行",
-    "每轮 commit 信息遵循 [UI/BIZ/AUX/HINT-专家直写] 命名",
+    "每轮 commit 信息遵循 [UI/BIZ/UTIL/HINT-专家直写] 命名",
     "无新增 v36 之外的治理方案变更"
   ],
   "value_ratio": 0.6154,
@@ -61,7 +61,7 @@
         "reverse_challenge": "3 卡太相似？→ 否，特色节差异化（FSM/五值/3 维）"
       },
       {
-        "criterion": "aux-expert 身份卡落档",
+        "criterion": "UTIL-expert 身份卡落档",
         "judgement": "PASS",
         "evidence": "95c0be4 commit，204 行",
         "reverse_challenge": ""

@@ -47,7 +47,7 @@ S7_LITE_REQUIRED_FIELDS = [
 ]
 
 # 8 模块合法枚举（与 .cursor/MODULES.md §1 一致）
-VALID_MODULES = {"CONFIG", "UI", "BIZ", "AUX", "LINK", "LOG", "SPECIAL", "HINT"}
+VALID_MODULES = {"CONFIG", "UI", "BIZ", "UTIL", "LINK", "LOG", "SPECIAL", "HINT"}
 
 # 优先级合法枚举（v14 §4.5.1）
 VALID_PRIORITIES = {"P0", "P1", "P2"}

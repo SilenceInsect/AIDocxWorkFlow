@@ -203,7 +203,7 @@ knowledge/public/module_templates/<MODULE>/_candidates/
 |------|--------|---------|---------|
 | 需求含 UI 元素 | UI-expert | <MODULE> 业务逻辑视角 | UI 控件状态建模 |
 | 需求含业务规则 | BIZ-expert | <MODULE> 数据/配置视角 | FSM 业务状态机 |
-| 需求含字段边界 | AUX-expert | <MODULE> 配置校验视角 | 五值划分方法论 |
+| 需求含字段边界 | UTIL-expert | <MODULE> 配置校验视角 | 五值划分方法论 |
 | 需求含提示文案 | HINT-expert | <MODULE> 配置视角 | 提示时机/频次/文案 |
 | 需求含跨域同步 | LINK-expert | <MODULE> 配置一致性视角 | 链路拓扑 |
 | 需求含审计要求 | LOG-expert | <MODULE> 配置可审计视角 | 4W1H 审计链 |
@@ -441,7 +441,7 @@ knowledge/public/module_templates/<MODULE>/_candidates/
 |------|------|------|
 | ui-expert/_identity_card.md | ✅ v7 | v37 新底座 11 节 |
 | biz-expert/_identity_card.md | ✅ v2 | v37 新底座 11 节 |
-| aux-expert/_identity_card.md | ✅ v2 | v37 新底座 11 节 |
+| UTIL-expert/_identity_card.md | ✅ v2 | v37 新底座 11 节 |
 | hint-expert/_identity_card.md | ✅ v2 | v37 新底座 11 节 |
 | link-expert/_identity_card.md | ✅ v2 | v37 新底座 11 节 |
 | log-expert/_identity_card.md | ✅ v2 | v37 新底座 11 节 |

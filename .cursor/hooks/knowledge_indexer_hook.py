@@ -7,7 +7,7 @@
 
 行为：
   - 检测编辑的 .md 文件属于哪个模块（从路径解析）
-  - 提取模块 ID（如 UI/CONFIG/BIZ/AUX/LINK/SPECIAL/LOG/HINT）
+  - 提取模块 ID（如 UI/CONFIG/BIZ/UTIL/LINK/SPECIAL/LOG/HINT）
   - 异步执行增量索引（subprocess，不阻塞主线程）
   - 错误降级：任何异常 → exit 0
 
@@ -31,7 +31,7 @@ HOOK_SCRIPT = REPO_ROOT / "ai_workflow" / "knowledge_indexer.py"
 VENV_PYTHON = REPO_ROOT / ".venv" / "bin" / "python3"
 
 # 8 个合法模块 ID（与 .cursor/MODULES.md §1 总表 1:1 对齐）
-LEGAL_MODULES = ("CONFIG", "UI", "BIZ", "AUX", "LINK", "SPECIAL", "LOG", "HINT")
+LEGAL_MODULES = ("CONFIG", "UI", "BIZ", "UTIL", "LINK", "SPECIAL", "LOG", "HINT")
 
 
 def _extract_module(target_path: str) -> str | None:

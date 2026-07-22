@@ -241,11 +241,11 @@ S4-{Epic1ID}-1.0  {Epic1.title} 异常决策树
 S4 产出物中所有"模块归属"字段（风险点表"模块"列、Epic 元信息表"模块"列）必须从 8 模块中取值：
 
 ```
-CONFIG / UI / BIZ / AUX / LINK / LOG / SPECIAL / HINT
+CONFIG / UI / BIZ / UTIL / LINK / LOG / SPECIAL / HINT
 ```
 
 **HINT vs UI 边界判定**（误标高发区）见 `MODULES.md §4.11.2`。
-**BIZ vs AUX vs LINK vs SPECIAL 边界判定**（S4 高发区）见 `MODULES.md §3.5`。
+**BIZ vs UTIL vs LINK vs SPECIAL 边界判定**（S4 高发区）见 `MODULES.md §3.5`。
 
 ---
 
